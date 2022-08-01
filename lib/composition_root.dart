@@ -1,8 +1,15 @@
+import 'dart:convert';
+
+import 'package:douchat3/api/api.dart';
+import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/services/message/message_service.dart';
 import 'package:douchat3/views/home.dart';
+import 'package:douchat3/views/login.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class CompositionRoot {
@@ -26,7 +33,7 @@ class CompositionRoot {
     // socket.onError((data) => print(data));
     // socket.onConnectTimeout((data) => print(data));
     // socket.connect();
-    IO.Socket socket = IO.io('https://cloud.doggo-saloon.net:2585',
+    IO.Socket socket = IO.io('https://localhost:2585',
         IO.OptionBuilder().setTransports(['websocket']).build());
     socket.onConnect((_) {
       print('connect');
@@ -48,17 +55,35 @@ class CompositionRoot {
     // destroyAndSetup(r, connection);
   }
 
-  static Future<Widget> restart() async {
+  static Future<Widget> restart(User user) async {
     await configure();
     return composeHome();
   }
 
-  static Future<Widget> start() async {
+  static Future<Widget> start(BuildContext context) async {
     configure();
-    if (await const FlutterSecureStorage().read(key: 'access_token') == null) {
-      return composeRegister();
+    final token = await const FlutterSecureStorage().read(key: 'access_token');
+    if (token == null) {
+      return composeLogin();
     }
-    return composeHome();
+    final call = jsonDecode((await Api.isConnected(token)).body)['payload'];
+    final bool isConnected = call['connected'];
+    final User user = User.fromJson(call['client']);
+    if (isConnected) {
+      try {
+        Provider.of<ClientProvider>(context, listen: false).setClient(user);
+      } catch (e) {
+        print('context error + ' + e.toString());
+      }
+      print('connected');
+      return composeHome();
+    } else {
+      return composeLogin();
+    }
+  }
+
+  static Widget composeLogin() {
+    return const Login();
   }
 
   static Widget composeHome() {

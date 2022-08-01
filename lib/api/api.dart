@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart';
 
 class Api {
-  static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
+  // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
+  static const String baseUrl = "https://localhost:2585";
   static Future<Response> register(
       {required String username,
       required String password,
@@ -15,9 +16,15 @@ class Api {
     });
   }
 
-  static Future<Response> login(String username, String password) async {
+  static Future<Response> login(
+      {required String username, required String password}) async {
     return await post(Uri.parse("$baseUrl/login"),
         body: {'username': username, 'password': password});
+  }
+
+  static Future<Response> isConnected(String token) async {
+    return await post(Uri.parse("$baseUrl/isConnected"),
+        body: {'token': token});
   }
 
   static Future<String?> uploadProfilePicture(File? file) async {

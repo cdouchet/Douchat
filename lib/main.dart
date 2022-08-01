@@ -32,7 +32,7 @@ class Douchat extends StatelessWidget {
           darkTheme: darkTheme(context),
           themeMode: ThemeMode.dark,
           home: FutureBuilder<Widget>(
-              future: CompositionRoot.start(),
+              future: CompositionRoot.start(context),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   print("snap has data");
