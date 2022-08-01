@@ -22,7 +22,8 @@ class ClientProvider extends ChangeNotifier {
     return await secureStorage.read(key: 'access_token');
   }
 
-  void setClient(User user) {
+  Future<void> setClient(User user) async {
+    print('setting client');
     _client = user;
     notifyListeners();
   }

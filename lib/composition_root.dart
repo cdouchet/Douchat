@@ -61,7 +61,6 @@ class CompositionRoot {
   }
 
   static Future<Widget> start(BuildContext context) async {
-    configure();
     final token = await const FlutterSecureStorage().read(key: 'access_token');
     if (token == null) {
       return composeLogin();
@@ -71,7 +70,9 @@ class CompositionRoot {
     final User user = User.fromJson(call['client']);
     if (isConnected) {
       try {
-        Provider.of<ClientProvider>(context, listen: false).setClient(user);
+        configure();
+        await Provider.of<ClientProvider>(context, listen: false)
+            .setClient(user);
       } catch (e) {
         print('context error + ' + e.toString());
       }

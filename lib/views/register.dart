@@ -129,15 +129,19 @@ class _RegisterState extends State<Register> {
                                   .then((res) {
                                 setState(() => loading = false);
                                 if (res.statusCode == 200) {
-                                  Provider.of<ClientProvider>(context,
-                                          listen: false)
-                                      .setClient(User.fromJson(
-                                          jsonDecode(res.body)['payload']
-                                              ['new_user']));
-                                  print(Provider.of<ClientProvider>(context,
-                                          listen: false)
-                                      .client
-                                      .toJson());
+                                  final decoded =
+                                      jsonDecode(res.body)['payload'];
+                                  final clientProvider =
+                                      Provider.of<ClientProvider>(context,
+                                          listen: false);
+                                  clientProvider.setClient(
+                                      User.fromJson(decoded['new_user']));
+                                  print(clientProvider.client.toJson());
+                                  clientProvider
+                                      .setAccessToken(decoded['token']);
+                                  clientProvider
+                                      .getAccessToken()
+                                      .then((value) => print(value));
                                   Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

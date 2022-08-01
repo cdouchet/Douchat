@@ -2,13 +2,12 @@ import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/register/logo.dart';
-import 'package:douchat3/componants/register/profile_upload.dart';
 import 'package:douchat3/componants/shared/custom_text_field.dart';
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/providers/profile_photo.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:douchat3/views/register.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -160,6 +159,18 @@ class _LoginState extends State<Login> {
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold)))),
                     ),
+                    InkWell(
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const Register())),
+                        child: Text('S\'inscrire',
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(
+                                    fontSize: 18,
+                                    decoration: TextDecoration.underline))),
                     const Spacer(),
                     loading
                         ? const CircularProgressIndicator.adaptive()
