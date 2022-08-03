@@ -19,7 +19,7 @@ ThemeData darkTheme(BuildContext context) => ThemeData.dark().copyWith(
     appBarTheme: const AppBarTheme(backgroundColor: background),
     tabBarTheme: tabBarTheme.copyWith(unselectedLabelColor: Colors.white70),
     textTheme: GoogleFonts.comfortaaTextTheme(Theme.of(context).textTheme)
-        .apply(displayColor: Colors.white),
+        .apply(displayColor: Colors.white, bodyColor: Colors.white),
     visualDensity: VisualDensity.adaptivePlatformDensity);
 
 bool isLightTheme(BuildContext context) {

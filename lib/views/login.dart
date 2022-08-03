@@ -114,29 +114,45 @@ class _LoginState extends State<Login> {
                               setState(() => loading = true);
                               Api.login(
                                       username: _username, password: _password)
-                                  .then((res) {
+                                  .then((log) {
                                 setState(() => loading = false);
-                                if (res.statusCode == 200) {
+                                if (log.statusCode == 200) {
                                   final clientProvider =
                                       Provider.of<ClientProvider>(context,
                                           listen: false);
                                   final dynamic decodedResponse =
-                                      jsonDecode(res.body);
+                                      jsonDecode(log.body);
                                   clientProvider.setAccessToken(
                                       decodedResponse['payload']
                                           ['access_token']);
-                                  clientProvider.setClient(User.fromJson(
-                                      decodedResponse['payload']['client']));
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              CompositionRoot.composeHome()));
+                                  // clientProvider.setClient(User.fromJson(
+                                  //     decodedResponse['payload']['client']));
+                                  Api.getUsers().then((apiUsers) {
+                                    final List<User> users =
+                                        (jsonDecode(apiUsers.body)['payload']
+                                                ['users'] as List)
+                                            .map((e) => User.fromJson(e))
+                                            .toList();
+                                    CompositionRoot.configure(
+                                        decodedResponse['payload']['client']
+                                            ['id']);
+
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                CompositionRoot.composeHome(
+                                                    User.fromJson(
+                                                        decodedResponse[
+                                                                'payload']
+                                                            ['client']),
+                                                    users)));
+                                  });
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(
-                                              jsonDecode(res.body)['payload']
+                                              jsonDecode(log.body)['payload']
                                                   ['error'])));
                                 }
                               });

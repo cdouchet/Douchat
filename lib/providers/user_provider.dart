@@ -1,4 +1,5 @@
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/widgets.dart';
 
 class UserProvider extends ChangeNotifier {
@@ -7,6 +8,32 @@ class UserProvider extends ChangeNotifier {
 
   void setUsers(List<User> newUsers) {
     _users = newUsers;
+  }
+
+  addUser(User user) {
+    _users.add(user);
     notifyListeners();
+  }
+
+  removeUser(String id) {
+    _users.removeWhere((u) => u.id == id);
+    notifyListeners();
+  }
+
+  updateOnlineState({required bool online, required String id}) {
+    _users.firstWhere((u) => u.id == id).setOnline(online);
+    notifyListeners();
+  }
+
+  updateUsername({required String username, required String id}) {
+    _users.firstWhere((u) => u.id == id).setUsername(username);
+  }
+
+  updatePhotoUrl({required String url, required String id}) {
+    _users.firstWhere((u) => u.id == id).setPhotoUrl(url);
+  }
+
+  List<User> getConnectedUsers() {
+    return _users.where((user) => user.online == true).toList();
   }
 }

@@ -6,7 +6,9 @@ import 'package:flutter/src/widgets/framework.dart';
 class ProfileImage extends StatelessWidget {
   final bool online;
   final String? photoUrl;
-  const ProfileImage({Key? key, required this.online, required this.photoUrl})
+  final double size;
+  const ProfileImage(
+      {Key? key, required this.online, required this.photoUrl, this.size = 126})
       : super(key: key);
 
   @override
@@ -18,8 +20,8 @@ class ProfileImage extends StatelessWidget {
               borderRadius: BorderRadius.circular(126),
               child: photoUrl != null
                   ? Image.network(photoUrl!,
-                      width: 126, height: 126, fit: BoxFit.cover)
-                  : const Icon(Icons.person, color: Colors.white, size: 24)),
+                      width: size, height: size, fit: BoxFit.cover)
+                  : const Icon(Icons.person, color: Colors.white, size: 42)),
           Align(
               alignment: Alignment.topRight,
               child: online ? const OnlineIndicator() : Container())

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
+import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -22,10 +23,11 @@ class Douchat extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ListenableProvider(create: (_) => ClientProvider()),
-        ListenableProvider(
+        ChangeNotifierProvider<ClientProvider>(create: (_) => ClientProvider()),
+        ChangeNotifierProvider<ProfilePhotoProvider>(
           create: (_) => ProfilePhotoProvider(),
-        )
+        ),
+        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider())
       ],
       child: MaterialApp(
           theme: darkTheme(context),

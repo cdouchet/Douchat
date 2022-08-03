@@ -134,19 +134,30 @@ class _RegisterState extends State<Register> {
                                   final clientProvider =
                                       Provider.of<ClientProvider>(context,
                                           listen: false);
-                                  clientProvider.setClient(
-                                      User.fromJson(decoded['new_user']));
-                                  print(clientProvider.client.toJson());
+                                  // clientProvider.setClient(
+                                  //     User.fromJson(decoded['new_user']));
                                   clientProvider
                                       .setAccessToken(decoded['token']);
                                   clientProvider
                                       .getAccessToken()
                                       .then((value) => print(value));
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              CompositionRoot.composeHome()));
+                                  Api.getUsers().then((apiUsers) {
+                                    final List<User> users =
+                                        (jsonDecode(apiUsers.body)['payload']
+                                                ['users'] as List)
+                                            .map((e) => User.fromJson(e))
+                                            .toList();
+                                    CompositionRoot.configure(
+                                        decoded['new_user']['id']);
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                CompositionRoot.composeHome(
+                                                    User.fromJson(
+                                                        decoded['new_user']),
+                                                    users)));
+                                  });
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

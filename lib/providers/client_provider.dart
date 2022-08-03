@@ -25,6 +25,5 @@ class ClientProvider extends ChangeNotifier {
   Future<void> setClient(User user) async {
     print('setting client');
     _client = user;
-    notifyListeners();
   }
 }

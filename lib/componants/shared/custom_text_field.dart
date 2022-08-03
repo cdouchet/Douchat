@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hint;
-  final Function(String val) onChanged;
+  final Function(String val)? onChanged;
   final double height;
   final TextInputAction inputAction;
   final bool hideCharacters;
+  final void Function(String str)? onSubmitted;
   const CustomTextField(
       {Key? key,
       required this.hint,
       required this.onChanged,
       this.height = 54.0,
       required this.inputAction,
-      this.hideCharacters = false})
+      this.hideCharacters = false,
+      this.onSubmitted})
       : super(key: key);
 
   @override
@@ -29,6 +31,7 @@ class CustomTextField extends StatelessWidget {
                     : const Color(0xFF393737),
                 width: 1.5)),
         child: TextField(
+          onSubmitted: onSubmitted,
           obscureText: hideCharacters,
           style: const TextStyle(color: bubbleLight),
           keyboardType: TextInputType.text,

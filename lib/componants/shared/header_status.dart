@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
-class HeaderStatus extends StatelessWidget {
+class HeaderStatus extends StatefulWidget {
   final String username;
   final String? photoUrl;
   final bool online;
@@ -18,20 +18,32 @@ class HeaderStatus extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<HeaderStatus> createState() => _HeaderStatusState();
+}
+
+class _HeaderStatusState extends State<HeaderStatus> {
+  @override
   Widget build(BuildContext context) {
     return Container(
         width: double.maxFinite,
         child: Row(children: [
-          ProfileImage(online: online, photoUrl: photoUrl),
+          GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: ProfileImage(
+                  online: widget.online, photoUrl: widget.photoUrl)),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Padding(
                 padding: const EdgeInsets.only(left: 12),
-                child: Text(username.trim(),
+                child: Text(widget.username.trim(),
                     style: Theme.of(context).textTheme.caption!.copyWith(
                         fontSize: 14.0, fontWeight: FontWeight.bold))),
             Padding(
                 padding: const EdgeInsets.only(left: 12),
-                child: Text(typing == null ? 'online' : 'typing'))
+                child: Text(widget.typing == null ? 'online' : 'typing',
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 16)))
           ])
         ]));
   }

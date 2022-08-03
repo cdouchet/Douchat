@@ -2,20 +2,21 @@ import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/models/user.dart';
-import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/services/message/message_service.dart';
+import 'package:douchat3/services/listeners/listener_service.dart';
+import 'package:douchat3/services/users/user_service.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/home.dart';
 import 'package:douchat3/views/login.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class CompositionRoot {
-  static late final MessageService messageService;
+  static late final ListenerService messageService;
+  static late final UserService userService;
 
-  static configure() async {
+  static configure(String id) async {
     // final ca = await rootBundle.loadString('assets/chain.pem');
     // final fileCa = await (await File(
     //             '${(await getApplicationDocumentsDirectory()).path}/chain.pem')
@@ -33,8 +34,12 @@ class CompositionRoot {
     // socket.onError((data) => print(data));
     // socket.onConnectTimeout((data) => print(data));
     // socket.connect();
-    IO.Socket socket = IO.io('https://localhost:2585',
-        IO.OptionBuilder().setTransports(['websocket']).build());
+    IO.Socket socket = IO.io(
+        'https://192.168.204.6:2585',
+        IO.OptionBuilder().setTransports(['websocket']).setQuery({
+          'id': id,
+          'token': await const FlutterSecureStorage().read(key: 'access_token')
+        }).build());
     socket.onConnect((_) {
       print('connect');
       socket.emit('msg', 'test');
@@ -42,44 +47,66 @@ class CompositionRoot {
 
     socket.on('event', (data) => print(data));
 
-    socket.onDisconnect((_) {
-      print("Socket disconnected");
-    });
     socket.onError((_) {
       print("Socket error");
     });
     socket.on('fromServer', (_) => print(_));
 
-    messageService = MessageService(socket: socket);
+    print('instantiating ListenerService');
+    messageService = ListenerService(socket: socket);
+    userService = UserService(socket);
 
     // destroyAndSetup(r, connection);
   }
 
-  static Future<Widget> restart(User user) async {
-    await configure();
-    return composeHome();
+  static Future<Widget> restart(User client, List<User> users) async {
+    await configure(client.id);
+    return composeHome(client, users);
   }
 
   static Future<Widget> start(BuildContext context) async {
-    final token = await const FlutterSecureStorage().read(key: 'access_token');
-    if (token == null) {
-      return composeLogin();
-    }
-    final call = jsonDecode((await Api.isConnected(token)).body)['payload'];
-    final bool isConnected = call['connected'];
-    final User user = User.fromJson(call['client']);
-    if (isConnected) {
-      try {
-        configure();
-        await Provider.of<ClientProvider>(context, listen: false)
-            .setClient(user);
-      } catch (e) {
-        print('context error + ' + e.toString());
+    try {
+      // await FlutterSecureStorage().delete(key: 'access_token');
+      final token =
+          await const FlutterSecureStorage().read(key: 'access_token');
+      print('after read token');
+      if (token == null) {
+        return composeLogin();
       }
-      print('connected');
-      return composeHome();
-    } else {
-      return composeLogin();
+      print('token is not null');
+      final isConnected =
+          jsonDecode((await Api.isConnected(token)).body)['payload'];
+      print(isConnected);
+      print('after api call');
+      final bool connected = isConnected['connected'];
+      print('after is connected');
+      final User user = User.fromJson(isConnected['client']);
+      print('after client setup');
+      Utils.logger.d((await Api.getUsers()).body);
+      final List<User> users =
+          (jsonDecode((await Api.getUsers()).body)['payload']['users'] as List)
+              .map((e) => User.fromJson(e))
+              .toList();
+      print('after settings users');
+      try {
+        print('before remove user id');
+        users.removeWhere((element) => element.id == user.id);
+        print('after remove user id');
+      } catch (e) {
+        print(e);
+        print(users);
+        print(user.id);
+      }
+      if (connected) {
+        await configure(user.id);
+        print('connected');
+        return composeHome(user, users);
+      } else {
+        return composeLogin();
+      }
+    } catch (e) {
+      print(e);
+      return Login();
     }
   }
 
@@ -87,8 +114,12 @@ class CompositionRoot {
     return const Login();
   }
 
-  static Widget composeHome() {
-    return Home(messageService: messageService);
+  static Widget composeHome(User client, List<User> users) {
+    return Home(
+        messageService: messageService,
+        userService: userService,
+        client: client,
+        users: users);
   }
 
   static Widget composeRegister() {
