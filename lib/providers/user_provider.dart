@@ -1,5 +1,4 @@
 import 'package:douchat3/models/user.dart';
-import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/widgets.dart';
 
 class UserProvider extends ChangeNotifier {
@@ -12,6 +11,7 @@ class UserProvider extends ChangeNotifier {
 
   addUser(User user) {
     _users.add(user);
+    print('Added user ${user.id}');
     notifyListeners();
   }
 

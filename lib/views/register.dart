@@ -8,12 +8,17 @@ import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
+import 'package:douchat3/providers/route_provider.dart';
+import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
+
+  String get routeName => 'register';
 
   @override
   State<Register> createState() => _RegisterState();
@@ -23,6 +28,12 @@ class _RegisterState extends State<Register> {
   String _username = '';
   String _password = '';
   bool loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<RouteProvider>(context, listen: false).changeRoute('register');
+  }
 
   Widget _logo(BuildContext context) {
     return Row(
@@ -127,7 +138,6 @@ class _RegisterState extends State<Register> {
                                       password: _password,
                                       photoUrl: photoUrl)
                                   .then((res) {
-                                setState(() => loading = false);
                                 if (res.statusCode == 200) {
                                   final decoded =
                                       jsonDecode(res.body)['payload'];
@@ -141,24 +151,37 @@ class _RegisterState extends State<Register> {
                                   clientProvider
                                       .getAccessToken()
                                       .then((value) => print(value));
-                                  Api.getUsers().then((apiUsers) {
-                                    final List<User> users =
-                                        (jsonDecode(apiUsers.body)['payload']
-                                                ['users'] as List)
-                                            .map((e) => User.fromJson(e))
-                                            .toList();
-                                    CompositionRoot.configure(
-                                        decoded['new_user']['id']);
-                                    Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                CompositionRoot.composeHome(
-                                                    User.fromJson(
-                                                        decoded['new_user']),
-                                                    users)));
+                                  final String clientId =
+                                      decoded['new_user']['id'];
+
+                                  CompositionRoot.configure(clientId,
+                                          freshRegister: true)
+                                      .then((_) {
+                                    CompositionRoot.userService.sendCreatedUser(
+                                        User.fromJson(decoded['new_user']));
+                                    setState(() => loading = false);
+                                    Navigator.pushReplacementNamed(
+                                        context, home,
+                                        arguments: {
+                                          'client': User.fromJson(
+                                              decoded['new_user']),
+                                          'users': [],
+                                          'messages': [],
+                                          'conversations': []
+                                        });
+                                    // Navigator.pushReplacement(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //         builder: (_) =>
+                                    //             CompositionRoot.composeHome(
+                                    //                 User.fromJson(
+                                    //                     decoded['new_user']),
+                                    //                 [],
+                                    //                 [],
+                                    //                 [])));
                                   });
                                 } else {
+                                  setState(() => loading = false);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(
@@ -187,7 +210,8 @@ class _RegisterState extends State<Register> {
                     ),
                     const Spacer(),
                     loading
-                        ? const CircularProgressIndicator.adaptive()
+                        ? LoadingAnimationWidget.threeArchedCircle(
+                            color: Colors.white, size: 30)
                         : Container(),
                     const Spacer(flex: 1)
                   ],
@@ -202,6 +226,10 @@ class _RegisterState extends State<Register> {
     var error = '';
     if (_username.isEmpty) error = 'Entrer un nom d\'utilisateur';
     if (_password.isEmpty) error = '$error\n Entrer un mot de passe';
+    if (_username.length > 20) {
+      error =
+          '$error\n Le nom d\'utilisateur ne doit pas comporter plus de 20 caractères';
+    }
     return error;
   }
 }

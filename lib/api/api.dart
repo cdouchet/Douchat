@@ -6,7 +6,7 @@ import 'package:http_interceptor/http/http.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
-  static const String baseUrl = "https://192.168.204.6:2585";
+  static const String baseUrl = "https://192.168.1.10:2585";
   static Client client =
       InterceptedClient.build(interceptors: [GlobalInterceptor()]);
   static Future<Response> register(
@@ -31,8 +31,19 @@ class Api {
         body: {'token': token});
   }
 
-  static Future<Response> getUsers() async {
-    return await client.get(Uri.parse('$baseUrl/getUsers'));
+  static Future<Response> addContact(
+      {required String id, required String clientId}) async {
+    return await client.post(Uri.parse('$baseUrl/addContact'),
+        body: {'id': id, 'clientId': clientId});
+  }
+
+  static Future<Response> getUsers({required String clientId}) async {
+    return await client.get(Uri.parse('$baseUrl/getUsers?clientId=$clientId'));
+  }
+
+  static Future<Response> doUsernameExists(String username) async {
+    return await client
+        .get(Uri.parse('$baseUrl/doUsernameExists?username=$username'));
   }
 
   static Future<String?> uploadProfilePicture(File? file) async {
@@ -46,5 +57,11 @@ class Api {
     if (result.statusCode != 200) return null;
     final response = await Response.fromStream(result);
     return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}/${response.body}';
+  }
+
+  static Future<Response> getConversationMessages(
+      {required String clientId}) async {
+    return await client
+        .get(Uri.parse('$baseUrl/getConversationMessages?clientId=$clientId'));
   }
 }

@@ -1,15 +1,19 @@
-import 'package:douchat3/componants/shared/custom_text_field.dart';
-import 'package:douchat3/componants/shared/profile_image.dart';
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/profile_photo.dart';
+import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/route_manager.dart';
 import 'package:provider/provider.dart';
 
 class Settings extends StatefulWidget {
   final UserService userService;
   const Settings({Key? key, required this.userService}) : super(key: key);
+
+  String get routeName => 'settings';
 
   @override
   State<Settings> createState() => _SettingsState();
@@ -17,6 +21,13 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   bool typing = false;
+  final TextEditingController textEditingController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<RouteProvider>(context, listen: false).changeRoute('settings');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +41,44 @@ class _SettingsState extends State<Settings> {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-          ClipRRect(
-                  borderRadius: BorderRadius.circular(250),
-                  child: Image.network(clientProvider.client.photoUrl,
-                      width: 175, height: 175))
-              .applyPadding(const EdgeInsets.only(bottom: 12)),
+          Row(children: [
+            IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context))
+          ]),
+          GestureDetector(
+            onTap: () {
+              Provider.of<ProfilePhotoProvider>(context, listen: false)
+                  .getImage()
+                  .then((_) {
+                final photoFile =
+                    Provider.of<ProfilePhotoProvider>(context, listen: false)
+                        .photoFile;
+                if (Provider.of<ProfilePhotoProvider>(context, listen: false)
+                        .photoFile !=
+                    null) {
+                  Api.uploadProfilePicture(photoFile).then((url) {
+                    widget.userService
+                        .changePhotoUrl(context: context, photoUrl: url!);
+                  }).catchError((obj) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text(
+                            'Erreur durant le téléchargement de l\'image')));
+                  });
+                }
+              });
+            },
+            child: ClipRRect(
+                    borderRadius: BorderRadius.circular(250),
+                    child: Image.network(clientProvider.client.photoUrl,
+                        width: 175,
+                        height: 175,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.person,
+                                color: Colors.white, size: 102)))
+                .applyPadding(const EdgeInsets.only(bottom: 12)),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -51,10 +95,20 @@ class _SettingsState extends State<Settings> {
                       builder: (context) {
                         return WillPopScope(
                             child: AlertDialog(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
                                 insetPadding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 24),
                                 content: GestureDetector(
                                     onTap: () {
+                                      if (textEditingController
+                                          .text.isNotEmpty) {
+                                        print('changing username');
+                                        widget.userService.changeUsername(
+                                            context: context,
+                                            username:
+                                                textEditingController.text);
+                                      }
                                       Navigator.of(context).pop();
                                       setState(() {
                                         typing = false;
@@ -65,25 +119,57 @@ class _SettingsState extends State<Settings> {
                                         color: Colors.transparent,
                                         child: Wrap(children: [
                                           TextField(
-                                              decoration: const InputDecoration(
+                                              maxLength: 20,
+                                              decoration: InputDecoration(
                                                   border: InputBorder.none,
                                                   hintText:
-                                                      'Entrer un nouveau nom'))
+                                                      'Entrer un nouveau nom',
+                                                  hintStyle: Theme.of(context)
+                                                      .textTheme
+                                                      .caption!
+                                                      .copyWith(
+                                                          color: Colors.white
+                                                              .withOpacity(0.1),
+                                                          fontSize: 24)),
+                                              controller: textEditingController,
+                                              autofocus: true,
+                                              maxLines: 1,
+                                              minLines: 1,
+                                              textAlign: TextAlign.center,
+                                              textAlignVertical:
+                                                  TextAlignVertical.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText1!
+                                                  .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white))
                                         ])))),
                             onWillPop: () {
                               setState(() => typing = false);
+
                               return Future.value(true);
                             });
                       });
                 },
-                child: Text(clientProvider.client.username.trim(),
-                        style: Theme.of(context).textTheme.headline4)
-                    .applyPadding(const EdgeInsets.only(right: 6)),
+                child: Container(
+                    alignment: Alignment.center,
+                    child: Visibility(
+                        visible: !typing,
+                        child: Container(
+                            margin: const EdgeInsets.all(20),
+                            child: Text(clientProvider.client.username,
+                                style:
+                                    Theme.of(context).textTheme.headline4)))),
               ),
-              Icon(FontAwesomeIcons.pencil, color: Colors.white, size: 18)
+              const Icon(FontAwesomeIcons.pencil, color: Colors.white, size: 18)
             ],
           ),
-          Expanded(child: ListView(children: []))
+          IconButton(
+              onPressed: () => print(Get.currentRoute),
+              icon: Icon(Icons.temple_buddhist)),
+          Expanded(child: ListView(children: const []))
         ])));
   }
 }

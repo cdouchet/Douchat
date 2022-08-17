@@ -46,10 +46,25 @@ dependencies:
   http_interceptor: ^1.0.2
   logger: ^1.1.0
   font_awesome_flutter: ^10.1.0
+  intl: ^0.17.0
+  qr_flutter: ^4.0.0
+  qr_code_scanner: ^1.0.0
+  loading_animation_widget: ^1.2.0+2
+  fluttertoast: ^8.0.9
+  loader: ^1.0.0
+  flutter_local_notifications: ^9.7.1
+  flutter_launcher_icons: ^0.10.0
+  flutter_phoenix:
+  get: ^4.6.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter  
+
+flutter_icons:
+  android: 'launcher_icon'
+  ios: false
+  image_path: 'assets/shower2.png'
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

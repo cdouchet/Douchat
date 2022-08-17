@@ -1,22 +1,30 @@
 import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/main.dart';
+import 'package:douchat3/models/conversation.dart';
+import 'package:douchat3/models/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
+import 'package:douchat3/services/messages/message_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/home.dart';
 import 'package:douchat3/views/login.dart';
+import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class CompositionRoot {
-  static late final ListenerService messageService;
-  static late final UserService userService;
+  static late ListenerService listenerService;
+  static late UserService userService;
+  static late MessageService messageService;
+  static late IO.Socket socket;
 
-  static configure(String id) async {
+  static Future<void> configure(String id,
+      {required bool freshRegister}) async {
     // final ca = await rootBundle.loadString('assets/chain.pem');
     // final fileCa = await (await File(
     //             '${(await getApplicationDocumentsDirectory()).path}/chain.pem')
@@ -34,16 +42,19 @@ class CompositionRoot {
     // socket.onError((data) => print(data));
     // socket.onConnectTimeout((data) => print(data));
     // socket.connect();
-    IO.Socket socket = IO.io(
-        'https://192.168.204.6:2585',
+    Utils.logger.d('Configuring Douchat...');
+    socket = IO.io(
+        'https://192.168.1.10:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
           'id': id,
-          'token': await const FlutterSecureStorage().read(key: 'access_token')
+          'token': await const FlutterSecureStorage().read(key: 'access_token'),
+          'freshRegister': freshRegister ? 'true' : 'false'
         }).build());
+    Utils.logger.d('Socket io object : ' + socket.toString());
     socket.onConnect((_) {
-      print('connect');
-      socket.emit('msg', 'test');
+      Utils.logger.i('Socket connected');
     });
+    socket.connect();
 
     socket.on('event', (data) => print(data));
 
@@ -53,16 +64,14 @@ class CompositionRoot {
     socket.on('fromServer', (_) => print(_));
 
     print('instantiating ListenerService');
-    messageService = ListenerService(socket: socket);
+    listenerService = ListenerService(
+        socket: socket, notificationsPlugin: notificationsPlugin);
     userService = UserService(socket);
-
+    messageService = MessageService(socket: socket);
     // destroyAndSetup(r, connection);
   }
 
-  static Future<Widget> restart(User client, List<User> users) async {
-    await configure(client.id);
-    return composeHome(client, users);
-  }
+  static void disposeServices() {}
 
   static Future<Widget> start(BuildContext context) async {
     try {
@@ -80,14 +89,36 @@ class CompositionRoot {
       print('after api call');
       final bool connected = isConnected['connected'];
       print('after is connected');
+      if (!connected) {
+        return composeLogin();
+      }
       final User user = User.fromJson(isConnected['client']);
       print('after client setup');
-      Utils.logger.d((await Api.getUsers()).body);
+      Utils.logger.d((await Api.getUsers(clientId: user.id)).body);
       final List<User> users =
-          (jsonDecode((await Api.getUsers()).body)['payload']['users'] as List)
+          (jsonDecode((await Api.getUsers(clientId: user.id)).body)['payload']
+                  ['users'] as List)
               .map((e) => User.fromJson(e))
               .toList();
+      Utils.logger
+          .d((await Api.getConversationMessages(clientId: user.id)).body);
+      final List<Message> messages = (jsonDecode(
+              (await Api.getConversationMessages(clientId: user.id))
+                  .body)['payload']['messages'] as List)
+          .map((e) => Message.fromJson(e))
+          .toList();
+      messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
       print('after settings users');
+
+      List<Conversation> conversations = users
+          .map((u) => Conversation(
+              messages: messages
+                  .where((m) =>
+                      (m.from == u.id && m.to == user.id) ||
+                      (m.from == user.id && m.to == u.id))
+                  .toList(),
+              user: u))
+          .toList();
       try {
         print('before remove user id');
         users.removeWhere((element) => element.id == user.id);
@@ -98,15 +129,16 @@ class CompositionRoot {
         print(user.id);
       }
       if (connected) {
-        await configure(user.id);
+        await configure(user.id, freshRegister: false);
         print('connected');
-        return composeHome(user, users);
+        return composeHome(user, users, messages, conversations);
       } else {
         return composeLogin();
       }
     } catch (e) {
+      print('composition root error 2');
       print(e);
-      return Login();
+      return const Login();
     }
   }
 
@@ -114,15 +146,26 @@ class CompositionRoot {
     return const Login();
   }
 
-  static Widget composeHome(User client, List<User> users) {
+  static Widget composeHome(User client, List<User> users,
+      List<Message> messages, List<Conversation> conversations) {
     return Home(
-        messageService: messageService,
+        messageService: listenerService,
         userService: userService,
         client: client,
-        users: users);
+        messages: messages,
+        users: users,
+        conversations: conversations);
   }
 
   static Widget composeRegister() {
     return const Register();
+  }
+
+  static Widget composePrivateMessageThread({required User user}) {
+    return PrivateMessageThread(
+      user: user,
+      userService: userService,
+      messageService: messageService,
+    );
   }
 }

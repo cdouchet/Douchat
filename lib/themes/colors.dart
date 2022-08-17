@@ -5,6 +5,7 @@ const background = Color.fromRGBO(21, 21, 21, 1);
 const primary = Color(0xFFEF1B48);
 const bubbleDark = Color(0xFF262629);
 const bubbleLight = Color(0xFFE8E8E8);
+const appBarDark = Color(0xFF111111);
 const indicatorBubble = Color(0xFF39B54A);
 const backgroundGrey = Color.fromARGB(255, 86, 86, 86);
 

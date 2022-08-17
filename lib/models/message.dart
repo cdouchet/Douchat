@@ -1,10 +1,10 @@
-import 'package:douchat3/models/user.dart';
+import 'package:intl/intl.dart';
 
 class Message {
   final String id;
   dynamic content;
-  final User from;
-  final User to;
+  final String from;
+  final String to;
   final String type;
   final DateTime timeStamp;
 
@@ -19,10 +19,10 @@ class Message {
   Map<String, dynamic> toJson() => {
         "id": id,
         "content": content,
-        "from": from.id,
-        "to": to.id,
+        "from": from,
+        "to": to,
         "type": type,
-        "timestamp": timeStamp
+        "timestamp": DateFormat().format(timeStamp)
       };
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -31,5 +31,5 @@ class Message {
       from: json['from'],
       to: json['to'],
       type: json['type'],
-      timeStamp: json['timestamp']);
+      timeStamp: DateFormat().parse(json['timestamp']));
 }

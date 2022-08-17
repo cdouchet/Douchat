@@ -1,8 +1,5 @@
 import 'package:douchat3/componants/shared/profile_image.dart';
-import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class HeaderStatus extends StatefulWidget {
   final String username;
@@ -24,7 +21,7 @@ class HeaderStatus extends StatefulWidget {
 class _HeaderStatusState extends State<HeaderStatus> {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
         width: double.maxFinite,
         child: Row(children: [
           GestureDetector(
@@ -39,11 +36,16 @@ class _HeaderStatusState extends State<HeaderStatus> {
                         fontSize: 14.0, fontWeight: FontWeight.bold))),
             Padding(
                 padding: const EdgeInsets.only(left: 12),
-                child: Text(widget.typing == null ? 'online' : 'typing',
+                child: Text(
+                    widget.typing == null
+                        ? widget.online
+                            ? 'En ligne'
+                            : 'Hors ligne'
+                        : 'typing',
                     style: Theme.of(context)
                         .textTheme
                         .caption!
-                        .copyWith(fontSize: 16)))
+                        .copyWith(fontSize: 12)))
           ])
         ]));
   }

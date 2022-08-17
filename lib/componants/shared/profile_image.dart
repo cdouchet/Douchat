@@ -1,7 +1,5 @@
 import 'package:douchat3/componants/shared/online_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class ProfileImage extends StatelessWidget {
   final bool online;
@@ -19,8 +17,16 @@ class ProfileImage extends StatelessWidget {
           ClipRRect(
               borderRadius: BorderRadius.circular(126),
               child: photoUrl != null
-                  ? Image.network(photoUrl!,
-                      width: size, height: size, fit: BoxFit.cover)
+                  ? Image.network(
+                      photoUrl!,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 42),
+                    )
                   : const Icon(Icons.person, color: Colors.white, size: 42)),
           Align(
               alignment: Alignment.topRight,

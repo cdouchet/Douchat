@@ -1,18 +1,35 @@
 import 'dart:io';
 
 import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/message_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
+import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
+import 'package:douchat3/routes/router.dart';
+import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+
+final GlobalKey<ScaffoldState> globalKey = GlobalKey();
+final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   await dotenv.load(fileName: '.env');
+  initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
+  notificationsPlugin.initialize(
+      InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/launcher_icon')),
+      onSelectNotification: notificationCallbackHandler);
   runApp(const Douchat());
 }
 
@@ -27,12 +44,22 @@ class Douchat extends StatelessWidget {
         ChangeNotifierProvider<ProfilePhotoProvider>(
           create: (_) => ProfilePhotoProvider(),
         ),
-        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider())
+        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+        ChangeNotifierProvider<MessageProvider>(
+            create: (_) => MessageProvider()),
+        ChangeNotifierProvider<ConversationProvider>(
+            create: (_) => ConversationProvider()),
+        ChangeNotifierProvider<RouteProvider>(create: (_) => RouteProvider()),
+        ChangeNotifierProvider<AppLifeCycleProvider>(
+            create: (_) => AppLifeCycleProvider())
       ],
       child: MaterialApp(
+          key: globalKey,
+          debugShowCheckedModeBanner: false,
           theme: darkTheme(context),
           darkTheme: darkTheme(context),
           themeMode: ThemeMode.dark,
+          onGenerateRoute: controller,
           home: FutureBuilder<Widget>(
               future: CompositionRoot.start(context),
               builder: (context, snapshot) {
@@ -41,7 +68,11 @@ class Douchat extends StatelessWidget {
                   return snapshot.data!;
                 } else {
                   print("snap has no data");
-                  return Container();
+                  return Scaffold(
+                      body: SafeArea(
+                          child: Center(
+                              child: LoadingAnimationWidget.threeArchedCircle(
+                                  color: Colors.white, size: 70))));
                 }
               })),
     );

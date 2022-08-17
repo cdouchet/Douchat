@@ -9,11 +9,6 @@ class ClientProvider extends ChangeNotifier {
   User get client => _client;
   FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-  void changePhotoUrl(String newPhotoUrl) {
-    _photoUrl = newPhotoUrl;
-    notifyListeners();
-  }
-
   void setAccessToken(String token) {
     secureStorage.write(key: 'access_token', value: token);
   }
@@ -25,5 +20,15 @@ class ClientProvider extends ChangeNotifier {
   Future<void> setClient(User user) async {
     print('setting client');
     _client = user;
+  }
+
+  void changeUsername(String newName) {
+    _client.setUsername(newName);
+    notifyListeners();
+  }
+
+  void changePhotoUrl(String newPhotoUrl) {
+    _client.setPhotoUrl(newPhotoUrl);
+    notifyListeners();
   }
 }
