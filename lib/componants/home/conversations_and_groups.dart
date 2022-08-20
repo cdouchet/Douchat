@@ -1,10 +1,10 @@
 import 'package:douchat3/componants/shared/profile_image.dart';
 import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/routes/router.dart';
+import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -53,17 +53,23 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                     if (convs[index].messages.isEmpty) {
                       return Container();
                     }
-                    return _buildConversation(user: convs[index].user);
+                    return _buildConversation(userId: convs[index].user.id);
                   }))
         ]));
   }
 
-  Widget _buildConversation({required User user}) {
-    final lastMessage = Provider.of<ConversationProvider>(context, listen: true)
+  Widget _buildConversation({required String userId}) {
+    final user = Provider.of<UserProvider>(context, listen: true)
+        .users
+        .firstWhere((u) => u.id == userId);
+    final msgs = Provider.of<ConversationProvider>(context, listen: true)
         .conversations
         .firstWhere((c) => c.user.id == user.id)
-        .messages
-        .first;
+        .messages;
+    final lastMessage = msgs.first;
+    final hasUnread = msgs.any((m) =>
+        m.read == false &&
+        m.from != Provider.of<ClientProvider>(context, listen: true).client.id);
     return GestureDetector(
         onTap: () {
           Navigator.pushNamed(context, privateThread,
@@ -93,9 +99,28 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                           ? 'Vous: '
                           : '') +
                       lastMessage.content,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).textTheme.caption!.copyWith(
+                      fontWeight:
+                          hasUnread ? FontWeight.bold : FontWeight.normal),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis)
-            ])));
+            ]),
+            trailing: hasUnread
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                        color: primary,
+                        borderRadius: BorderRadius.circular(60)),
+                    child: Text(
+                            msgs
+                                .where((m) => m.read == false)
+                                .length
+                                .toString(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(fontSize: 10))
+                        .applyPadding(const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2)))
+                : null));
   }
 }

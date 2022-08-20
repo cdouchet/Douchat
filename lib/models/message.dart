@@ -7,6 +7,7 @@ class Message {
   final String to;
   final String type;
   final DateTime timeStamp;
+  bool read;
 
   Message(
       {required this.id,
@@ -14,7 +15,8 @@ class Message {
       required this.from,
       required this.to,
       required this.type,
-      required this.timeStamp});
+      required this.timeStamp,
+      required this.read});
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -22,7 +24,8 @@ class Message {
         "from": from,
         "to": to,
         "type": type,
-        "timestamp": DateFormat().format(timeStamp)
+        "timestamp": DateFormat().format(timeStamp),
+        "read": read
       };
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -31,5 +34,8 @@ class Message {
       from: json['from'],
       to: json['to'],
       type: json['type'],
-      timeStamp: DateFormat().parse(json['timestamp']));
+      timeStamp: DateFormat().parse(json['timestamp']),
+      read: json['read']);
+
+  void updateMessageState(bool update) => read = update;
 }

@@ -8,7 +8,6 @@ import 'package:douchat3/models/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/set_providers.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
@@ -48,8 +47,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print("CHANGING APP LIFE CYCLE");
     print(state.toString());
-    Provider.of<AppLifeCycleProvider>(context, listen: false)
-        .setAppState(state);
     if (state == AppLifecycleState.resumed) {
       notificationsPlugin.cancelAll();
     }
@@ -60,7 +57,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _initialSetup();
-    Provider.of<RouteProvider>(context, listen: false).changeRoute('home');
     widget.messageService.messages();
   }
 

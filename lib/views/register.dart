@@ -8,7 +8,6 @@ import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +31,6 @@ class _RegisterState extends State<Register> {
   @override
   void initState() {
     super.initState();
-    Provider.of<RouteProvider>(context, listen: false).changeRoute('register');
   }
 
   Widget _logo(BuildContext context) {

@@ -8,7 +8,6 @@ import 'package:douchat3/models/conversation.dart';
 import 'package:douchat3/models/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/views/register.dart';
@@ -33,7 +32,6 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-    Provider.of<RouteProvider>(context, listen: false).changeRoute('login');
   }
 
   Widget _logo(BuildContext context) {

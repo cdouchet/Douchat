@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:douchat3/models/conversation.dart';
 import 'package:douchat3/models/message.dart';
 import 'package:douchat3/models/user.dart';
-import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +39,7 @@ class ListenerService {
     _startReceivingNewUsers(context);
 
     _startReceivingConversationMessages(context);
+    _startReceivingConversationReceipts(context);
     // _startReceivingSelfConversationMessages(context);
   }
 
@@ -49,8 +50,8 @@ class ListenerService {
           .addConversationMessage(Message.fromJson(data));
       if (data['from'] !=
               Provider.of<ClientProvider>(context, listen: false).client.id &&
-          Provider.of<AppLifeCycleProvider>(context, listen: false).state !=
-              AppLifecycleState.resumed) {
+          Provider.of<RouteProvider>(context, listen: false).route !=
+              'private_thread') {
         int id = 0;
         while (notificationIds.contains(id)) {
           id++;
@@ -75,6 +76,15 @@ class ListenerService {
                     importance: flnp.Importance.max)),
             payload: "{'type': 'conversation', 'id': ${data['from']}}");
       }
+    });
+  }
+
+  _startReceivingConversationReceipts(BuildContext context) {
+    socket.on('conversation-receipts', (data) {
+      Utils.logger.i('MESSAGES TO UPDATE : ' + data['messages'].toString());
+      Provider.of<ConversationProvider>(context, listen: false).updateReadState(
+          data['messages'].cast<String>(), data['clientId'],
+          notify: true);
     });
   }
 

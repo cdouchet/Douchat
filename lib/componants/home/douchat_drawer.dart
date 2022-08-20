@@ -31,6 +31,25 @@ class DouchatDrawer extends StatelessWidget {
                             .copyWith(color: Colors.white))))
             .applyPadding(const EdgeInsets.only(bottom: 12)),
         GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, settingsStr,
+                      arguments: {'userService': userService});
+                },
+                child: ListTile(
+                    tileColor: tileColor,
+                    leading: const Icon(Icons.settings, color: Colors.white),
+                    title: const Text('Paramètres')))
+            .applyPadding(const EdgeInsets.only(bottom: 12)),
+        GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, infos);
+                },
+                child: ListTile(
+                    tileColor: tileColor,
+                    leading: const Icon(Icons.info, color: Colors.white),
+                    title: const Text('A propos de l\'application')))
+            .applyPadding(const EdgeInsets.only(bottom: 12)),
+        GestureDetector(
           onTap: () {
             CompositionRoot.socket.clearListeners();
             CompositionRoot.socket.disconnect();
@@ -49,16 +68,7 @@ class DouchatDrawer extends StatelessWidget {
                       .textTheme
                       .caption!
                       .copyWith(color: Colors.white))),
-        ).applyPadding(const EdgeInsets.only(bottom: 12)),
-        GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, settingsStr,
-                  arguments: {'userService': userService});
-            },
-            child: ListTile(
-                tileColor: tileColor,
-                leading: const Icon(Icons.settings, color: Colors.white),
-                title: const Text('Paramètres')))
+        ),
       ])),
     );
   }

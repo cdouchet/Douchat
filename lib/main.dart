@@ -12,6 +12,7 @@ import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -32,6 +33,14 @@ void main() async {
       onSelectNotification: notificationCallbackHandler);
   runApp(const Douchat());
 }
+
+final androidBackgroundConfig = FlutterBackgroundAndroidConfig(
+    notificationTitle: 'Douchat',
+    notificationText:
+        'Cette notif est là pour garder Douchat activé. C\'est parce Google veut que j\'utilise leur plugin qui traque tout mais je l\'ai esquivé.',
+    notificationImportance: AndroidNotificationImportance.Default,
+    notificationIcon:
+        AndroidResource(name: 'launcher_icon', defType: 'drawable'));
 
 class Douchat extends StatelessWidget {
   const Douchat({Key? key}) : super(key: key);
@@ -54,27 +63,38 @@ class Douchat extends StatelessWidget {
             create: (_) => AppLifeCycleProvider())
       ],
       child: MaterialApp(
-          key: globalKey,
-          debugShowCheckedModeBanner: false,
-          theme: darkTheme(context),
-          darkTheme: darkTheme(context),
-          themeMode: ThemeMode.dark,
-          onGenerateRoute: controller,
-          home: FutureBuilder<Widget>(
-              future: CompositionRoot.start(context),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  print("snap has data");
-                  return snapshot.data!;
-                } else {
-                  print("snap has no data");
-                  return Scaffold(
-                      body: SafeArea(
-                          child: Center(
-                              child: LoadingAnimationWidget.threeArchedCircle(
-                                  color: Colors.white, size: 70))));
-                }
-              })),
+        key: globalKey,
+        debugShowCheckedModeBanner: false,
+        theme: darkTheme(context),
+        darkTheme: darkTheme(context),
+        themeMode: ThemeMode.dark,
+        onGenerateRoute: controller,
+        home: FutureBuilder(
+            future: FlutterBackground.initialize(
+                androidConfig: androidBackgroundConfig),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData) {
+                return FutureBuilder<Widget>(
+                    future: CompositionRoot.start(context),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        print("snap has data");
+                        return snapshot.data!;
+                      } else {
+                        print("snap has no data");
+                        return Scaffold(
+                            body: SafeArea(
+                                child: Center(
+                                    child: LoadingAnimationWidget
+                                        .threeArchedCircle(
+                                            color: Colors.white, size: 70))));
+                      }
+                    });
+              } else {
+                return Container();
+              }
+            }),
+      ),
     );
   }
 }

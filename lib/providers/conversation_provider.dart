@@ -1,6 +1,5 @@
 import 'package:douchat3/models/conversation.dart';
 import 'package:douchat3/models/message.dart';
-import 'package:douchat3/models/user.dart';
 import 'package:flutter/widgets.dart';
 
 class ConversationProvider extends ChangeNotifier {
@@ -11,8 +10,8 @@ class ConversationProvider extends ChangeNotifier {
     _conversations = newConversations;
   }
 
-  Conversation getConversation(User user) =>
-      _conversations.firstWhere((c) => c.user.id == user.id);
+  Conversation getConversation(String userId) =>
+      _conversations.firstWhere((c) => c.user.id == userId);
 
   void addConversation(Conversation conversation) {
     _conversations.add(conversation);
@@ -27,5 +26,18 @@ class ConversationProvider extends ChangeNotifier {
         .messages
         .insert(0, message);
     notifyListeners();
+  }
+
+  void updateReadState(List<String> messagesToUpdate, String userId,
+      {required bool notify}) {
+    final msgs = _conversations.firstWhere((c) => c.user.id == userId).messages;
+    for (int i = 0; i < messagesToUpdate.length; i++) {
+      msgs
+          .firstWhere((m) => m.id == messagesToUpdate[i])
+          .updateMessageState(true);
+    }
+    if (notify) {
+      notifyListeners();
+    }
   }
 }

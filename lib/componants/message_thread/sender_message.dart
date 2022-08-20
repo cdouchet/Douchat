@@ -51,8 +51,11 @@ class SenderMessage extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: Colors.black,
                           borderRadius: BorderRadius.circular(30)),
-                      child: const Icon(Icons.check_circle_rounded,
-                          color: Colors.white, size: 20))))
+                      child: Icon(Icons.check_circle_rounded,
+                          color: message.read == true
+                              ? Colors.green
+                              : Colors.white,
+                          size: 20))))
         ]));
   }
 }

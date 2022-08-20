@@ -163,7 +163,7 @@ class CompositionRoot {
 
   static Widget composePrivateMessageThread({required User user}) {
     return PrivateMessageThread(
-      user: user,
+      userId: user.id,
       userService: userService,
       messageService: messageService,
     );

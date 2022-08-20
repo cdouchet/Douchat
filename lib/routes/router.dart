@@ -1,6 +1,7 @@
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/providers/route_provider.dart';
+import 'package:douchat3/views/about.dart';
 import 'package:douchat3/views/id_share.dart';
 import 'package:douchat3/views/qr_loader.dart';
 import 'package:douchat3/views/qr_scan.dart';
@@ -16,12 +17,13 @@ const String register = 'register';
 const String privateThread = 'private_thread';
 const String qrLoader = 'qr_loader';
 const String qrScan = 'qr_scan';
+const String infos = 'infos';
 
 Route<dynamic> controller(RouteSettings settings) {
   print('Name controller : ' + settings.name!);
   Provider.of<RouteProvider>(globalKey.currentContext!, listen: false)
       .changeRoute(settings.name!);
-  final args = settings.arguments as Map;
+  final args = (settings.arguments ?? {}) as Map;
   switch (settings.name) {
     case home:
       return MaterialPageRoute(
@@ -49,6 +51,8 @@ Route<dynamic> controller(RouteSettings settings) {
     case qrScan:
       return MaterialPageRoute(
           builder: (_) => QrScanPage(userService: args['userService']));
+    case infos:
+      return MaterialPageRoute(builder: (_) => About());
     default:
       return MaterialPageRoute(builder: (_) => CompositionRoot.composeLogin());
   }
