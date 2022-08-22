@@ -5,7 +5,6 @@ import 'package:douchat3/models/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -49,9 +48,11 @@ class ListenerService {
       Provider.of<ConversationProvider>(context, listen: false)
           .addConversationMessage(Message.fromJson(data));
       if (data['from'] !=
-              Provider.of<ClientProvider>(context, listen: false).client.id &&
-          Provider.of<RouteProvider>(context, listen: false).route !=
-              'private_thread') {
+              Provider.of<ClientProvider>(context, listen: false).client.id
+          //      &&
+          // Provider.of<RouteProvider>(context, listen: false).route !=
+          //     'private_thread'
+          ) {
         int id = 0;
         while (notificationIds.contains(id)) {
           id++;

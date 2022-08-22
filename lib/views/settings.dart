@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
@@ -70,13 +71,15 @@ class _SettingsState extends State<Settings> {
             },
             child: ClipRRect(
                     borderRadius: BorderRadius.circular(250),
-                    child: Image.network(clientProvider.client.photoUrl,
+                    child: CachedNetworkImage(
+                        imageUrl: clientProvider.client.photoUrl,
                         width: 175,
                         height: 175,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.person,
-                                color: Colors.white, size: 102)))
+                        errorWidget: (context, error, stackTrace) => const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 102)))
                 .applyPadding(const EdgeInsets.only(bottom: 12)),
           ),
           Row(

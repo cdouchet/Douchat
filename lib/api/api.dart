@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:http/http.dart';
 import 'package:http_interceptor/http/http.dart';
 
@@ -57,6 +58,29 @@ class Api {
     if (result.statusCode != 200) return null;
     final response = await Response.fromStream(result);
     return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}/${response.body}';
+  }
+
+  static Future<String?> uploadFile(
+      {required File? file, required String type}) async {
+    try {
+      if (file == null) {
+        return null;
+      }
+      final request = MultipartRequest(
+          'POST', Uri.parse('$baseUrl/uploadFile/media?type=$type'))
+        ..files.add(await MultipartFile.fromPath('picture', file.path));
+
+      final result = await request.send();
+      final response = await Response.fromStream(result);
+      if (response.statusCode == 200) {
+        return '${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}';
+      }
+      return null;
+    } catch (e, s) {
+      Utils.logger.i(e);
+      Utils.logger.i(s);
+      return null;
+    }
   }
 
   static Future<Response> getConversationMessages(

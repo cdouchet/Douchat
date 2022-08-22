@@ -28,6 +28,33 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addTempMessages(List<Message> ms) {
+    final Conversation c =
+        _conversations.firstWhere((c) => c.user.id == ms.first.to);
+    for (final Message m in ms) {
+      c.messages.insert(0, m);
+    }
+    notifyListeners();
+  }
+
+  void removeTempMessage({required String uId, required String mId}) {
+    _conversations
+        .firstWhere((c) => c.user.id == uId)
+        .messages
+        .removeWhere((e) => e.id == mId);
+    notifyListeners();
+  }
+
+  void updateTempMessageState(
+      {required String uId, required String mId, required String nT}) {
+    _conversations
+        .firstWhere((c) => c.user.id == uId)
+        .messages
+        .firstWhere((e) => e.id == mId)
+        .updateTypeState(nT);
+    notifyListeners();
+  }
+
   void updateReadState(List<String> messagesToUpdate, String userId,
       {required bool notify}) {
     final msgs = _conversations.firstWhere((c) => c.user.id == userId).messages;

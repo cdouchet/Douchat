@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/shared/online_indicator.dart';
 import 'package:flutter/material.dart';
 
@@ -17,12 +18,12 @@ class ProfileImage extends StatelessWidget {
           ClipRRect(
               borderRadius: BorderRadius.circular(126),
               child: photoUrl != null
-                  ? Image.network(
-                      photoUrl!,
+                  ? CachedNetworkImage(
+                      imageUrl: photoUrl!,
                       width: size,
                       height: size,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+                      errorWidget: (context, error, stackTrace) => const Icon(
                           Icons.person,
                           color: Colors.white,
                           size: 42),

@@ -5,18 +5,19 @@ class Message {
   dynamic content;
   final String from;
   final String to;
-  final String type;
+  String type;
   final DateTime timeStamp;
   bool read;
 
-  Message(
-      {required this.id,
-      required this.content,
-      required this.from,
-      required this.to,
-      required this.type,
-      required this.timeStamp,
-      required this.read});
+  Message({
+    required this.id,
+    required this.content,
+    required this.from,
+    required this.to,
+    required this.type,
+    required this.timeStamp,
+    required this.read,
+  });
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -25,17 +26,19 @@ class Message {
         "to": to,
         "type": type,
         "timestamp": DateFormat().format(timeStamp),
-        "read": read
+        "read": read,
       };
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
-      id: json['id'],
-      content: json['content'],
-      from: json['from'],
-      to: json['to'],
-      type: json['type'],
-      timeStamp: DateFormat().parse(json['timestamp']),
-      read: json['read']);
+        id: json['id'],
+        content: json['content'],
+        from: json['from'],
+        to: json['to'],
+        type: json['type'],
+        timeStamp: DateFormat().parse(json['timestamp']),
+        read: json['read'],
+      );
 
   void updateMessageState(bool update) => read = update;
+  void updateTypeState(String t) => type = t;
 }

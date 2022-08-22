@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/message_thread/receiver_message.dart';
 import 'package:douchat3/componants/message_thread/sender_message.dart';
@@ -113,53 +115,49 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
                       messageList: messageList,
                       client: clientProvider.client,
                       user: user)),
-              Expanded(
-                  child: Container(
-                      height: 100,
-                      decoration: const BoxDecoration(
-                          color: appBarDark,
-                          boxShadow: [
-                            BoxShadow(
-                                offset: Offset(0, -3),
-                                blurRadius: 6.0,
-                                color: Colors.black12)
-                          ]),
-                      alignment: Alignment.topCenter,
-                      child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                    flex: 2,
-                                    child: Column(children: [
-                                      Row(children: [
-                                        Expanded(
-                                            child: _buildMessageInput(context)),
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(left: 12),
-                                            child: SizedBox(
-                                                height: 45,
-                                                width: 45,
-                                                child: RawMaterialButton(
-                                                    fillColor: primary,
-                                                    shape: const CircleBorder(),
-                                                    elevation: 5,
-                                                    child:
-                                                        const Icon(Icons.send),
-                                                    onPressed: () =>
-                                                        _sendMessage(
-                                                            client:
-                                                                clientProvider
-                                                                    .client,
-                                                            context: context,
-                                                            user: user))))
-                                      ])
-                                    ])),
-                              ]))))
+              Container(
+                  decoration: const BoxDecoration(
+                      color: appBarDark,
+                      boxShadow: [
+                        BoxShadow(
+                            offset: Offset(0, -3),
+                            blurRadius: 6.0,
+                            color: Colors.black12)
+                      ]),
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                flex: 2,
+                                child: Column(children: [
+                                  Row(children: [
+                                    Expanded(
+                                        child: _buildMessageInput(
+                                            context: context, user: user)),
+                                    Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 12),
+                                        child: SizedBox(
+                                            height: 45,
+                                            width: 45,
+                                            child: RawMaterialButton(
+                                                shape: const CircleBorder(),
+                                                elevation: 5,
+                                                child: const Icon(Icons.send,
+                                                    color: primary),
+                                                onPressed: () => _sendMessage(
+                                                    client:
+                                                        clientProvider.client,
+                                                    context: context,
+                                                    user: user))))
+                                  ])
+                                ])),
+                          ])))
             ])));
   }
 
@@ -190,7 +188,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
         addAutomaticKeepAlives: true,
       );
 
-  _buildMessageInput(BuildContext context) {
+  _buildMessageInput({required BuildContext context, required User user}) {
     final border = OutlineInputBorder(
         borderRadius: const BorderRadius.all(Radius.circular(90)),
         borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)));
@@ -204,30 +202,95 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
           _dispatchTyping(TypingType.stop,
               Provider.of<ClientProvider>(context, listen: false).client.id);
         },
-        child: TextFormField(
-            controller: _textEditingController,
-            textInputAction: TextInputAction.newline,
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
-            style: Theme.of(context).textTheme.caption,
-            cursorColor: primary,
-            cursorHeight: 18,
-            onChanged: (str) => _sendTypingNotification(str,
-                Provider.of<ClientProvider>(context, listen: false).client.id),
-            decoration: InputDecoration(
-                prefixIcon: IconButton(
-                    icon: Icon(Icons.add, color: primary),
-                    onPressed: () => _handleMedia(context)),
-                contentPadding:
-                    const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                enabledBorder: border,
-                filled: true,
-                fillColor: bubbleDark,
-                focusedBorder: border)));
+        child: Padding(
+          padding:
+              // EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              EdgeInsets.only(bottom: 0),
+          child: TextFormField(
+              controller: _textEditingController,
+              textInputAction: TextInputAction.newline,
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              style: Theme.of(context).textTheme.caption,
+              cursorColor: primary,
+              cursorHeight: 18,
+              onChanged: (str) => _sendTypingNotification(
+                  str,
+                  Provider.of<ClientProvider>(context, listen: false)
+                      .client
+                      .id),
+              decoration: InputDecoration(
+                  prefixIcon: IconButton(
+                      icon: Icon(Icons.add, color: primary),
+                      onPressed: () => _handleMedia(
+                          context: context,
+                          client: Provider.of<ClientProvider>(context,
+                                  listen: false)
+                              .client,
+                          user: user)),
+                  contentPadding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  enabledBorder: border,
+                  filled: true,
+                  fillColor: bubbleDark,
+                  focusedBorder: border)),
+        ));
   }
 
-  _handleMedia(BuildContext context) {
-    Utils.showMediaPickFile(context);
+  _handleMedia(
+      {required BuildContext context,
+      required User client,
+      required User user}) async {
+    final res = await Utils.showMediaPickFile(context);
+    if (res != null) {
+      if (res['type'] == 'medias') {
+        final List<File> fs = res['medias'];
+        List<Message> ms = [];
+        for (int i = 0; i < fs.length; i++) {
+          ms.add(Message(
+              id: 'temp$i',
+              content: "${fs[i].path}",
+              from: client.id,
+              to: widget.userId,
+              type:
+                  'temp_loading_${Utils.isImage(fs[i].path) ? 'image' : 'video'}',
+              timeStamp: DateTime.now(),
+              read: false));
+        }
+        Provider.of<ConversationProvider>(context, listen: false)
+            .addTempMessages(ms);
+        for (int i = 0; i < fs.length; i++) {
+          final String type = Utils.isImage(fs[i].path) ? 'image' : 'video';
+          Api.uploadFile(file: fs[i], type: type).then((path) {
+            if (path != null) {
+              widget.messageService.sendMessage({
+                'from': client.toJson(),
+                'to': user.toJson(),
+                'content': path,
+                'type': type,
+                'timestamp': DateFormat().format(DateTime.now()),
+                'read': false
+              });
+              Provider.of<ConversationProvider>(context, listen: false)
+                  .removeTempMessage(mId: 'temp$i', uId: user.id);
+            } else {
+              Provider.of<ConversationProvider>(context, listen: false)
+                  .updateTempMessageState(
+                      uId: user.id, mId: 'temp$i', nT: 'temp_error_$type');
+            }
+          });
+        }
+      } else if (res['type'] == 'gif') {
+        widget.messageService.sendMessage({
+          'from': client.toJson(),
+          'to': user.toJson(),
+          'content': res['url'],
+          'type': 'gif',
+          'timestamp': DateFormat().format(DateTime.now()),
+          'read': false
+        });
+      }
+    }
   }
 
   _sendMessage(
@@ -235,7 +298,6 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
       required BuildContext context,
       required User user}) {
     if (_textEditingController.text.trim().isEmpty) return;
-    final message = {};
     widget.messageService.sendMessage({
       'from': client.toJson(),
       'to': user.toJson(),

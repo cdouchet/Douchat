@@ -4,6 +4,7 @@ import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/media_provider.dart';
 import 'package:douchat3/providers/message_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
 import 'package:douchat3/providers/route_provider.dart';
@@ -60,7 +61,8 @@ class Douchat extends StatelessWidget {
             create: (_) => ConversationProvider()),
         ChangeNotifierProvider<RouteProvider>(create: (_) => RouteProvider()),
         ChangeNotifierProvider<AppLifeCycleProvider>(
-            create: (_) => AppLifeCycleProvider())
+            create: (_) => AppLifeCycleProvider()),
+        ChangeNotifierProvider<MediaProvider>(create: (_) => MediaProvider())
       ],
       child: MaterialApp(
         key: globalKey,

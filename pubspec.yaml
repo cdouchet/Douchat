@@ -47,21 +47,23 @@ dependencies:
   logger: ^1.1.0
   font_awesome_flutter: ^10.1.0
   intl: ^0.17.0
-  qr_flutter: ^4.0.0
+  qr_flutter:
+  get:
   qr_code_scanner: ^1.0.0
   loading_animation_widget: ^1.2.0+2
   fluttertoast: ^8.0.9
-  loader: ^1.0.0
   flutter_local_notifications: ^9.7.1
   flutter_launcher_icons: ^0.10.0
-  flutter_phoenix:
-  get: ^4.6.5
   flutter_background: ^1.1.0
   permission_handler: ^10.0.0
   mime: ^1.0.2
   external_path: ^1.0.1
-  flutter_native_image: ^0.0.6+1
-
+  flutter_native_image:
+  video_thumbnail: ^0.5.2
+  video_player: ^2.4.6
+  export_video_frame: ^0.0.6
+  cached_network_image: ^3.2.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter  
