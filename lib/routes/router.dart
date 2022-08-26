@@ -27,8 +27,12 @@ Route<dynamic> controller(RouteSettings settings) {
   switch (settings.name) {
     case home:
       return MaterialPageRoute(
-          builder: (_) => CompositionRoot.composeHome(args['client'],
-              args['users'], args['messages'], args['conversations']));
+          builder: (_) => CompositionRoot.composeHome(
+              args['client'],
+              args['users'],
+              args['messages'],
+              args['conversations'],
+              args['groups']));
     case settingsStr:
       return MaterialPageRoute(
           builder: (_) => Settings(userService: args['userService']));

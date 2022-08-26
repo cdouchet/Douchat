@@ -6,8 +6,7 @@ import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/message_thread/receiver_message.dart';
 import 'package:douchat3/componants/message_thread/sender_message.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
-import 'package:douchat3/models/conversation_typing_event.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
@@ -199,8 +198,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
             return;
           }
           _stopTypingTimer?.cancel();
-          _dispatchTyping(TypingType.stop,
-              Provider.of<ClientProvider>(context, listen: false).client.id);
+          // _dispatchTyping(TypingType.stop,
+          //     Provider.of<ClientProvider>(context, listen: false).client.id);
         },
         child: Padding(
           padding:
@@ -309,25 +308,25 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
     _textEditingController.clear();
     _startTypingTimer?.cancel();
     _stopTypingTimer?.cancel();
-    _dispatchTyping(TypingType.stop, client.id);
+    // _dispatchTyping(TypingType.stop, client.id);
   }
 
-  void _dispatchTyping(TypingType event, String clientId) {
-    widget.messageService.sendTypingEvent({
-      'from': clientId,
-      'to': widget.userId,
-      'event': event.value(),
-    });
-  }
+  // void _dispatchTyping(TypingType event, String clientId) {
+  //   widget.messageService.sendTypingEvent({
+  //     'from': clientId,
+  //     'to': widget.userId,
+  //     'event': event.value(),
+  //   });
+  // }
 
   void _sendTypingNotification(String text, String clientId) {
-    if (text.trim().isEmpty) return;
-    if (_startTypingTimer?.isActive ?? false) return;
-    if (_stopTypingTimer?.isActive ?? false) _stopTypingTimer?.cancel();
-    _dispatchTyping(TypingType.start, clientId);
-    _startTypingTimer = Timer(const Duration(seconds: 5), () {});
-    _stopTypingTimer = Timer(const Duration(seconds: 6),
-        () => _dispatchTyping(TypingType.stop, clientId));
+    // if (text.trim().isEmpty) return;
+    // if (_startTypingTimer?.isActive ?? false) return;
+    // if (_stopTypingTimer?.isActive ?? false) _stopTypingTimer?.cancel();
+    // _dispatchTyping(TypingType.start, clientId);
+    // _startTypingTimer = Timer(const Duration(seconds: 5), () {});
+    // _stopTypingTimer = Timer(const Duration(seconds: 6),
+    //     () => _dispatchTyping(TypingType.stop, clientId));
   }
 
   _sendReceipt(Message message) {}

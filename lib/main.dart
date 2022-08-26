@@ -4,6 +4,7 @@ import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/media_provider.dart';
 import 'package:douchat3/providers/message_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
@@ -17,6 +18,7 @@ import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:load/load.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -32,7 +34,15 @@ void main() async {
       InitializationSettings(
           android: AndroidInitializationSettings('@mipmap/launcher_icon')),
       onSelectNotification: notificationCallbackHandler);
-  runApp(const Douchat());
+  runApp(LoadingProvider(
+    child: const Douchat(),
+    themeData: LoadingThemeData(),
+    loadingWidgetBuilder: (BuildContext context, LoadingThemeData data) {
+      return Center(
+          child: LoadingAnimationWidget.threeArchedCircle(
+              color: Colors.white, size: 80));
+    },
+  ));
 }
 
 final androidBackgroundConfig = FlutterBackgroundAndroidConfig(
@@ -62,7 +72,8 @@ class Douchat extends StatelessWidget {
         ChangeNotifierProvider<RouteProvider>(create: (_) => RouteProvider()),
         ChangeNotifierProvider<AppLifeCycleProvider>(
             create: (_) => AppLifeCycleProvider()),
-        ChangeNotifierProvider<MediaProvider>(create: (_) => MediaProvider())
+        ChangeNotifierProvider<MediaProvider>(create: (_) => MediaProvider()),
+        ChangeNotifierProvider<GroupProvider>(create: (_) => GroupProvider())
       ],
       child: MaterialApp(
         key: globalKey,

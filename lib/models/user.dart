@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:douchat3/api/api.dart';
+
 class User {
   final String id;
   String username;
@@ -18,6 +22,15 @@ class User {
       username: json['username'],
       photoUrl: json['photoUrl'],
       online: json['online']);
+
+  static Future<User> fromNetwork(String id) async {
+    final dynamic res = jsonDecode((await Api.getUserFromId(id: id)).body);
+    if (res['status'] != null && res['status'] == 'success') {
+      return User.fromJson(jsonDecode((await Api.getUserFromId(id: id)).body));
+    } else {
+      return User(id: 'user', online: false, photoUrl: '', username: 'User');
+    }
+  }
 
   setOnline(bool newOnline) => online = newOnline;
   setUsername(String newUsername) => username = newUsername;

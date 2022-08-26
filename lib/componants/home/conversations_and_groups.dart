@@ -1,7 +1,9 @@
 import 'package:douchat3/componants/shared/profile_image.dart';
-import 'package:douchat3/models/conversation.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
+import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/themes/colors.dart';
@@ -43,6 +45,11 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     Utils.logger.i(convs);
     convs.sort((a, b) =>
         b.messages.first.timeStamp.compareTo(a.messages.first.timeStamp));
+    List<Group> groups = Provider.of<GroupProvider>(context, listen: true)
+        .groups
+        .where((g) => g.messages.isNotEmpty)
+        .toList();
+    List<dynamic> all = convs + groups;
     return Container(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
@@ -65,11 +72,15 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     final msgs = Provider.of<ConversationProvider>(context, listen: true)
         .conversations
         .firstWhere((c) => c.user.id == user.id)
-        .messages;
+        .messages
+        .where((m) => !m.type.startsWith('temp'));
     final lastMessage = msgs.first;
     final hasUnread = msgs.any((m) =>
         m.read == false &&
         m.from != Provider.of<ClientProvider>(context, listen: true).client.id);
+    final lastMessageIsClient =
+        Provider.of<ClientProvider>(context, listen: true).client.id ==
+            lastMessage.from;
     return GestureDetector(
         onTap: () {
           Navigator.pushNamed(context, privateThread,
@@ -92,13 +103,26 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(user.username),
               Text(
-                  (Provider.of<ClientProvider>(context, listen: true)
-                                  .client
-                                  .id ==
-                              lastMessage.from
-                          ? 'Vous: '
-                          : '') +
-                      lastMessage.content,
+                  lastMessage.type == 'text'
+                      ? (Provider.of<ClientProvider>(context, listen: true)
+                                      .client
+                                      .id ==
+                                  lastMessage.from
+                              ? 'Vous: '
+                              : '') +
+                          lastMessage.content
+                      : (lastMessageIsClient
+                              ? 'Vous avez envoyé '
+                              : Provider.of<UserProvider>(context, listen: true)
+                                      .users
+                                      .firstWhere((u) => u.id == user.id)
+                                      .username +
+                                  ' a envoyé ') +
+                          (lastMessage.type == 'image'
+                              ? 'une image.'
+                              : lastMessage.type == 'video'
+                                  ? 'une vidéo.'
+                                  : 'un gif.'),
                   style: Theme.of(context).textTheme.caption!.copyWith(
                       fontWeight:
                           hasUnread ? FontWeight.bold : FontWeight.normal),

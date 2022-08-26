@@ -62,20 +62,26 @@ class _FilesPageState extends State<FilesPage>
               return RefreshIndicator(
                 onRefresh: () =>
                     Future.delayed(Duration.zero, () => setState(() {})),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                        icon: Icon(Icons.storage),
-                        onPressed: () {
-                          Permission.storage.request().then((status) {
-                            if (status.isGranted) {
-                              setState(() => storagePermissionGranted = true);
-                            }
-                          });
-                        }),
-                    Text('Autoriser l\'accès aux fichiers')
-                  ],
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: IconButton(
+                            icon: Icon(Icons.storage),
+                            onPressed: () {
+                              Permission.storage.request().then((status) {
+                                if (status.isGranted) {
+                                  setState(
+                                      () => storagePermissionGranted = true);
+                                }
+                              });
+                            }),
+                      ),
+                      Text('Autoriser l\'accès aux fichiers')
+                    ],
+                  ),
                 ),
               );
             } else {

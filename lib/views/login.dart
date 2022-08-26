@@ -1,19 +1,10 @@
-import 'dart:convert';
-
-import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/register/logo.dart';
 import 'package:douchat3/componants/shared/custom_text_field.dart';
-import 'package:douchat3/composition_root.dart';
-import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/message.dart';
-import 'package:douchat3/models/user.dart';
-import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:douchat3/utils/loginGetters.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -123,104 +114,14 @@ class _LoginState extends State<Login> {
                                               fontWeight: FontWeight.bold))));
                             } else {
                               setState(() => loading = true);
-                              Api.login(
-                                      username: _username, password: _password)
-                                  .then((log) {
+                              final success =
+                                  await LoginGetters.getEverythingAndLogin(
+                                      context: context,
+                                      u: _username,
+                                      p: _password);
+                              if (!success) {
                                 setState(() => loading = false);
-                                if (log.statusCode == 200) {
-                                  final clientProvider =
-                                      Provider.of<ClientProvider>(context,
-                                          listen: false);
-                                  final dynamic decodedResponse =
-                                      jsonDecode(log.body);
-                                  clientProvider.setAccessToken(
-                                      decodedResponse['payload']
-                                          ['access_token']);
-                                  // clientProvider.setClient(User.fromJson(
-                                  //     decodedResponse['payload']['client']));
-                                  Api.getUsers(
-                                          clientId: decodedResponse['payload']
-                                              ['client']['id'])
-                                      .then((apiUsers) {
-                                    final List<User> users =
-                                        (jsonDecode(apiUsers.body)['payload']
-                                                ['users'] as List)
-                                            .map((e) => User.fromJson(e))
-                                            .toList();
-
-                                    users.removeWhere((u) =>
-                                        u.id ==
-                                        decodedResponse['payload']['client']
-                                            ['id']);
-
-                                    Api.getConversationMessages(
-                                            clientId: decodedResponse['payload']
-                                                ['client']['id'])
-                                        .then((mes) {
-                                      final messages =
-                                          (jsonDecode(mes.body)['payload']
-                                                  ['messages'] as List)
-                                              .map((e) => Message.fromJson(e))
-                                              .toList();
-                                      messages.sort((a, b) =>
-                                          b.timeStamp.compareTo(a.timeStamp));
-                                      List<Conversation> conversations = users
-                                          .map((u) => Conversation(
-                                              messages: messages
-                                                  .where((m) =>
-                                                      (m.from == u.id &&
-                                                          m.to ==
-                                                              decodedResponse[
-                                                                          'payload']
-                                                                      ['client']
-                                                                  ['id']) ||
-                                                      (m.from ==
-                                                              decodedResponse[
-                                                                          'payload']
-                                                                      ['client']
-                                                                  ['id'] &&
-                                                          m.to == u.id))
-                                                  .toList(),
-                                              user: u))
-                                          .toList();
-
-                                      CompositionRoot.configure(
-                                          decodedResponse['payload']['client']
-                                              ['id'],
-                                          freshRegister: false);
-                                      Navigator.pushReplacementNamed(
-                                          context, home,
-                                          arguments: {
-                                            'client': User.fromJson(
-                                                decodedResponse['payload']
-                                                    ['client']),
-                                            'users': users,
-                                            'messages': messages,
-                                            'conversations': conversations
-                                          });
-
-                                      // Navigator.pushReplacement(
-                                      //     context,
-                                      //     MaterialPageRoute(
-                                      //         builder: (_) =>
-                                      //             CompositionRoot.composeHome(
-                                      //                 User.fromJson(
-                                      //                     decodedResponse[
-                                      //                             'payload']
-                                      //                         ['client']),
-                                      //                 users,
-                                      //                 messages,
-                                      //                 conversations)));
-                                    });
-                                  });
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              jsonDecode(log.body)['payload']
-                                                  ['error'])));
-                                }
-                              });
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(

@@ -1,19 +1,27 @@
+import 'dart:convert';
+
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/home/connected_users.dart';
 import 'package:douchat3/componants/home/conversations_and_groups.dart';
+import 'package:douchat3/componants/home/create_group.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
 import 'package:douchat3/main.dart';
-import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
+import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/set_providers.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:load/load.dart';
 import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
@@ -23,6 +31,7 @@ class Home extends StatefulWidget {
   final List<User> users;
   final List<Message> messages;
   final List<Conversation> conversations;
+  final List<Group> groups;
 
   String get routeName => 'home';
 
@@ -33,7 +42,8 @@ class Home extends StatefulWidget {
       required this.client,
       required this.users,
       required this.messages,
-      required this.conversations})
+      required this.conversations,
+      required this.groups})
       : super(key: key);
 
   @override
@@ -100,8 +110,48 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         backgroundColor: background,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: FloatingActionButton(
-            onPressed: () =>
-                widget.messageService.testMessage("OH BOI DOES IT WORKS ?????"),
+            onPressed: () {
+              showModalBottomSheet(
+                  isScrollControlled: true,
+                  context: context,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  builder: (BuildContext context) {
+                    return CreateGroup();
+                  }).then((i) {
+                if (i != null) {
+                  final cid =
+                      Provider.of<ClientProvider>(context, listen: false)
+                          .client;
+                  showLoadingDialog(tapDismiss: false);
+                  List<String> users = i['users'];
+                  users.add(cid.id);
+                  Api.createGroup(
+                          groupName: i['title'], users: users, creator: cid.id)
+                      .then((res) {
+                    if (res.statusCode != 200) {
+                      Fluttertoast.showToast(
+                          msg: 'Erreur durant la création du groupe',
+                          gravity: ToastGravity.BOTTOM);
+                    } else {
+                      final d = jsonDecode(res.body);
+                      if (d['payload']['new_group'] != null) {
+                        Provider.of<GroupProvider>(context, listen: false)
+                            .addGroup(
+                                Group.fromJson(d['payload']['new_group']));
+                        Fluttertoast.showToast(
+                            msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
+                      } else {
+                        Fluttertoast.showToast(
+                            msg: 'Erreur durant la création du groupe',
+                            gravity: ToastGravity.BOTTOM);
+                      }
+                    }
+                  });
+                  hideLoadingDialog();
+                }
+              });
+            },
             backgroundColor: primary,
             child: const Icon(Icons.group_add, color: Colors.white)),
         body: TabBarView(children: [
@@ -120,7 +170,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             user: widget.client,
             users: widget.users,
             messages: widget.messages,
-            conversations: widget.conversations)
+            conversations: widget.conversations,
+            groups: widget.groups)
         .then((_) {
       widget.messageService.startReceivingEvents(globalKey.currentContext!);
       print('after setting listeners');

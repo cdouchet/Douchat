@@ -1,4 +1,5 @@
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/message.dart';
+
 import 'package:douchat3/models/user.dart';
 
 class Conversation {

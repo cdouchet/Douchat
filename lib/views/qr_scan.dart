@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:douchat3/api/api.dart';
-import 'package:douchat3/models/conversation.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';

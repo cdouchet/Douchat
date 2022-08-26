@@ -63,6 +63,8 @@ dependencies:
   video_player: ^2.4.6
   export_video_frame: ^0.0.6
   cached_network_image: ^3.2.1
+  better_player: ^0.0.83
+  load:
   
 dev_dependencies:
   flutter_test:

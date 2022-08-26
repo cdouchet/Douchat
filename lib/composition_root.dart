@@ -2,8 +2,9 @@ import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/main.dart';
-import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
+import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/messages/message_service.dart';
@@ -44,7 +45,7 @@ class CompositionRoot {
     // socket.connect();
     Utils.logger.d('Configuring Douchat...');
     socket = IO.io(
-        'https://192.168.1.10:2585',
+        'https://192.168.28.155:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
           'id': id,
           'token': await const FlutterSecureStorage().read(key: 'access_token'),
@@ -119,6 +120,10 @@ class CompositionRoot {
                   .toList(),
               user: u))
           .toList();
+      final grps = jsonDecode((await Api.getGroups(clientId: user.id)).body);
+      final List<Group> groups = (grps['payload']['groups'] as List)
+          .map((g) => Group.fromJson(g))
+          .toList();
       try {
         print('before remove user id');
         users.removeWhere((element) => element.id == user.id);
@@ -131,7 +136,7 @@ class CompositionRoot {
       if (connected) {
         await configure(user.id, freshRegister: false);
         print('connected');
-        return composeHome(user, users, messages, conversations);
+        return composeHome(user, users, messages, conversations, groups);
       } else {
         return composeLogin();
       }
@@ -146,15 +151,20 @@ class CompositionRoot {
     return const Login();
   }
 
-  static Widget composeHome(User client, List<User> users,
-      List<Message> messages, List<Conversation> conversations) {
+  static Widget composeHome(
+      User client,
+      List<User> users,
+      List<Message> messages,
+      List<Conversation> conversations,
+      List<Group> groups) {
     return Home(
         messageService: listenerService,
         userService: userService,
         client: client,
         messages: messages,
         users: users,
-        conversations: conversations);
+        conversations: conversations,
+        groups: groups);
   }
 
   static Widget composeRegister() {

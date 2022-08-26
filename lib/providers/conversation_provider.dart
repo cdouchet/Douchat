@@ -1,5 +1,6 @@
-import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
+import 'package:douchat3/models/conversations/message.dart';
+
 import 'package:flutter/widgets.dart';
 
 class ConversationProvider extends ChangeNotifier {

@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/componants/message_thread/message/video_preview.dart';
+import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -44,26 +45,29 @@ class SenderMessage extends StatelessWidget {
                                 .overline!
                                 .copyWith(color: Colors.white70))))
               ])),
-          Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: DecoratedBox(
-                      decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(30)),
-                      child: Icon(Icons.check_circle_rounded,
-                          color: message.read == true
-                              ? Colors.green
-                              : Colors.white,
-                          size: 20))))
+          !message.type.startsWith('temp')
+              ? Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                  child: Align(
+                      alignment: Alignment.centerRight,
+                      child: DecoratedBox(
+                          decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(30)),
+                          child: Icon(Icons.check_circle_rounded,
+                              color: message.read == true
+                                  ? Colors.green
+                                  : Colors.white,
+                              size: 20))))
+              : Container()
         ]));
   }
 
   Widget _handleMessageType(
       {required String type, required BuildContext context}) {
     if (type.startsWith('temp_loading') || type.startsWith('temp_error')) {
-      if (type.split('_') == 'image') {
+      if (type.split('_')[2] == 'image') {
         return Stack(
           children: [
             Align(
@@ -136,14 +140,7 @@ class SenderMessage extends StatelessWidget {
                     Icon(Icons.error, color: bubbleDark),
               )));
     } else {
-      final VideoPlayerController controller =
-          VideoPlayerController.network(message.content);
-      return Container(
-          height: 240,
-          width: 220,
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: VideoPlayer(controller)));
+      return VideoPreview(url: message.content);
     }
   }
 }

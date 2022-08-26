@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:douchat3/models/conversation.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/models/conversations/conversation.dart';
+import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
@@ -66,13 +66,20 @@ class ListenerService {
         notificationsPlugin.show(
             id,
             user.username,
-            data['content'],
+            data['type'] == 'text'
+                ? data['content']
+                : data['type'] == 'image'
+                    ? 'a envoyé une image.'
+                    : data['type'] == 'video'
+                        ? 'a envoyé une vidéo'
+                        : 'a envoyé un gif',
             flnp.NotificationDetails(
                 android: flnp.AndroidNotificationDetails(
                     data['from'], user.username,
                     enableVibration: true,
                     groupKey: data['from'],
                     setAsGroupSummary: true,
+                    category: "CATEGORY_MESSAGE",
                     priority: flnp.Priority.max,
                     importance: flnp.Importance.max)),
             payload: "{'type': 'conversation', 'id': ${data['from']}}");

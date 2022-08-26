@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
@@ -7,7 +8,7 @@ import 'package:http_interceptor/http/http.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
-  static const String baseUrl = "https://192.168.1.10:2585";
+  static const String baseUrl = "https://192.168.28.155:2585";
   static Client client =
       InterceptedClient.build(interceptors: [GlobalInterceptor()]);
   static Future<Response> register(
@@ -40,6 +41,10 @@ class Api {
 
   static Future<Response> getUsers({required String clientId}) async {
     return await client.get(Uri.parse('$baseUrl/getUsers?clientId=$clientId'));
+  }
+
+  static Future<Response> getUserFromId({required String id}) async {
+    return await client.get(Uri.parse('$baseUrl/getUserFromId?id=$id'));
   }
 
   static Future<Response> doUsernameExists(String username) async {
@@ -87,5 +92,22 @@ class Api {
       {required String clientId}) async {
     return await client
         .get(Uri.parse('$baseUrl/getConversationMessages?clientId=$clientId'));
+  }
+
+  static Future<Response> createGroup(
+      {required String groupName,
+      required List<String> users,
+      required String creator}) async {
+    Utils.logger.i('JSON ENCODE : ' +
+        jsonEncode({'name': groupName, 'users': users, 'creator': creator}));
+    return await client.post(
+      Uri.parse('$baseUrl/createGroup'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'name': groupName, 'users': users, 'creator': creator}),
+    );
+  }
+
+  static Future<Response> getGroups({required String clientId}) async {
+    return await client.get(Uri.parse('$baseUrl/getGroups?clientId=$clientId'));
   }
 }

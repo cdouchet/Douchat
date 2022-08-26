@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:douchat3/models/message.dart';
+import 'package:douchat3/componants/message_thread/message/video_preview.dart';
+import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:video_player/video_player.dart';
 
 class ReceiverMessage extends StatelessWidget {
   final String photoUrl;
@@ -104,14 +104,7 @@ class ReceiverMessage extends StatelessWidget {
                 ),
               )));
     } else {
-      final VideoPlayerController controller =
-          VideoPlayerController.network(message.content);
-      return Container(
-          height: 240,
-          width: 220,
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: VideoPlayer(controller)));
+      return VideoPreview(url: message.content);
     }
   }
 }
