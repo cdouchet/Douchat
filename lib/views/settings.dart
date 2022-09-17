@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/main.dart';
+import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +21,31 @@ class Settings extends StatefulWidget {
   State<Settings> createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool typing = false;
   final TextEditingController textEditingController = TextEditingController();
+
+    @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("CHANGING APP LIFE CYCLE");
+    print(state.toString());
+    if (state == AppLifecycleState.resumed) {
+      notificationsPlugin.cancelAll();
+    }
+    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
+    super.didChangeAppLifecycleState(state);
+  }
 
   @override
   void initState() {
     super.initState();
-    Provider.of<RouteProvider>(context, listen: false).changeRoute('settings');
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override

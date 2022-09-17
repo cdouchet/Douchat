@@ -18,6 +18,10 @@ class MessageService {
     socket.emit('conversation-typing', data);
   }
 
+  void removeMessage(dynamic data) {
+    socket.emit('remove-conversation-message', data);
+  }
+
   void sendAllReceipts(
       {required List<String> messages,
       required String userId,

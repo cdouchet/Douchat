@@ -18,6 +18,8 @@ const String privateThread = 'private_thread';
 const String qrLoader = 'qr_loader';
 const String qrScan = 'qr_scan';
 const String infos = 'infos';
+const String friendRequests = 'friend_requests';
+const String groupThread = 'group_thread';
 
 Route<dynamic> controller(RouteSettings settings) {
   print('Name controller : ' + settings.name!);
@@ -28,11 +30,11 @@ Route<dynamic> controller(RouteSettings settings) {
     case home:
       return MaterialPageRoute(
           builder: (_) => CompositionRoot.composeHome(
-              args['client'],
-              args['users'],
-              args['messages'],
-              args['conversations'],
-              args['groups']));
+              client: args['client'],
+              users: args['users'],
+              messages: args['messages'],
+              conversations: args['conversations'],
+              groups: args['groups'], friendRequests: args['friendRequests']));
     case settingsStr:
       return MaterialPageRoute(
           builder: (_) => Settings(userService: args['userService']));
@@ -57,6 +59,10 @@ Route<dynamic> controller(RouteSettings settings) {
           builder: (_) => QrScanPage(userService: args['userService']));
     case infos:
       return MaterialPageRoute(builder: (_) => About());
+    case friendRequests:
+      return MaterialPageRoute(builder: (_) => CompositionRoot.composeFriendRequestView());
+    case groupThread:
+      return MaterialPageRoute(builder: (_) => CompositionRoot.composeGroupMessageThread(id: args['id']));
     default:
       return MaterialPageRoute(builder: (_) => CompositionRoot.composeLogin());
   }

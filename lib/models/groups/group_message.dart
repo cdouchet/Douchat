@@ -34,7 +34,8 @@ class GroupMessage {
       from: json['from'],
       type: json['type'],
       timeStamp: DateFormat().parse(json['timestamp']),
-      readBy: json['readBy']);
+      readBy: json['readBy'].cast<String>());
 
   void updateMessageReadState(String userId) => readBy.add(userId);
+  void updateTypeState(String t) => type = t;
 }

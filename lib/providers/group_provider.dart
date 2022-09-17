@@ -10,7 +10,7 @@ class GroupProvider extends ChangeNotifier {
     _groups = g;
   }
 
-  Group getConversation(String i) => _groups.firstWhere((g) => g.id == i);
+  Group getGroup(String i) => _groups.firstWhere((g) => g.id == i);
 
   void addGroup(Group g) {
     _groups.add(g);
@@ -19,6 +19,67 @@ class GroupProvider extends ChangeNotifier {
 
   void addGroupMessage(GroupMessage gm) {
     _groups.firstWhere((g) => g.id == gm.group).messages.insert(0, gm);
+    notifyListeners();
+  }
+
+  void removeGroupMessage(String id) {
+    bool didBreak = false;
+    for (Group g in _groups) {
+      for (GroupMessage m in g.messages) {
+        if (m.id == id) {
+          _groups
+              .elementAt(_groups.indexOf(g))
+              .messages
+              .removeWhere((e) => e.id == id);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+  }
+
+  void updateReadState(
+      {required List<String> messagesToUpdate,
+      required String groupId,
+      required String readBy,
+      required bool notify}) {
+    final msgs = _groups.firstWhere((g) => g.id == groupId).messages;
+    for (int i = 0; i < messagesToUpdate.length; i++) {
+      msgs
+          .firstWhere((m) => m.id == messagesToUpdate[i])
+          .updateMessageReadState(readBy);
+    }
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  void addTempMessages(List<GroupMessage> gs) {
+    final Group g = _groups.firstWhere((g) => g.id == gs.first.group);
+    for (final GroupMessage gm in gs) {
+      g.messages.insert(0, gm);
+    }
+    notifyListeners();
+  }
+
+  void removeTempMessage({required String mId, required String gId}) {
+    _groups
+        .firstWhere((g) => g.id == gId)
+        .messages
+        .removeWhere((e) => e.id == mId);
+    notifyListeners();
+  }
+
+  void updateTempMessageState(
+      {required String gId, required String mId, required String nT}) {
+    _groups
+        .firstWhere((g) => g.id == gId)
+        .messages
+        .firstWhere((m) => m.id == mId)
+        .updateTypeState(nT);
     notifyListeners();
   }
 }

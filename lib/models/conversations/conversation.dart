@@ -1,8 +1,9 @@
+import 'package:douchat3/models/conversation_or_group.dart';
 import 'package:douchat3/models/conversations/message.dart';
 
 import 'package:douchat3/models/user.dart';
 
-class Conversation {
+class Conversation implements ConversationOrGroup {
   final User user;
   List<Message> messages;
 

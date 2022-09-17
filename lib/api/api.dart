@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:http_interceptor/http/http.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
-  static const String baseUrl = "https://192.168.28.155:2585";
+  static String baseUrl = "http://${dotenv.env["DOUCHAT_URI"]}:2585";
   static Client client =
       InterceptedClient.build(interceptors: [GlobalInterceptor()]);
   static Future<Response> register(
@@ -37,6 +38,25 @@ class Api {
       {required String id, required String clientId}) async {
     return await client.post(Uri.parse('$baseUrl/addContact'),
         body: {'id': id, 'clientId': clientId});
+  }
+
+  static Future<Response> getFriendRequests({required String clientId}) async {
+    return await client
+        .get(Uri.parse("$baseUrl/getFriendRequests?clientId=$clientId"));
+  }
+
+  static Future<Response> respondToFriendRequest(
+      {required String clientId,
+      required String id,
+      required String userId,
+      required bool accept}) async {
+    return await client.post(Uri.parse("$baseUrl/respondToFriendRequest"),
+        body: {
+          'clientId': clientId,
+          'id': id,
+          'accept': accept,
+          'userId': userId
+        });
   }
 
   static Future<Response> getUsers({required String clientId}) async {
@@ -78,6 +98,8 @@ class Api {
       final result = await request.send();
       final response = await Response.fromStream(result);
       if (response.statusCode == 200) {
+        Utils.logger.i(
+            'success! Url : ${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}');
         return '${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}';
       }
       return null;
@@ -99,15 +121,22 @@ class Api {
       required List<String> users,
       required String creator}) async {
     Utils.logger.i('JSON ENCODE : ' +
-        jsonEncode({'name': groupName, 'users': users, 'creator': creator}));
+        jsonEncode({'name': groupName, 'users': users, 'admin': creator}));
     return await client.post(
       Uri.parse('$baseUrl/createGroup'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': groupName, 'users': users, 'creator': creator}),
+      body: jsonEncode({'name': groupName, 'users': users, 'admin': creator}),
     );
   }
 
   static Future<Response> getGroups({required String clientId}) async {
     return await client.get(Uri.parse('$baseUrl/getGroups?clientId=$clientId'));
+  }
+
+  static Future<Response> getGroupsMessages(
+      {required List<String> groups}) async {
+    return await client.post(Uri.parse('$baseUrl/getGroupMessages'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'groups': groups}));
   }
 }

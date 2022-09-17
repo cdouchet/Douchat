@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
-import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +23,28 @@ class QrLoader extends StatefulWidget {
   State<QrLoader> createState() => _QrLoaderState();
 }
 
-class _QrLoaderState extends State<QrLoader> {
+class _QrLoaderState extends State<QrLoader> with WidgetsBindingObserver {
+    @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("CHANGING APP LIFE CYCLE");
+    print(state.toString());
+    if (state == AppLifecycleState.resumed) {
+      notificationsPlugin.cancelAll();
+    }
+    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
+    super.didChangeAppLifecycleState(state);
+  }
+
   @override
   void initState() {
     super.initState();
-    Provider.of<RouteProvider>(context, listen: false).changeRoute('qr_loader');
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override

@@ -1,21 +1,26 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/message_thread/receiver_message.dart';
 import 'package:douchat3/componants/message_thread/sender_message.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/messages/message_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -37,16 +42,35 @@ class PrivateMessageThread extends StatefulWidget {
   State<PrivateMessageThread> createState() => _PrivateMessageThreadState();
 }
 
-class _PrivateMessageThreadState extends State<PrivateMessageThread> {
+class _PrivateMessageThreadState extends State<PrivateMessageThread> with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textEditingController = TextEditingController();
   Timer? _startTypingTimer;
   Timer? _stopTypingTimer;
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("CHANGING APP LIFE CYCLE");
+    print(state.toString());
+    if (state == AppLifecycleState.resumed) {
+      notificationsPlugin.cancelAll();
+    }
+    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void initState() {
     super.initState();
     _initialSetup();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.messageService.cancelSubscriptionToReceipts();
+    super.dispose();
   }
 
   _initialSetup() {
@@ -65,15 +89,13 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Provider.of<ConversationProvider>(context, listen: false)
             .updateReadState(msgs, widget.userId, notify: true);
+        Provider.of<RouteProvider>(context, listen: false)
+            .changePrivateThreadPresence(true);
+        Provider.of<RouteProvider>(context, listen: false)
+            .changePrivateThreadId(widget.userId);
       });
     }
     widget.messageService.subscribeToReceipts();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    widget.messageService.cancelSubscriptionToReceipts();
   }
 
   @override
@@ -90,74 +112,82 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
     final user = Provider.of<UserProvider>(context, listen: true)
         .users
         .firstWhere((u) => u.id == widget.userId);
-    return Scaffold(
-        resizeToAvoidBottomInset: true,
-        drawer: DouchatDrawer(userService: widget.userService),
-        appBar: AppBar(
-            titleSpacing: 0,
-            automaticallyImplyLeading: false,
-            title: HeaderStatus(
-                    username: user.username,
-                    online: user.online,
-                    typing: null,
-                    photoUrl: user.photoUrl)
-                .applyPadding(const EdgeInsets.all(12))),
-        body: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-            },
-            child: Column(children: [
-              Flexible(
-                  flex: 5,
-                  child: _buildListOfMessages(
-                      context: context,
-                      messageList: messageList,
-                      client: clientProvider.client,
-                      user: user)),
-              Container(
-                  decoration: const BoxDecoration(
-                      color: appBarDark,
-                      boxShadow: [
-                        BoxShadow(
-                            offset: Offset(0, -3),
-                            blurRadius: 6.0,
-                            color: Colors.black12)
-                      ]),
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                                flex: 2,
-                                child: Column(children: [
-                                  Row(children: [
-                                    Expanded(
-                                        child: _buildMessageInput(
-                                            context: context, user: user)),
-                                    Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 12),
-                                        child: SizedBox(
-                                            height: 45,
-                                            width: 45,
-                                            child: RawMaterialButton(
-                                                shape: const CircleBorder(),
-                                                elevation: 5,
-                                                child: const Icon(Icons.send,
-                                                    color: primary),
-                                                onPressed: () => _sendMessage(
-                                                    client:
-                                                        clientProvider.client,
-                                                    context: context,
-                                                    user: user))))
-                                  ])
-                                ])),
-                          ])))
-            ])));
+    return WillPopScope(
+      onWillPop: () async {
+        Provider.of<RouteProvider>(context, listen: false)
+            .changePrivateThreadPresence(false);
+        return true;
+      },
+      child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          drawer: DouchatDrawer(userService: widget.userService),
+          appBar: AppBar(
+              titleSpacing: 0,
+              automaticallyImplyLeading: false,
+              title: HeaderStatus(
+                      username: user.username,
+                      online: user.online,
+                      typing: null,
+                      photoUrl: user.photoUrl)
+                  .applyPadding(const EdgeInsets.all(12)),
+              ),
+          body: GestureDetector(
+              onTap: () {
+                FocusScope.of(context).requestFocus(FocusNode());
+              },
+              child: Column(children: [
+                Flexible(
+                    flex: 5,
+                    child: _buildListOfMessages(
+                        context: context,
+                        messageList: messageList,
+                        client: clientProvider.client,
+                        user: user)),
+                Container(
+                    decoration: const BoxDecoration(
+                        color: appBarDark,
+                        boxShadow: [
+                          BoxShadow(
+                              offset: Offset(0, -3),
+                              blurRadius: 6.0,
+                              color: Colors.black12)
+                        ]),
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  flex: 2,
+                                  child: Column(children: [
+                                    Row(children: [
+                                      Expanded(
+                                          child: _buildMessageInput(
+                                              context: context, user: user)),
+                                      Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 12),
+                                          child: SizedBox(
+                                              height: 45,
+                                              width: 45,
+                                              child: RawMaterialButton(
+                                                  shape: const CircleBorder(),
+                                                  elevation: 5,
+                                                  child: const Icon(Icons.send,
+                                                      color: primary),
+                                                  onPressed: () => _sendMessage(
+                                                      client:
+                                                          clientProvider.client,
+                                                      context: context,
+                                                      user: user))))
+                                    ])
+                                  ])),
+                            ])))
+              ]))),
+    );
   }
 
   Widget _buildListOfMessages(
@@ -242,7 +272,35 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
       required User user}) async {
     final res = await Utils.showMediaPickFile(context);
     if (res != null) {
-      if (res['type'] == 'medias') {
+      if (res['type'] == "photo_taken") {
+        final XFile file = res['file'];
+        final int r = Random().nextInt(5000);
+        Provider.of<ConversationProvider>(context, listen: false)
+            .addTempMessages([
+          Message(
+              id: 'temp$r',
+              content: "${file.path}",
+              from: client.id,
+              to: widget.userId,
+              type: 'temp_loading_image',
+              timeStamp: DateTime.now(),
+              read: false)
+        ]);
+        Api.uploadFile(file: File(file.path), type: "image").then((path) {
+          if (path != null) {
+            widget.messageService.sendMessage({
+              'from': client.toJson(),
+              'to': user.toJson(),
+              'content': path,
+              'type': 'image',
+              'timestamp': DateFormat().format(DateTime.now()),
+              'read': false
+            });
+            Provider.of<ConversationProvider>(context, listen: false)
+                  .removeTempMessage(mId: 'temp$r', uId: user.id);
+          }
+        });
+      } else if (res['type'] == 'medias') {
         final List<File> fs = res['medias'];
         List<Message> ms = [];
         for (int i = 0; i < fs.length; i++) {
@@ -330,4 +388,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> {
   }
 
   _sendReceipt(Message message) {}
+  
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -3,9 +3,15 @@ import 'dart:convert';
 
 import 'package:douchat3/componants/message_thread/media/files_page.dart';
 import 'package:douchat3/componants/message_thread/media/gif_page.dart';
+import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
@@ -72,13 +78,11 @@ class Utils {
                                 onPressed: () async {
                                   final file = await ImagePicker()
                                       .pickImage(source: ImageSource.camera);
-                                  Navigator.pop(context, {
-                                    'type': 'medias',
-                                    'medias': [file]
-                                  });
+                                  Navigator.pop(context,
+                                      {'type': 'photo_taken', 'file': file});
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: primary,
+                                    backgroundColor: primary,
                                     elevation: 5.0,
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
@@ -101,6 +105,115 @@ class Utils {
                   ]),
                 )
               ]));
+        });
+  }
+
+  static Future<dynamic> showModalMessageOptions(
+      {required BuildContext context,
+      required Message message,
+      required bool sender}) async {
+    return await showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+        builder: (BuildContext context) {
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  if (message.type == "text")
+                    GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(
+                                  ClipboardData(text: message.content))
+                              .then((value) {
+                            Navigator.pop(context);
+                            Fluttertoast.showToast(
+                                msg: "Copié dans le presse-papier",
+                                gravity: ToastGravity.BOTTOM);
+                          });
+                        },
+                        child: ListTile(
+                            leading: Icon(Icons.copy, color: Colors.white),
+                            title: Text("Copier le texte"))),
+                  if (sender) ...[
+                    GestureDetector(
+                      onTap: () {
+                        CompositionRoot.messageService.removeMessage({
+                          "from": message.from,
+                          "to": message.to,
+                          "id": message.id
+                        });
+                        Navigator.pop(context);
+                        Fluttertoast.showToast(
+                            msg: "Message supprimé",
+                            gravity: ToastGravity.BOTTOM);
+                      },
+                      child: ListTile(
+                        leading:
+                            Icon(FontAwesomeIcons.trash, color: Colors.red),
+                        title: Text("Supprimer"),
+                      ),
+                    )
+                  ]
+                ],
+              ),
+            )
+          ]);
+        });
+  }
+
+  static Future<dynamic> showModalGroupMessageOptions(
+      {required BuildContext context,
+      required GroupMessage message,
+      required bool sender}) async {
+    return await showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+        builder: (BuildContext context) {
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  if (message.type == "text")
+                    GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(
+                                  ClipboardData(text: message.content))
+                              .then((value) {
+                            Navigator.pop(context);
+                            Fluttertoast.showToast(
+                                msg: "Copié dans le presse-papier",
+                                gravity: ToastGravity.BOTTOM);
+                          });
+                        },
+                        child: ListTile(
+                            leading: Icon(Icons.copy, color: Colors.white),
+                            title: Text("Copier le texte"))),
+                  if (sender) ...[
+                    GestureDetector(
+                      onTap: () {
+                        CompositionRoot.messageService.removeMessage(
+                            {"group": message.group, "id": message.id});
+                        Navigator.pop(context);
+                        Fluttertoast.showToast(
+                            msg: "Message supprimé",
+                            gravity: ToastGravity.BOTTOM);
+                      },
+                      child: ListTile(
+                        leading:
+                            Icon(FontAwesomeIcons.trash, color: Colors.red),
+                        title: Text("Supprimer"),
+                      ),
+                    )
+                  ]
+                ],
+              ),
+            )
+          ]);
         });
   }
 

@@ -31,7 +31,7 @@ class _CreateGroupState extends State<CreateGroup> {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               behavior: HitTestBehavior.opaque,
-              child: Text('Cancel',
+              child: Text('Annuler',
                   style: Theme.of(context)
                       .textTheme
                       .caption!
@@ -123,7 +123,7 @@ class _CreateGroupState extends State<CreateGroup> {
                     Provider.of<UserProvider>(context, listen: true).users;
                 if (searchController.text.isNotEmpty) {
                   up = up
-                      .where((u) => u.username.contains(searchController.text))
+                      .where((u) => u.username.toLowerCase().contains(searchController.text.toLowerCase()))
                       .toList();
                 }
                 return ListView.builder(

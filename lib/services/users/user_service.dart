@@ -46,4 +46,12 @@ class UserService {
 
   _getClientId(BuildContext context) =>
       Provider.of<ClientProvider>(context, listen: false).client.id;
+
+  void sendFriendRequest({required dynamic data}) {
+    socket.emit('friend-request', data);
+  }
+
+  void respondToFriendRequest({required dynamic data}) {
+    socket.emit('friend-request-response', data);
+  }
 }

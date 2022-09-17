@@ -6,6 +6,11 @@ import 'package:douchat3/componants/home/conversations_and_groups.dart';
 import 'package:douchat3/componants/home/create_group.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
+import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/models/friend_request.dart';
+import 'package:douchat3/providers/friend_request_provider.dart';
+import 'package:douchat3/routes/router.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
@@ -13,6 +18,7 @@ import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/set_providers.dart';
 import 'package:douchat3/providers/user_provider.dart';
@@ -21,8 +27,11 @@ import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:load/load.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as flnp;
 
 class Home extends StatefulWidget {
   final ListenerService messageService;
@@ -32,6 +41,7 @@ class Home extends StatefulWidget {
   final List<Message> messages;
   final List<Conversation> conversations;
   final List<Group> groups;
+  final List<FriendRequest> friendRequests;
 
   String get routeName => 'home';
 
@@ -43,7 +53,8 @@ class Home extends StatefulWidget {
       required this.users,
       required this.messages,
       required this.conversations,
-      required this.groups})
+      required this.groups,
+      required this.friendRequests})
       : super(key: key);
 
   @override
@@ -60,6 +71,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       notificationsPlugin.cancelAll();
     }
+    Provider.of<AppLifeCycleProvider>(context, listen: false)
+        .setAppState(state);
     super.didChangeAppLifecycleState(state);
   }
 
@@ -67,11 +80,21 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _initialSetup();
+    WidgetsBinding.instance.addObserver(this);
     widget.messageService.messages();
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    Utils.logger.i('material localization : ' +
+        MaterialLocalizations.of(context).toString());
+
     final clientProvider = Provider.of<ClientProvider>(context, listen: true);
     return DefaultTabController(
       length: 2,
@@ -81,7 +104,49 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
         appBar: AppBar(
             automaticallyImplyLeading: false,
-            actions: <Widget>[Container()],
+            actions: <Widget>[
+              IconButton(
+                  onPressed: () {
+                    notificationsPlugin.show(
+                        40,
+                        "test notif",
+                        "test",
+                        payload: "test payload notif",
+                        flnp.NotificationDetails(
+                            android: flnp.AndroidNotificationDetails(
+                                "didi", "didi",
+                                enableVibration: true,
+                                category: "CATEGORY_MESSAGE",
+                                priority: flnp.Priority.max,
+                                importance: flnp.Importance.max)));
+                  },
+                  icon: Icon(FontAwesomeIcons.appStore)),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Stack(
+                  children: [
+                    IconButton(
+                        icon: Icon(Icons.person_add),
+                        onPressed: () {
+                          Navigator.pushNamed(context, friendRequests);
+                        }),
+                    if (Provider.of<FriendRequestProvider>(context,
+                                listen: true)
+                            .friendRequests
+                            .length >
+                        0)
+                      Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Text('!',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1!
+                                  .copyWith(color: primary, fontSize: 20)))
+                  ],
+                ),
+              )
+            ],
             title: HeaderStatus(
               username: clientProvider.client.username,
               online: true,
@@ -95,9 +160,67 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       child: Container(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50)),
-                          child: const Align(
+                          child: Align(
                               alignment: Alignment.center,
-                              child: Text('Conversations')))),
+                              child: Builder(builder: (context) {
+                                int unreadConv = 0;
+                                int unreadGroup = 0;
+                                for (Conversation c
+                                    in Provider.of<ConversationProvider>(
+                                            context,
+                                            listen: true)
+                                        .conversations) {
+                                  unreadConv += c.messages
+                                      .where((m) =>
+                                          m.to ==
+                                              Provider.of<ClientProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .client
+                                                  .id &&
+                                          !m.read)
+                                      .length;
+                                }
+                                for (Group g in Provider.of<GroupProvider>(
+                                        context,
+                                        listen: true)
+                                    .groups) {
+                                  unreadGroup += g.messages
+                                      .where((m) => !m.readBy.contains(
+                                          Provider.of<ClientProvider>(context,
+                                                  listen: false)
+                                              .client
+                                              .id))
+                                      .length;
+                                }
+                                final int total = unreadConv + unreadGroup;
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Conversations'),
+                                    total > 0
+                                        ? Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 6),
+                                            child: DecoratedBox(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.blue,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            60)),
+                                                child: Text(total > 99
+                                                        ? "99+"
+                                                        : total.toString())
+                                                    .applyPadding(
+                                                        const EdgeInsets
+                                                                .symmetric(
+                                                            horizontal: 5,
+                                                            vertical: 2))),
+                                          )
+                                        : Container()
+                                  ],
+                                );
+                              })))),
                   Tab(
                       child: Container(
                           decoration: BoxDecoration(
@@ -166,12 +289,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void _initialSetup() {
     Provider.of<AppLifeCycleProvider>(context, listen: false)
         .setAppState(AppLifecycleState.resumed);
+    CompositionRoot.listenerService.setup();
     setProviders(globalKey.currentContext!,
             user: widget.client,
             users: widget.users,
             messages: widget.messages,
             conversations: widget.conversations,
-            groups: widget.groups)
+            groups: widget.groups,
+            friendRequests: widget.friendRequests)
         .then((_) {
       widget.messageService.startReceivingEvents(globalKey.currentContext!);
       print('after setting listeners');

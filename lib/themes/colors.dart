@@ -15,11 +15,11 @@ final tabBarTheme = TabBarTheme(
     indicator:
         BoxDecoration(borderRadius: BorderRadius.circular(50), color: primary));
 
-ThemeData darkTheme(BuildContext context) => ThemeData.dark().copyWith(
+ThemeData darkTheme() => ThemeData.dark().copyWith(
     scaffoldBackgroundColor: background,
     appBarTheme: const AppBarTheme(backgroundColor: background),
     tabBarTheme: tabBarTheme.copyWith(unselectedLabelColor: Colors.white70),
-    textTheme: GoogleFonts.comfortaaTextTheme(Theme.of(context).textTheme)
+    textTheme: GoogleFonts.comfortaaTextTheme()
         .apply(displayColor: Colors.white, bodyColor: Colors.white),
     visualDensity: VisualDensity.adaptivePlatformDensity);
 

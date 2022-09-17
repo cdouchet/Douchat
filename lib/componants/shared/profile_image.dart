@@ -6,8 +6,13 @@ class ProfileImage extends StatelessWidget {
   final bool online;
   final String? photoUrl;
   final double size;
+  final bool isGroup;
   const ProfileImage(
-      {Key? key, required this.online, required this.photoUrl, this.size = 126})
+      {Key? key,
+      required this.online,
+      required this.photoUrl,
+      this.size = 126,
+      this.isGroup = false})
       : super(key: key);
 
   @override
@@ -28,7 +33,10 @@ class ProfileImage extends StatelessWidget {
                           color: Colors.white,
                           size: 42),
                     )
-                  : const Icon(Icons.person, color: Colors.white, size: 42)),
+                  : isGroup
+                      ? const Icon(Icons.group, color: Colors.white, size: 42)
+                      : const Icon(Icons.person,
+                          color: Colors.white, size: 42)),
           Align(
               alignment: Alignment.topRight,
               child: online ? const OnlineIndicator() : Container())

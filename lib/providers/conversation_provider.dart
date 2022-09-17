@@ -29,6 +29,23 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeConversationMessage(String id) {
+    bool didBreak = false;
+    for (Conversation c in _conversations) {
+      for (Message m in c.messages) {
+        if (m.id == id) {
+          _conversations.elementAt(_conversations.indexOf(c)).messages.removeWhere((e) => e.id == id);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
   void addTempMessages(List<Message> ms) {
     final Conversation c =
         _conversations.firstWhere((c) => c.user.id == ms.first.to);

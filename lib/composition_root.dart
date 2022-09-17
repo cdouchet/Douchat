@@ -4,24 +4,31 @@ import 'package:douchat3/api/api.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/friend_request.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/services/groups/group_service.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/messages/message_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/friend_request_view.dart';
+import 'package:douchat3/views/group_message_thread.dart';
 import 'package:douchat3/views/home.dart';
 import 'package:douchat3/views/login.dart';
 import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class CompositionRoot {
   static late ListenerService listenerService;
   static late UserService userService;
   static late MessageService messageService;
+  static late GroupService groupService;
   static late IO.Socket socket;
 
   static Future<void> configure(String id,
@@ -45,7 +52,7 @@ class CompositionRoot {
     // socket.connect();
     Utils.logger.d('Configuring Douchat...');
     socket = IO.io(
-        'https://192.168.28.155:2585',
+        'http://${dotenv.env["DOUCHAT_URI"]}:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
           'id': id,
           'token': await const FlutterSecureStorage().read(key: 'access_token'),
@@ -69,6 +76,7 @@ class CompositionRoot {
         socket: socket, notificationsPlugin: notificationsPlugin);
     userService = UserService(socket);
     messageService = MessageService(socket: socket);
+    groupService = GroupService(socket: socket);
     // destroyAndSetup(r, connection);
   }
 
@@ -76,6 +84,14 @@ class CompositionRoot {
 
   static Future<Widget> start(BuildContext context) async {
     try {
+      final List<Permission> perms = [
+        Permission.notification,
+      ];
+      for (final Permission p in perms) {
+        if (await p.isDenied) {
+          p.request();
+        }
+      }
       // await FlutterSecureStorage().delete(key: 'access_token');
       final token =
           await const FlutterSecureStorage().read(key: 'access_token');
@@ -94,6 +110,12 @@ class CompositionRoot {
         return composeLogin();
       }
       final User user = User.fromJson(isConnected['client']);
+      final apiFriendRequests = await Api.getFriendRequests(clientId: user.id);
+      final List<FriendRequest> friendRequests =
+          (jsonDecode(apiFriendRequests.body)['payload']['friend_requests']
+                  as List)
+              .map((e) => FriendRequest.fromJson(e))
+              .toList();
       print('after client setup');
       Utils.logger.d((await Api.getUsers(clientId: user.id)).body);
       final List<User> users =
@@ -124,6 +146,19 @@ class CompositionRoot {
       final List<Group> groups = (grps['payload']['groups'] as List)
           .map((g) => Group.fromJson(g))
           .toList();
+      // final gmes =
+      //     await Api.getGroupsMessages(groups: groups.map((e) => e.id).toList());
+      // final List<GroupMessage> groupMessages =
+      //     (jsonDecode(gmes.body)['payload']['messages'] as List)
+      //         .map((e) => GroupMessage.fromJson(e))
+      //         .toList();
+      // for (final Group group in groups) {
+      //   final List<GroupMessage> gm =
+      //       groupMessages.where((m) => m.group == group.id).toList();
+      //   Utils.logger.i('Hello les messages', gm);
+
+      //   group.populate(gm);
+      // }
       try {
         print('before remove user id');
         users.removeWhere((element) => element.id == user.id);
@@ -136,13 +171,20 @@ class CompositionRoot {
       if (connected) {
         await configure(user.id, freshRegister: false);
         print('connected');
-        return composeHome(user, users, messages, conversations, groups);
+        return composeHome(
+            client: user,
+            users: users,
+            messages: messages,
+            conversations: conversations,
+            groups: groups,
+            friendRequests: friendRequests);
       } else {
         return composeLogin();
       }
-    } catch (e) {
+    } catch (e, s) {
       print('composition root error 2');
       print(e);
+      Utils.logger.i(s);
       return const Login();
     }
   }
@@ -152,11 +194,12 @@ class CompositionRoot {
   }
 
   static Widget composeHome(
-      User client,
-      List<User> users,
-      List<Message> messages,
-      List<Conversation> conversations,
-      List<Group> groups) {
+      {required User client,
+      required List<User> users,
+      required List<Message> messages,
+      required List<Conversation> conversations,
+      required List<Group> groups,
+      required List<FriendRequest> friendRequests}) {
     return Home(
         messageService: listenerService,
         userService: userService,
@@ -164,7 +207,8 @@ class CompositionRoot {
         messages: messages,
         users: users,
         conversations: conversations,
-        groups: groups);
+        groups: groups,
+        friendRequests: friendRequests);
   }
 
   static Widget composeRegister() {
@@ -177,5 +221,17 @@ class CompositionRoot {
       userService: userService,
       messageService: messageService,
     );
+  }
+
+  static Widget composeGroupMessageThread({required String id}) {
+    return GroupMessageThread(
+      groupId: id,
+      groupService: groupService,
+      userService: userService,
+    );
+  }
+
+  static Widget composeFriendRequestView() {
+    return FriendRequestView(userService: userService);
   }
 }

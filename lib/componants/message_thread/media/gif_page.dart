@@ -93,7 +93,7 @@ class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
                                       mainAxisSpacing: 12),
                               itemBuilder: (BuildContext context, int index) {
                                 final String url = res['results'][index]
-                                    ['media_formats']['mediumgif']['url'];
+                                    ['media_formats']['tinygif']['url'];
                                 return GestureDetector(
                                   onTap: () {
                                     Navigator.pop(
