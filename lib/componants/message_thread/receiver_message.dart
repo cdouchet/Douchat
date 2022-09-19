@@ -3,6 +3,7 @@ import 'package:douchat3/componants/message_thread/message/video_preview.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -18,7 +19,8 @@ class ReceiverMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: () {
-        Utils.showModalMessageOptions(context: context, message: message, sender: false);
+        Utils.showModalMessageOptions(
+            context: context, message: message, sender: false);
       },
       child: FractionallySizedBox(
           alignment: Alignment.topLeft,
@@ -92,23 +94,31 @@ class ReceiverMessage extends StatelessWidget {
                         color: Colors.white, size: 50))),
       );
     } else if (type == 'image') {
-      return Container(
-          height: 240,
-          width: 220,
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress progress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 30),
-                errorWidget: (_, __, ___) => Icon(
-                  Icons.error,
-                  color: bubbleDark,
-                ),
-              )));
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ImagePreview(imageUrl: message.content)));
+        },
+        child: Container(
+            height: 240,
+            width: 220,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: message.content,
+                  fit: BoxFit.fill,
+                  progressIndicatorBuilder: (BuildContext context, String url,
+                          DownloadProgress progress) =>
+                      LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 30),
+                  errorWidget: (_, __, ___) => Icon(
+                    Icons.error,
+                    color: bubbleDark,
+                  ),
+                ))),
+      );
     } else {
       return VideoPreview(url: message.content);
     }

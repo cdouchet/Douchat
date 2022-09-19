@@ -17,6 +17,7 @@ import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -30,6 +31,10 @@ void main() async {
   await dotenv.load(fileName: '.env');
   initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
+  await FlutterDownloader.initialize(
+    debug: true,
+    ignoreSsl: true
+  );
   HttpOverrides.global = MyHttpOverrides();
   notificationsPlugin.initialize(
       InitializationSettings(

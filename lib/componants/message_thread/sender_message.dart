@@ -5,6 +5,7 @@ import 'package:douchat3/componants/message_thread/message/video_preview.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -18,7 +19,8 @@ class SenderMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: () {
-        Utils.showModalMessageOptions(context: context, message: message, sender: true);
+        Utils.showModalMessageOptions(
+            context: context, message: message, sender: true);
       },
       child: FractionallySizedBox(
           alignment: Alignment.centerRight,
@@ -26,30 +28,31 @@ class SenderMessage extends StatelessWidget {
           child: Stack(children: [
             Padding(
                 padding: const EdgeInsets.only(right: 30),
-                child:
-                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  DecoratedBox(
-                      decoration: BoxDecoration(
-                          color: primary,
-                          borderRadius: BorderRadius.circular(30)),
-                      position: DecorationPosition.background,
-                      child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          child: _handleMessageType(
-                              type: message.type, context: context))),
-                  Padding(
-                      padding: const EdgeInsets.only(top: 12, left: 12),
-                      child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: Text(
-                              DateFormat('dd MMM, h:mm a', 'fr_FR')
-                                  .format(message.timeStamp),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .overline!
-                                  .copyWith(color: Colors.white70))))
-                ])),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      DecoratedBox(
+                          decoration: BoxDecoration(
+                              color: primary,
+                              borderRadius: BorderRadius.circular(30)),
+                          position: DecorationPosition.background,
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                              child: _handleMessageType(
+                                  type: message.type, context: context))),
+                      Padding(
+                          padding: const EdgeInsets.only(top: 12, left: 12),
+                          child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                  DateFormat('dd MMM, h:mm a', 'fr_FR')
+                                      .format(message.timeStamp),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .overline!
+                                      .copyWith(color: Colors.white70))))
+                    ])),
             !message.type.startsWith('temp')
                 ? Padding(
                     padding:
@@ -130,23 +133,36 @@ class SenderMessage extends StatelessWidget {
                         color: Colors.white, size: 50))),
       );
     } else if (type == 'image') {
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ImagePreview(imageUrl: message.content)));
+        },
+        child: Container(
+            height: 240,
+            width: 220,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: message.content,
+                  fit: BoxFit.fill,
+                  progressIndicatorBuilder: (BuildContext context, String url,
+                          DownloadProgress progress) =>
+                      LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 30),
+                  errorWidget: (_, __, ___) =>
+                      Icon(Icons.error, color: bubbleDark),
+                ))),
+      );
+    } else {
       return Container(
           height: 240,
           width: 220,
           child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress progress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 30),
-                errorWidget: (_, __, ___) =>
-                    Icon(Icons.error, color: bubbleDark),
-              )));
-    } else {
-      return Container(height: 240, width: 220, child: ClipRRect(borderRadius: BorderRadius.circular(12), child: VideoPreview(url: message.content)));
+              child: VideoPreview(url: message.content)));
     }
   }
 }

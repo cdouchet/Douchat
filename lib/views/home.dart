@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/home/connected_users.dart';
@@ -26,6 +28,7 @@ import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:load/load.dart';
@@ -63,6 +66,15 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with WidgetsBindingObserver {
   List<Message> messages = [];
+  ReceivePort _port = ReceivePort();
+
+  @pragma('vm:entry-point')
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    final SendPort send =
+        IsolateNameServer.lookupPortByName('downloader_send_port')!;
+    send.send([id, status, progress]);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -82,11 +94,22 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     _initialSetup();
     WidgetsBinding.instance.addObserver(this);
     widget.messageService.messages();
+    IsolateNameServer.registerPortWithName(
+        _port.sendPort, 'downloader_send_port');
+    _port.listen((dynamic data) {
+      String id = data[0];
+      DownloadTaskStatus status = data[1];
+      int progress = data[2];
+      setState(() {});
+    });
+
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
     super.dispose();
   }
 
@@ -165,17 +188,18 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               child: Builder(builder: (context) {
                                 int unreadConv = 0;
                                 int unreadGroup = 0;
-                                String clientId = Provider.of<ClientProvider>(context, listen: false).client.id;
+                                String clientId = Provider.of<ClientProvider>(
+                                        context,
+                                        listen: false)
+                                    .client
+                                    .id;
                                 for (Conversation c
                                     in Provider.of<ConversationProvider>(
                                             context,
                                             listen: true)
                                         .conversations) {
                                   unreadConv += c.messages
-                                      .where((m) =>
-                                          m.to ==
-                                              clientId &&
-                                          !m.read)
+                                      .where((m) => m.to == clientId && !m.read)
                                       .length;
                                 }
                                 for (Group g in Provider.of<GroupProvider>(
@@ -183,8 +207,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                         listen: true)
                                     .groups) {
                                   unreadGroup += g.messages
-                                      .where((m) => m.from != clientId && !m.readBy.contains(
-                                          clientId))
+                                      .where((m) =>
+                                          m.from != clientId &&
+                                          !m.readBy.contains(clientId))
                                       .length;
                                 }
                                 final int total = unreadConv + unreadGroup;
@@ -253,8 +278,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     } else {
                       final d = jsonDecode(res.body);
                       if (d['payload']['new_group'] != null) {
-                      
-                        CompositionRoot.groupService.sendNewGroup(d['payload']['new_group']);
+                        CompositionRoot.groupService
+                            .sendNewGroup(d['payload']['new_group']);
                         Fluttertoast.showToast(
                             msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
                       } else {

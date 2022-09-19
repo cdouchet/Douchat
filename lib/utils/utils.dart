@@ -7,6 +7,7 @@ import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 
 class Utils {
   static Logger logger = Logger();
@@ -141,6 +143,10 @@ class Utils {
                     GestureDetector(
                       onTap: () {
                         CompositionRoot.messageService.removeMessage({
+                          "clientId": Provider.of<ClientProvider>(context,
+                                  listen: false)
+                              .client
+                              .id,
                           "from": message.from,
                           "to": message.to,
                           "id": message.id
@@ -196,8 +202,14 @@ class Utils {
                   if (sender) ...[
                     GestureDetector(
                       onTap: () {
-                        CompositionRoot.messageService.removeMessage(
-                            {"group": message.group, "id": message.id});
+                        CompositionRoot.messageService.removeMessage({
+                          "clientId": Provider.of<ClientProvider>(context,
+                                  listen: false)
+                              .client
+                              .id,
+                          "group": message.group,
+                          "id": message.id
+                        });
                         Navigator.pop(context);
                         Fluttertoast.showToast(
                             msg: "Message supprimé",
