@@ -146,6 +146,9 @@ class CompositionRoot {
       final List<Group> groups = (grps['payload']['groups'] as List)
           .map((g) => Group.fromJson(g))
           .toList();
+      groups.forEach((g) {
+        Utils.logger.i('GROUP PHOTO URL : ${g.photoUrl}');
+      });
       // final gmes =
       //     await Api.getGroupsMessages(groups: groups.map((e) => e.id).toList());
       // final List<GroupMessage> groupMessages =

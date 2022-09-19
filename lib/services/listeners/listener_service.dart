@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/friend_request.dart';
+import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
@@ -53,9 +54,15 @@ class ListenerService {
     _startReceivingConversationReceipts(context);
     _startReceivingConversationMessageRemovals(context);
 
+    _startReceivingNewGroups(context);
     _startReceivingGroupMessages(context);
     _startReceivingGroupReceipts(context);
     _startReceivingGroupMessageRemovals(context);
+    _startReceivingGroupNameUpdate(context);
+    _startReceivingGroupPhotoUpdate(context);
+    _startReceivingGroupAdminUpdate(context);
+    _startReceivingGroupUserAddition(context);
+    _startReceivingGroupUserRemoval(context);
     // _startReceivingSelfConversationMessages(context);
   }
 
@@ -138,41 +145,53 @@ class ListenerService {
     });
   }
 
+  _startReceivingNewGroups(BuildContext context) {
+    socket.on('new-group', (data) {
+      Provider.of<GroupProvider>(context, listen: false)
+          .addGroup(Group.fromJson(data));
+    });
+  }
+
   _startReceivingGroupMessages(BuildContext context) {
     socket.on('group-message', (data) {
       print('new Group Message : $data');
-      Provider.of<GroupProvider>(context, listen: false).addGroupMessage(GroupMessage.fromJson(data));
-      if (Provider.of<AppLifeCycleProvider>(context, listen: false).state != AppLifecycleState.resumed) {
+      Provider.of<GroupProvider>(context, listen: false)
+          .addGroupMessage(GroupMessage.fromJson(data));
+          Utils.logger.i('INCOMING GROUP MESSAGE : $data');
+      if (Provider.of<AppLifeCycleProvider>(context, listen: false).state !=
+          AppLifecycleState.resumed && data['type'] != 'system') {
         int id = 0;
         while (notificationIds.contains(id)) {
           id++;
         }
         notificationIds.add(id);
-        final group = Provider.of<GroupProvider>(context, listen: false).getGroup(data['group']);
-        final username = Provider.of<UserProvider>(context, listen: false).users.firstWhere((u) => u.id == data['from'], orElse: () => group.users.firstWhere((us) => us.id == data['from'])).username;
+        final group = Provider.of<GroupProvider>(context, listen: false)
+            .getGroup(data['group']);
+        final username = Provider.of<UserProvider>(context, listen: false)
+            .users
+            .firstWhere((u) => u.id == data['from'],
+                orElse: () =>
+                    group.users.firstWhere((us) => us.id == data['from']))
+            .username;
         notificationsPlugin.show(
-          id,
-          group.name,
-          '$username' + data['type'] == 'text' ?
-            ": ${data['content']}" :
-            data['type'] == 'image' ?
-              ' a envoyé une image' :
-              data['type'] == 'video' ?
-                ' a envoyé une vidéo' :
-                  ' a envoyé un gif',
-          flnp.NotificationDetails(
-            android: flnp.AndroidNotificationDetails(
-              data['from'], username,
-              enableVibration: true,
-              groupKey: data['from'],
-              setAsGroupSummary: true,
-              category: "CATEGORY_MESSAGE",
-              priority: flnp.Priority.max,
-              importance: flnp.Importance.max
-            )
-          ),
-          payload: '{"type": "group", "id": "${group.id}"}'
-        );
+            id,
+            group.name,
+            '$username' + (data['type'] == 'text'
+                ? ": ${data['content']}"
+                : data['type'] == 'image'
+                    ? ' a envoyé une image'
+                    : data['type'] == 'video'
+                        ? ' a envoyé une vidéo'
+                        : ' a envoyé un gif'),
+            flnp.NotificationDetails(
+                android: flnp.AndroidNotificationDetails(data['from'], username,
+                    enableVibration: true,
+                    groupKey: data['from'],
+                    setAsGroupSummary: true,
+                    category: "CATEGORY_MESSAGE",
+                    priority: flnp.Priority.max,
+                    importance: flnp.Importance.max)),
+            payload: '{"type": "group", "id": "${group.id}"}');
       } else {
         Vibration.hasVibrator().then((value) {
           if (value ?? false) {
@@ -192,15 +211,58 @@ class ListenerService {
     });
   }
 
+  GroupProvider _groupProvider(BuildContext context, {bool listen = false}) {
+    return Provider.of<GroupProvider>(context, listen: listen);
+  }
+
   _startReceivingGroupReceipts(BuildContext context) {
     socket.on('group-receipts', (data) {
-      Provider.of<GroupProvider>(context, listen: false).updateReadState(messagesToUpdate: data['messages'].cast<String>(), groupId: data['group'], readBy: data['userId'], notify: true);
+      _groupProvider(context).updateReadState(
+          messagesToUpdate: data['messages'].cast<String>(),
+          groupId: data['group'],
+          readBy: data['userId'],
+          notify: true);
     });
   }
 
   _startReceivingGroupMessageRemovals(BuildContext context) {
     socket.on('remove-group-message', (data) {
-      Provider.of<GroupProvider>(context, listen: false).removeGroupMessage(data);
+      _groupProvider(context).removeGroupMessage(data);
+    });
+  }
+
+  _startReceivingGroupNameUpdate(BuildContext context) {
+    socket.on('group-name-update', (data) {
+      _groupProvider(context)
+          .updateGroupName(name: data['name'], id: data['group']);
+    });
+  }
+
+  _startReceivingGroupPhotoUpdate(BuildContext context) {
+    socket.on('group-photo-update', (data) {
+      _groupProvider(context)
+          .updateGroupPhoto(url: data['url'], id: data['group']);
+    });
+  }
+
+  _startReceivingGroupAdminUpdate(BuildContext context) {
+    socket.on('group-admin-update', (data) {
+      _groupProvider(context)
+          .updateGroupAdmin(admin: data['admin'], id: data['group']);
+    });
+  }
+
+  _startReceivingGroupUserRemoval(BuildContext context) {
+    socket.on('group-user-removal', (data) {
+      _groupProvider(context)
+          .removeUser(userId: data['userId'], id: data['group']);
+    });
+  }
+
+  _startReceivingGroupUserAddition(BuildContext context) {
+    socket.on('group-user-addition', (data) {
+      _groupProvider(context)
+          .addUser(user: User.fromJson(data['user']), id: data['group']);
     });
   }
 

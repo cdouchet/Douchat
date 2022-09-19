@@ -34,12 +34,18 @@ class Group implements ConversationOrGroup {
         id: json['id'],
         users: us,
         messages: ms,
-        photoUrl: json['photo_url'],
+        photoUrl: json['photoUrl'],
         name: json['name'],
-        admin: json['name']);
+        admin: json['admin']);
   }
 
   void populate(List<GroupMessage> population) {
     messages = population;
   }
+
+  void updateName(String n) => name = n;
+  void updatePhotoUrl(String p) => photoUrl = p;
+  void updateAdmin(String a) => admin = a;
+  void removeUser(String id) => users.removeWhere((u) => u.id == id);
+  void addUser(User u) => users.add(u);
 }

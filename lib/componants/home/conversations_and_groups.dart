@@ -39,12 +39,12 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     // if (usersConversations.isEmpty) {
     //   usersConversations = [];
     // }
+    Utils.logger.i('Before build');
     List<Conversation> convs =
         Provider.of<ConversationProvider>(context, listen: true)
             .conversations
             .where((c) => c.messages.isNotEmpty)
             .toList();
-    Utils.logger.i(convs);
     convs.sort((a, b) =>
         b.messages.first.timeStamp.compareTo(a.messages.first.timeStamp));
     List<Group> groups =
@@ -52,7 +52,13 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     List<dynamic> all = [];
     all.addAll(convs);
     all.addAll(groups);
-    Utils.logger.i(groups);
+    all.sort((a, b) {
+      if (a.messages.isNotEmpty && b.messages.isNotEmpty) {
+        return b.messages.first.timeStamp.compareTo(a.messages.first.timeStamp);
+      }
+      return -10000000000000000;
+    });
+    Utils.logger.i('After build');
     return Container(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
@@ -81,6 +87,13 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     User? lastUser;
     if (msgs.isNotEmpty) {
       lastMessage = msgs.first;
+      int i = 0;
+      while (i < msgs.length && msgs[i].type == 'system') {
+        i++;
+      }
+      if (msgs[i].type != 'system') {
+        lastMessage = msgs[i];
+      }
       try {
         List<User> lu = Provider.of<UserProvider>(context, listen: true)
             .users
@@ -98,6 +111,7 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
             s);
       }
     }
+    Utils.logger.i('Group photoUrl : ${group.photoUrl}');
     final String clientId =
         Provider.of<ClientProvider>(context, listen: true).client.id;
     final hasUnread =
@@ -115,7 +129,8 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                   .users
                   .where((u) => group.users.contains(u.id))
                   .any((u) => u.online),
-              photoUrl: group.photoUrl, isGroup: true),
+              photoUrl: group.photoUrl,
+              isGroup: true),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -172,7 +187,7 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
         .firstWhere((u) => u.id == userId);
     final msgs = Provider.of<ConversationProvider>(context, listen: true)
         .conversations
-        .firstWhere((c) => c.user.id == user.id)
+        .firstWhere((c) => c.user.id == userId)
         .messages
         .where((m) => !m.type.startsWith('temp'));
     final lastMessage = msgs.first;
@@ -202,7 +217,10 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                     .photoUrl),
             title:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(user.username),
+              Text(Provider.of<UserProvider>(context, listen: true)
+                  .users
+                  .firstWhere((u) => u.id == userId)
+                  .username),
               Text(
                   lastMessage.type == 'text'
                       ? (Provider.of<ClientProvider>(context, listen: true)
@@ -236,7 +254,12 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                         color: primary,
                         borderRadius: BorderRadius.circular(60)),
                     child: Text(
-                            msgs
+                            Provider.of<ConversationProvider>(context,
+                                    listen: true)
+                                .conversations
+                                .firstWhere((c) => c.user.id == user.id)
+                                .messages
+                                .where((m) => !m.type.startsWith('temp'))
                                 .where((m) => m.read == false)
                                 .length
                                 .toString(),

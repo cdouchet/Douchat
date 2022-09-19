@@ -19,6 +19,7 @@ import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/groups/group_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:douchat3/views/group_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -104,10 +105,11 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
     print(ModalRoute.of(context)!.settings.name);
     final Group group = Provider.of<GroupProvider>(context, listen: true)
         .getGroup(widget.groupId);
-        Utils.logger.i('group users : ' ,group.users.map((e) => e.toJson()));
+    Utils.logger.i('group users : ', group.users.map((e) => e.toJson()));
     final ClientProvider clientProvider =
         Provider.of<ClientProvider>(context, listen: true);
     final List<GroupMessage> messageList = group.messages.toList();
+    messageList.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     List<User> users = [];
     final List<User> contactUsers =
         Provider.of<UserProvider>(context, listen: true).users;
@@ -134,11 +136,24 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 titleSpacing: 0,
                 automaticallyImplyLeading: false,
                 title: HeaderStatus(
-                        username: group.name,
-                        online: users.any((element) => element.online),
-                        typing: null,
-                        photoUrl: group.photoUrl)
-                    .applyPadding(const EdgeInsets.all(12))),
+                  username: group.name,
+                  online: users.any((element) => element.online),
+                  typing: null,
+                  photoUrl: group.photoUrl,
+                  isGroup: true,
+                ).applyPadding(const EdgeInsets.all(12)),
+                actions: [
+                  IconButton(
+                      icon: Icon(Icons.settings),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => GroupSettings(
+                                    groupId: widget.groupId,
+                                    groupService: widget.groupService)));
+                      })
+                ]),
             body: GestureDetector(
                 onTap: () {
                   FocusScope.of(context).requestFocus(FocusNode());
@@ -213,10 +228,22 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
         physics: const BouncingScrollPhysics(),
         addAutomaticKeepAlives: true,
         itemBuilder: (__, int index) {
+          if (messageList[index].type == 'system') {
+            return Center(
+              child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(messageList[index].content,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: Colors.white.withOpacity(0.3)))),
+            );
+          }
           if (messageList[index].from == client.id) {
             return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: GroupSenderMessage(message: messageList[index], isLastMessage: index == 0));
+                child: GroupSenderMessage(
+                    message: messageList[index], isLastMessage: index == 0));
           }
           Utils.logger.i(messageList[index].toJson());
           Utils.logger.i(users.map((e) => e.toJson()));

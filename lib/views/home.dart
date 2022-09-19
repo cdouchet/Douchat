@@ -165,6 +165,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               child: Builder(builder: (context) {
                                 int unreadConv = 0;
                                 int unreadGroup = 0;
+                                String clientId = Provider.of<ClientProvider>(context, listen: false).client.id;
                                 for (Conversation c
                                     in Provider.of<ConversationProvider>(
                                             context,
@@ -173,11 +174,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   unreadConv += c.messages
                                       .where((m) =>
                                           m.to ==
-                                              Provider.of<ClientProvider>(
-                                                      context,
-                                                      listen: false)
-                                                  .client
-                                                  .id &&
+                                              clientId &&
                                           !m.read)
                                       .length;
                                 }
@@ -186,11 +183,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                         listen: true)
                                     .groups) {
                                   unreadGroup += g.messages
-                                      .where((m) => !m.readBy.contains(
-                                          Provider.of<ClientProvider>(context,
-                                                  listen: false)
-                                              .client
-                                              .id))
+                                      .where((m) => m.from != clientId && !m.readBy.contains(
+                                          clientId))
                                       .length;
                                 }
                                 final int total = unreadConv + unreadGroup;
@@ -259,9 +253,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     } else {
                       final d = jsonDecode(res.body);
                       if (d['payload']['new_group'] != null) {
-                        Provider.of<GroupProvider>(context, listen: false)
-                            .addGroup(
-                                Group.fromJson(d['payload']['new_group']));
+                      
+                        CompositionRoot.groupService.sendNewGroup(d['payload']['new_group']);
                         Fluttertoast.showToast(
                             msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
                       } else {

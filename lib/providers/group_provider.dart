@@ -1,5 +1,6 @@
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
+import 'package:douchat3/models/user.dart';
 import 'package:flutter/material.dart';
 
 class GroupProvider extends ChangeNotifier {
@@ -80,6 +81,33 @@ class GroupProvider extends ChangeNotifier {
         .messages
         .firstWhere((m) => m.id == mId)
         .updateTypeState(nT);
+    notifyListeners();
+  }
+
+  Group _getGroup(String id) => _groups.firstWhere((g) => g.id == id);
+
+  void updateGroupName({required String name, required String id}) {
+    _getGroup(id).updateName(name);
+    notifyListeners();
+  }
+
+  void updateGroupPhoto({required String url, required String id}) {
+    _getGroup(id).updatePhotoUrl(url);
+    notifyListeners();
+  }
+
+  void updateGroupAdmin({required String admin, required String id}) {
+    _getGroup(id).updateAdmin(admin);
+    notifyListeners();
+  }
+
+  void removeUser({required String userId, required String id}) {
+    _getGroup(id).removeUser(userId);
+    notifyListeners();
+  }
+
+  void addUser({required User user, required String id}) {
+    _getGroup(id).addUser(user);
     notifyListeners();
   }
 }

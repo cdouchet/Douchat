@@ -110,6 +110,29 @@ class Api {
     }
   }
 
+  static Future<String?> uploadGroupPicture({required File? file, required String id}) async {
+    try {
+      if (file == null) {
+        return null;
+      }
+      final request = MultipartRequest('POST', Uri.parse('$baseUrl/uploadGroupPhoto?group=$id'))
+      ..files.add(await MultipartFile.fromPath('picture', file.path))
+      ..fields.addAll({
+        'group': id
+      });
+      final result = await request.send();
+      final response = await Response.fromStream(result);
+      if (response.statusCode == 200) {
+        Utils.logger.i('success! Url : ${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}');
+        return '${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}';
+      }
+      return null;
+    } catch (e, s) {
+      Utils.logger.i('Error while processing group image upload', e, s);
+      return null;
+    }
+  }
+
   static Future<Response> getConversationMessages(
       {required String clientId}) async {
     return await client

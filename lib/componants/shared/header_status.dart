@@ -6,12 +6,14 @@ class HeaderStatus extends StatefulWidget {
   final String? photoUrl;
   final bool online;
   final bool? typing;
+  final bool isGroup;
   const HeaderStatus(
       {Key? key,
       required this.username,
       this.photoUrl,
       required this.online,
-      required this.typing})
+      required this.typing,
+      this.isGroup = false})
       : super(key: key);
 
   @override
@@ -27,7 +29,9 @@ class _HeaderStatusState extends State<HeaderStatus> {
           GestureDetector(
               onTap: () => Scaffold.of(context).openDrawer(),
               child: ProfileImage(
-                  online: widget.online, photoUrl: widget.photoUrl)),
+                  online: widget.online,
+                  photoUrl: widget.photoUrl,
+                  isGroup: widget.isGroup)),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Padding(
                 padding: const EdgeInsets.only(left: 12),

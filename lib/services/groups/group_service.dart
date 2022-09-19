@@ -2,6 +2,7 @@ import 'package:douchat3/main.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
@@ -9,6 +10,10 @@ class GroupService {
   final Socket socket;
 
   GroupService({required this.socket});
+
+  void sendNewGroup(dynamic data) {
+    socket.emit('new-group', data);
+  }
 
   void sendMessage(dynamic data) {
     socket.emit('group-message', data);
@@ -50,5 +55,45 @@ class GroupService {
 
   void cancelSubscriptionToReceipts() {
     socket.off('group-message', updateMessageReceipt);
+  }
+
+  void changeGroupName({required String name, required String id}) {
+    socket.emit('group-name-update', {
+      'name': name,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
+  }
+
+  void changeGroupPhoto({required String url, required String id}) {
+    socket.emit('group-photo-update', {
+      'url': url,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
+  }
+
+  void changeGroupAdmin({required String admin, required String id}) {
+    socket.emit('group-admin-update', {
+      'admin': admin,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
+  }
+
+  void removeGroupUser({required String userId, required String id}) {
+    socket.emit('group-user-removal', {
+      'userId': userId,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
+  }
+
+  void addGroupUser({required String userId, required String id}) {
+    socket.emit('group-user-addition', {
+      'userId': userId,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
   }
 }

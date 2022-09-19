@@ -27,10 +27,12 @@ class UserProvider extends ChangeNotifier {
 
   updateUsername({required String username, required String id}) {
     _users.firstWhere((u) => u.id == id).setUsername(username);
+    notifyListeners();
   }
 
   updatePhotoUrl({required String url, required String id}) {
     _users.firstWhere((u) => u.id == id).setPhotoUrl(url);
+    notifyListeners();
   }
 
   List<User> getConnectedUsers() {
