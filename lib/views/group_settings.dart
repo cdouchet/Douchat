@@ -37,8 +37,9 @@ class _GroupSettingsState extends State<GroupSettings> {
   Widget build(BuildContext context) {
     final Group group = Provider.of<GroupProvider>(context, listen: true)
         .getGroup(widget.groupId);
-        Utils.logger.i('Group admin: ${group.admin}');
-        Utils.logger.i('Client id : ${Provider.of<ClientProvider>(context, listen: false).client.id}}');
+    Utils.logger.i('Group admin: ${group.admin}');
+    Utils.logger.i(
+        'Client id : ${Provider.of<ClientProvider>(context, listen: false).client.id}}');
     return Scaffold(
         appBar: AppBar(
             centerTitle: true,
@@ -222,9 +223,35 @@ class _GroupSettingsState extends State<GroupSettings> {
                                 backgroundColor: primary,
                                 elevation: 5.0,
                                 shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(45)))),
+                        ElevatedButton(
+                            onPressed: () => _leaveGroup(),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: Icon(Icons.exit_to_app,
+                                          color: Colors.white)),
+                                  Text('Quitter le groupe'),
+                                ]),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: primary,
+                                elevation: 5.0,
+                                shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(45))))
                       ]
                     ]))));
+  }
+
+  _leaveGroup() {
+    widget.groupService.leaveGroup(
+        clientId: Provider.of<ClientProvider>(context, listen: false).client.id,
+        id: widget.groupId);
+    Navigator.pop(context);
+    Navigator.pop(context);
+    Provider.of<GroupProvider>(context, listen: false)
+        .removeGroup(widget.groupId);
   }
 
   Future<void> _changePhoto({required Group group}) async {

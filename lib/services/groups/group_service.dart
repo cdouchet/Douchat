@@ -96,4 +96,12 @@ class GroupService {
       'timestamp': DateFormat().format(DateTime.now())
     });
   }
+
+  void leaveGroup({required String clientId, required String id}) {
+    socket.emit('leave-group', {
+      'clientId': clientId,
+      'group': id,
+      'timestamp': DateFormat().format(DateTime.now())
+    });
+  }
 }

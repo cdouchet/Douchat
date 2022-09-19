@@ -18,6 +18,11 @@ class GroupProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeGroup(String id) {
+    _groups.removeWhere((g) => g.id == id);
+    notifyListeners();
+  }
+
   void addGroupMessage(GroupMessage gm) {
     _groups.firstWhere((g) => g.id == gm.group).messages.insert(0, gm);
     notifyListeners();

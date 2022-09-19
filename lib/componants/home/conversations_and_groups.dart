@@ -86,9 +86,9 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     GroupMessage? lastMessage;
     User? lastUser;
     if (msgs.isNotEmpty) {
-      lastMessage = msgs.first;
+      // lastMessage = msgs.first;
       int i = 0;
-      while (i < msgs.length && msgs[i].type == 'system') {
+      while (i < (msgs.length - 1) && msgs[i].type == 'system') {
         i++;
       }
       if (msgs[i].type != 'system') {
