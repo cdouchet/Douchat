@@ -322,7 +322,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
               timeStamp: DateTime.now(),
               readBy: [])
         ]);
-        Api.uploadFile(file: File(file.path), type: "image").then((path) {
+        Api.uploadFile(file: File(file.path), type: "image", thread: "group")
+            .then((path) {
           if (path != null) {
             widget.groupService.sendMessage({
               'content': path,
@@ -353,7 +354,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
         Provider.of<GroupProvider>(context, listen: false).addTempMessages(ms);
         for (int i = 0; i < fs.length; i++) {
           final String type = Utils.isImage(fs[i].path) ? 'image' : 'video';
-          Api.uploadFile(file: fs[i], type: type).then((path) {
+          Api.uploadFile(file: fs[i], type: type, thread: "group").then((path) {
             if (path != null) {
               widget.groupService.sendMessage({
                 'content': path,

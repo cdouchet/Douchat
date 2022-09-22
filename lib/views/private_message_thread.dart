@@ -243,6 +243,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
               style: Theme.of(context).textTheme.caption,
               cursorColor: primary,
               cursorHeight: 18,
+              textCapitalization: TextCapitalization.sentences,
               onChanged: (str) => _sendTypingNotification(
                   str,
                   Provider.of<ClientProvider>(context, listen: false)
@@ -286,7 +287,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
               timeStamp: DateTime.now(),
               read: false)
         ]);
-        Api.uploadFile(file: File(file.path), type: "image").then((path) {
+        Api.uploadFile(file: File(file.path), type: "image", thread: "conv").then((path) {
           if (path != null) {
             widget.messageService.sendMessage({
               'from': client.toJson(),
@@ -318,7 +319,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
             .addTempMessages(ms);
         for (int i = 0; i < fs.length; i++) {
           final String type = Utils.isImage(fs[i].path) ? 'image' : 'video';
-          Api.uploadFile(file: fs[i], type: type).then((path) {
+          Api.uploadFile(file: fs[i], type: type, thread: "conv").then((path) {
             if (path != null) {
               widget.messageService.sendMessage({
                 'from': client.toJson(),

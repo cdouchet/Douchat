@@ -11,6 +11,7 @@ import 'package:douchat3/services/groups/group_service.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/messages/message_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
+import 'package:douchat3/utils/notification_photo_registar.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/friend_request_view.dart';
 import 'package:douchat3/views/group_message_thread.dart';
@@ -18,8 +19,10 @@ import 'package:douchat3/views/home.dart';
 import 'package:douchat3/views/login.dart';
 import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -52,7 +55,7 @@ class CompositionRoot {
     // socket.connect();
     Utils.logger.d('Configuring Douchat...');
     socket = IO.io(
-        'http://${dotenv.env["DOUCHAT_URI"]}:2585',
+        'https://${dotenv.env["DOUCHAT_URI"]}:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
           'id': id,
           'token': await const FlutterSecureStorage().read(key: 'access_token'),
@@ -123,6 +126,24 @@ class CompositionRoot {
                   ['users'] as List)
               .map((e) => User.fromJson(e))
               .toList();
+      List<DouchatNotificationIcon> icons = [];
+      for (int i = 0; i < users.length; i++) {
+        Uint8List? bytes;
+        if (users[i].photoUrl == '') {
+         bytes =
+            (await Api.getContactPhoto(url: users[i].photoUrl)).bodyBytes;
+        }
+        if (bytes != null) {
+          bytes = await FlutterImageCompress.compressWithList(bytes,
+                quality: 20);
+        }
+        icons.add(DouchatNotificationIcon(
+            id: users[i].id,
+            bytes: bytes));
+      }
+      Utils.logger.i('Composition Root icons : $icons');
+      NotificationPhotoRegistar.populate(icons);
+      await NotificationPhotoRegistar.setup();
       Utils.logger
           .d((await Api.getConversationMessages(clientId: user.id)).body);
       final List<Message> messages = (jsonDecode(
@@ -149,6 +170,22 @@ class CompositionRoot {
       groups.forEach((g) {
         Utils.logger.i('GROUP PHOTO URL : ${g.photoUrl}');
       });
+      List<DouchatNotificationIcon> groupIcons = [];
+      for (int i = 0; i < groups.length; i++) {
+        Uint8List? bytes;
+        if (groups[i].photoUrl != null) {
+         bytes =
+            (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+        }
+        if (bytes != null) {
+          bytes = await FlutterImageCompress.compressWithList(bytes,
+                quality: 20);
+        }
+        groupIcons.add(DouchatNotificationIcon(
+            id: groups[i].id,
+            bytes: bytes));
+      }
+      NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =
       //     await Api.getGroupsMessages(groups: groups.map((e) => e.id).toList());
       // final List<GroupMessage> groupMessages =
@@ -185,9 +222,7 @@ class CompositionRoot {
         return composeLogin();
       }
     } catch (e, s) {
-      print('composition root error 2');
-      print(e);
-      Utils.logger.i(s);
+      Utils.logger.i('Composition root error 2', e, s);
       return const Login();
     }
   }

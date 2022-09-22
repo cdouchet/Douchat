@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <application android:label="Douchat" android:name="${applicationName}" android:icon="@mipmap/launcher_icon" android:requestLegacyExternalStorage="true" android:usesCleartextTraffic="true">
+    <application android:label="Douchat" android:name="${applicationName}" android:icon="@mipmap/launcher_icon" android:requestLegacyExternalStorage="true" android:usesCleartextTraffic="false">
         <provider android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider" android:authorities="${applicationId}.flutter_downloader.provider" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />
         </provider>

@@ -30,11 +30,9 @@ import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:load/load.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as flnp;
 
 class Home extends StatefulWidget {
   final ListenerService messageService;
@@ -128,22 +126,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         appBar: AppBar(
             automaticallyImplyLeading: false,
             actions: <Widget>[
-              IconButton(
-                  onPressed: () {
-                    notificationsPlugin.show(
-                        40,
-                        "test notif",
-                        "test",
-                        payload: "test payload notif",
-                        flnp.NotificationDetails(
-                            android: flnp.AndroidNotificationDetails(
-                                "didi", "didi",
-                                enableVibration: true,
-                                category: "CATEGORY_MESSAGE",
-                                priority: flnp.Priority.max,
-                                importance: flnp.Importance.max)));
-                  },
-                  icon: Icon(FontAwesomeIcons.appStore)),
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Stack(
@@ -278,8 +260,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     } else {
                       final d = jsonDecode(res.body);
                       if (d['payload']['new_group'] != null) {
-                        CompositionRoot.groupService
-                            .sendNewGroup(d['payload']['new_group']);
+                        CompositionRoot.groupService.sendNewGroup({
+                          "group": d['payload']['new_group'],
+                          "timestamp": DateFormat().format(DateTime.now())
+                        });
                         Fluttertoast.showToast(
                             msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
                       } else {

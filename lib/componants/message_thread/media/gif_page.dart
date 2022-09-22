@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/tenor.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -101,18 +102,20 @@ class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
                                   },
                                   child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: CachedNetworkImage(
-                                          imageUrl: url,
-                                          fit: BoxFit.fill,
-                                          progressIndicatorBuilder:
-                                              (BuildContext context,
-                                                      String url,
-                                                      DownloadProgress
-                                                          loadingProgress) =>
-                                                  LoadingAnimationWidget
-                                                      .threeArchedCircle(
-                                                          color: Colors.white,
-                                                          size: 50))),
+                                      child: CachedImageWithCookie(
+                                        image: CachedNetworkImage(
+                                            imageUrl: url,
+                                            fit: BoxFit.fill,
+                                            progressIndicatorBuilder:
+                                                (BuildContext context,
+                                                        String url,
+                                                        DownloadProgress
+                                                            loadingProgress) =>
+                                                    LoadingAnimationWidget
+                                                        .threeArchedCircle(
+                                                            color: Colors.white,
+                                                            size: 50)),
+                                      )),
                                 );
                               }),
                         );

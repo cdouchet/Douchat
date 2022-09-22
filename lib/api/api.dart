@@ -9,7 +9,7 @@ import 'package:http_interceptor/http/http.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
-  static String baseUrl = "http://${dotenv.env["DOUCHAT_URI"]}:2585";
+  static String baseUrl = "https://${dotenv.env["DOUCHAT_URI"]}:2585";
   static Client client =
       InterceptedClient.build(interceptors: [GlobalInterceptor()]);
   static Future<Response> register(
@@ -38,6 +38,10 @@ class Api {
       {required String id, required String clientId}) async {
     return await client.post(Uri.parse('$baseUrl/addContact'),
         body: {'id': id, 'clientId': clientId});
+  }
+
+  static Future<Response> getContactPhoto({required String url}) async {
+    return await client.get(Uri.parse(url));
   }
 
   static Future<Response> getFriendRequests({required String clientId}) async {
@@ -86,13 +90,13 @@ class Api {
   }
 
   static Future<String?> uploadFile(
-      {required File? file, required String type}) async {
+      {required File? file, required String type, required String thread}) async {
     try {
       if (file == null) {
         return null;
       }
       final request = MultipartRequest(
-          'POST', Uri.parse('$baseUrl/uploadFile/media?type=$type'))
+          'POST', Uri.parse('$baseUrl/uploadFile/media?type=$type&thread=$thread'))
         ..files.add(await MultipartFile.fromPath('picture', file.path));
 
       final result = await request.send();

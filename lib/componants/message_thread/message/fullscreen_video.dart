@@ -10,8 +10,12 @@ import 'package:video_player/video_player.dart';
 class FullScreenVideo extends StatefulWidget {
   final String url;
   final Duration startingDuration;
+  final String cookie;
   const FullScreenVideo(
-      {super.key, required this.url, required this.startingDuration});
+      {super.key,
+      required this.url,
+      required this.startingDuration,
+      required this.cookie});
 
   @override
   State<FullScreenVideo> createState() => _FullScreenVideoState();
@@ -23,7 +27,8 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
 
   @override
   void initState() {
-    controller = VideoPlayerController.network(widget.url);
+    controller = VideoPlayerController.network(widget.url,
+        httpHeaders: {'cookie': widget.cookie});
     controller.initialize();
     chewieController = ChewieController(
         videoPlayerController: controller,

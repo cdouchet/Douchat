@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/message_thread/message/video_preview.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -58,13 +60,15 @@ class ReceiverMessage extends StatelessWidget {
                 radius: 18,
                 child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: CachedNetworkImage(
-                      imageUrl: photoUrl,
-                      width: 30,
-                      height: 30,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) =>
-                          Icon(Icons.person, color: Colors.white),
+                    child: CachedImageWithCookie(
+                      image: CachedNetworkImage(
+                        imageUrl: photoUrl,
+                        width: 30,
+                        height: 30,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) =>
+                            Icon(Icons.person, color: Colors.white),
+                      ),
                     )))
           ])),
     );
@@ -85,13 +89,15 @@ class ReceiverMessage extends StatelessWidget {
         width: 220,
         child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress loadingProgress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 50))),
+            child: CachedImageWithCookie(
+              image: CachedNetworkImage(
+                  imageUrl: message.content,
+                  fit: BoxFit.fill,
+                  progressIndicatorBuilder: (BuildContext context, String url,
+                          DownloadProgress loadingProgress) =>
+                      LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 50)),
+            )),
       );
     } else if (type == 'image') {
       return GestureDetector(
@@ -106,21 +112,32 @@ class ReceiverMessage extends StatelessWidget {
             width: 220,
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: message.content,
-                  fit: BoxFit.fill,
-                  progressIndicatorBuilder: (BuildContext context, String url,
-                          DownloadProgress progress) =>
-                      LoadingAnimationWidget.threeArchedCircle(
-                          color: Colors.white, size: 30),
-                  errorWidget: (_, __, ___) => Icon(
-                    Icons.error,
-                    color: bubbleDark,
+                child: CachedImageWithCookie(
+                  image: CachedNetworkImage(
+                    imageUrl: message.content,
+                    fit: BoxFit.fill,
+                    progressIndicatorBuilder: (BuildContext context, String url,
+                            DownloadProgress progress) =>
+                        LoadingAnimationWidget.threeArchedCircle(
+                            color: Colors.white, size: 30),
+                    errorWidget: (_, __, ___) => Icon(
+                      Icons.error,
+                      color: bubbleDark,
+                    ),
                   ),
                 ))),
       );
     } else {
-      return VideoPreview(url: message.content);
+      return FutureBuilder<String?>(
+        future: const FlutterSecureStorage().read(key: 'access_token'),
+          builder: (context, AsyncSnapshot<String?> snap) {
+        if (snap.hasData) {
+          return VideoPreview(url: message.content, cookie: snap.data!);
+        } else {
+          return LoadingAnimationWidget.threeArchedCircle(
+              color: Colors.white, size: 30);
+        }
+      });
     }
   }
 }

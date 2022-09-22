@@ -5,6 +5,7 @@ import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/group_thread/add_group_user.dart';
 import 'package:douchat3/componants/group_thread/remove_group_user.dart';
 import 'package:douchat3/componants/group_thread/update_group_admin.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
@@ -55,14 +56,16 @@ class _GroupSettingsState extends State<GroupSettings> {
                     children: [
                       ClipRRect(
                               borderRadius: BorderRadius.circular(250),
-                              child: CachedNetworkImage(
-                                  imageUrl: group.photoUrl ?? "",
-                                  width: 175,
-                                  height: 175,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, error, stackTrace) =>
-                                      const Icon(Icons.group,
-                                          color: Colors.white, size: 102)))
+                              child: CachedImageWithCookie(
+                                image: CachedNetworkImage(
+                                    imageUrl: group.photoUrl ?? "",
+                                    width: 175,
+                                    height: 175,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, error, stackTrace) =>
+                                        const Icon(Icons.group,
+                                            color: Colors.white, size: 102)),
+                              ))
                           .applyPadding(const EdgeInsets.only(bottom: 12)),
                       if (group.admin ==
                           Provider.of<ClientProvider>(context, listen: true)

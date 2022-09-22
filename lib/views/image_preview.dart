@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -44,10 +45,12 @@ class _ImagePreviewState extends State<ImagePreview> {
                     showNotification: true);
               })),
       Center(
-        child: CachedNetworkImage(
-            imageUrl: widget.imageUrl,
-            errorWidget: (context, url, error) =>
-                Icon(Icons.error, color: Colors.white)),
+        child: CachedImageWithCookie(
+          image: CachedNetworkImage(
+              imageUrl: widget.imageUrl,
+              errorWidget: (context, url, error) =>
+                  Icon(Icons.error, color: Colors.white)),
+        ),
       )
     ]))));
   }

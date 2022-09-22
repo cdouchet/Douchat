@@ -1,11 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/message_thread/message/video_preview.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
+import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +36,20 @@ class GroupReceiverMessage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6, left: 6),
+            child: Text((Provider.of<UserProvider>(context, listen: true)
+                .users
+                .firstWhere((u) => u.id == message.from,
+                    orElse: () =>
+                        Provider.of<GroupProvider>(context, listen: true)
+                            .getGroup(message.group)
+                            .users
+                            .firstWhere((u) => u.id == message.from))).username, style: Theme.of(context)
+                              .textTheme
+                              .caption!
+                              .copyWith(color: Colors.white.withOpacity(0.8))),
+          ),
           FractionallySizedBox(
               alignment: Alignment.topLeft,
               widthFactor: 0.75,
@@ -67,21 +86,31 @@ class GroupReceiverMessage extends StatelessWidget {
                     radius: 18,
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: CachedNetworkImage(
-                          imageUrl: photoUrl,
-                          width: 30,
-                          height: 30,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) =>
-                              Icon(Icons.person, color: Colors.white),
+                        child: CachedImageWithCookie(
+                          image: CachedNetworkImage(
+                            imageUrl: photoUrl,
+                            width: 30,
+                            height: 30,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) =>
+                                Icon(Icons.person, color: Colors.white),
+                          ),
                         )))
               ])),
           isLastMessage
               ? Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 8, ),
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    left: 8,
+                  ),
                   child: Builder(builder: (BuildContext context) {
                     String readMessage = "Lu par ";
                     List<String> readBy = message.readBy;
+                    readBy.removeWhere((e) =>
+                        e ==
+                        Provider.of<ClientProvider>(context, listen: false)
+                            .client
+                            .id);
                     for (int i = 0; i < readBy.length && i < 3; i++) {
                       final User user =
                           Provider.of<GroupProvider>(context, listen: false)
@@ -130,34 +159,55 @@ class GroupReceiverMessage extends StatelessWidget {
         width: 220,
         child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress loadingProgress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 50))),
+            child: CachedImageWithCookie(
+              image: CachedNetworkImage(
+                  imageUrl: message.content,
+                  fit: BoxFit.fill,
+                  progressIndicatorBuilder: (BuildContext context, String url,
+                          DownloadProgress loadingProgress) =>
+                      LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 50)),
+            )),
       );
     } else if (type == 'image') {
-      return Container(
-          height: 240,
-          width: 220,
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress progress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 30),
-                errorWidget: (_, __, ___) => Icon(
-                  Icons.error,
-                  color: bubbleDark,
-                ),
-              )));
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ImagePreview(imageUrl: message.content)));
+        },
+        child: Container(
+            height: 240,
+            width: 220,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedImageWithCookie(
+                  image: CachedNetworkImage(
+                    imageUrl: message.content,
+                    fit: BoxFit.fill,
+                    progressIndicatorBuilder: (BuildContext context, String url,
+                            DownloadProgress progress) =>
+                        LoadingAnimationWidget.threeArchedCircle(
+                            color: Colors.white, size: 30),
+                    errorWidget: (_, __, ___) => Icon(
+                      Icons.error,
+                      color: bubbleDark,
+                    ),
+                  ),
+                ))),
+      );
     } else {
-      return VideoPreview(url: message.content);
+      return FutureBuilder<String?>(
+          future: const FlutterSecureStorage().read(key: 'access_token'),
+          builder: (context, AsyncSnapshot<String?> snap) {
+            if (snap.hasData) {
+              return VideoPreview(url: message.content, cookie: snap.data!);
+            } else {
+              return LoadingAnimationWidget.threeArchedCircle(
+                  color: Colors.white, size: 30);
+            }
+          });
     }
   }
 }

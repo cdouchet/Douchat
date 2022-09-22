@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
@@ -68,15 +69,17 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
         ]),
         ClipRRect(
                 borderRadius: BorderRadius.circular(250),
-                child: CachedNetworkImage(
-                    imageUrl: clientProvider.client.photoUrl,
-                    width: 175,
-                    height: 175,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, error, stackTrace) => const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 102)))
+                child: CachedImageWithCookie(
+                  image: CachedNetworkImage(
+                      imageUrl: clientProvider.client.photoUrl,
+                      width: 175,
+                      height: 175,
+                      fit: BoxFit.cover,
+                      errorWidget: (context, error, stackTrace) => const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 102)),
+                ))
             .applyPadding(const EdgeInsets.only(bottom: 12)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,

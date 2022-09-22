@@ -10,7 +10,10 @@ import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
 import 'package:douchat3/routes/router.dart';
+import 'package:douchat3/utils/notification_photo_registar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:provider/provider.dart';
 
 class LoginGetters {
@@ -31,6 +34,20 @@ class LoginGetters {
               .map((e) => User.fromJson(e))
               .toList();
       users.removeWhere((u) => u.id == clientId);
+      List<DouchatNotificationIcon> icons = [];
+      for (int i = 0; i < users.length; i++) {
+        Uint8List? bytes;
+        if (users[i].photoUrl == '') {
+          bytes = (await Api.getContactPhoto(url: users[i].photoUrl)).bodyBytes;
+        }
+        if (bytes != null) {
+          bytes =
+              await FlutterImageCompress.compressWithList(bytes, quality: 20);
+        }
+        icons.add(DouchatNotificationIcon(id: users[i].id, bytes: bytes));
+      }
+      NotificationPhotoRegistar.populate(icons);
+      NotificationPhotoRegistar.setup();
       final apiFriendRequests = await Api.getFriendRequests(clientId: clientId);
       final List<FriendRequest> friendRequests =
           (jsonDecode(apiFriendRequests.body)['payload']['friend_requests']
@@ -57,6 +74,20 @@ class LoginGetters {
           (jsonDecode(grps.body)['payload']['groups'] as List)
               .map((g) => Group.fromJson(g))
               .toList();
+      List<DouchatNotificationIcon> groupIcons = [];
+      for (int i = 0; i < groups.length; i++) {
+        Uint8List? bytes;
+        if (groups[i].photoUrl != null) {
+          bytes =
+              (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+        }
+        if (bytes != null) {
+          bytes =
+              await FlutterImageCompress.compressWithList(bytes, quality: 20);
+        }
+        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: bytes));
+      }
+      NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =
       //     await Api.getGroupsMessages(groups: groups.map((e) => e.id).toList());
       // final List<GroupMessage> groupMessages = (jsonDecode(gmes.body)['payload']['messages'] as List).map((e) => GroupMessage.fromJson(e)).toList();
@@ -110,6 +141,7 @@ class LoginGetters {
       List<Conversation> conversations = [];
       List<Group> groups = [];
       List<FriendRequest> friendRequests = [];
+      NotificationPhotoRegistar.setup();
       Navigator.pushReplacementNamed(context, home, arguments: {
         'client': User.fromJson(decoded['new_user']),
         'users': users,

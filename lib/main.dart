@@ -15,6 +15,7 @@ import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -94,14 +95,15 @@ class Douchat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown
+    ]);
     return FutureBuilder<bool>(
         future: FlutterBackground.initialize(
             androidConfig: androidBackgroundConfig),
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data!) {
-              FlutterBackground.enableBackgroundExecution();
-            }
             return FutureBuilder<Widget>(
                 future: CompositionRoot.start(context),
                 builder: (context, snapshot) {

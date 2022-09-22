@@ -2,12 +2,16 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/message_thread/message/video_preview.dart';
+import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -83,16 +87,20 @@ class GroupSenderMessage extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8, right: 8),
                       child: Builder(builder: (BuildContext context) {
                         String readMessage = "Lu par ";
-                        if (message.readBy.isNotEmpty) {
+                        final readBy = message.readBy;
+                        Utils.logger.i('READ BY : ${message.readBy}');
+                        readBy.removeWhere((e) => e == Provider.of<ClientProvider>(context, listen: false).client.id);
+                        Utils.logger.i('AFTER REMOVAL : $readBy');
+                        if (readBy.isNotEmpty) {
                           for (int i = 0;
-                              i < message.readBy.length && i < 3;
+                              i < readBy.length && i < 3;
                               i++) {
                             final User user = Provider.of<GroupProvider>(
                                     context,
                                     listen: false)
                                 .getGroup(message.group)
                                 .users
-                                .firstWhere((u) => u.id == message.readBy[i],
+                                .firstWhere((u) => u.id == readBy[i],
                                     orElse: () => User(
                                         id: 'no_user',
                                         username: '',
@@ -100,16 +108,16 @@ class GroupSenderMessage extends StatelessWidget {
                                         online: false));
                             if (user.id != 'no_user') {
                               readMessage +=
-                                  "${user.username}${i == 2 || i == (message.readBy.length - 1) ? ' ' : ','}";
+                                  "${user.username}${i == 2 || i == (readBy.length - 1) ? ' ' : ', '}";
                             }
                           }
-                          if (message.readBy.length > 3) {
-                            final int others = message.readBy.length - 3;
+                          if (readBy.length > 3) {
+                            final int others = readBy.length - 3;
                             readMessage +=
                                 "et ${others} autre${others == 1 ? '' : 's'}}";
                           }
                         }
-                        return Text(message.readBy.isEmpty ? '' : readMessage,
+                        return Text(readBy.isEmpty ? '' : readMessage,
                             style: Theme.of(context)
                                 .textTheme
                                 .caption!
@@ -125,6 +133,10 @@ class GroupSenderMessage extends StatelessWidget {
 
   Widget _handleMessageType(
       {required String type, required BuildContext context}) {
+        final readBy = message.readBy;
+                        Utils.logger.i('READ BY : ${message.readBy}');
+                        readBy.removeWhere((e) => e == Provider.of<ClientProvider>(context, listen: false).client.id);
+                        Utils.logger.i('AFTER REMOVAL : $readBy');
     if (type.startsWith('temp_loading') || type.startsWith('temp_error')) {
       if (type.split('_')[2] == 'image') {
         return Stack(
@@ -174,37 +186,58 @@ class GroupSenderMessage extends StatelessWidget {
         width: 220,
         child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress loadingProgress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 50))),
+            child: CachedImageWithCookie(
+              image: CachedNetworkImage(
+                  imageUrl: message.content,
+                  fit: BoxFit.fill,
+                  progressIndicatorBuilder: (BuildContext context, String url,
+                          DownloadProgress loadingProgress) =>
+                      LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 50)),
+            )),
       );
     } else if (type == 'image') {
-      return Container(
-          height: 240,
-          width: 220,
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: message.content,
-                fit: BoxFit.fill,
-                progressIndicatorBuilder: (BuildContext context, String url,
-                        DownloadProgress progress) =>
-                    LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.white, size: 30),
-                errorWidget: (_, __, ___) =>
-                    Icon(Icons.error, color: bubbleDark),
-              )));
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ImagePreview(imageUrl: message.content)));
+        },
+        child: Container(
+            height: 240,
+            width: 220,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedImageWithCookie(
+                  image: CachedNetworkImage(
+                    imageUrl: message.content,
+                    fit: BoxFit.fill,
+                    progressIndicatorBuilder: (BuildContext context, String url,
+                            DownloadProgress progress) =>
+                        LoadingAnimationWidget.threeArchedCircle(
+                            color: Colors.white, size: 30),
+                    errorWidget: (_, __, ___) =>
+                        Icon(Icons.error, color: bubbleDark),
+                  ),
+                ))),
+      );
     } else {
       return Container(
           height: 240,
           width: 220,
           child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: VideoPreview(url: message.content)));
+              child: FutureBuilder<String?>(
+        future: const FlutterSecureStorage().read(key: 'access_token'),
+          builder: (context, AsyncSnapshot<String?> snap) {
+        if (snap.hasData) {
+          return VideoPreview(url: message.content, cookie: snap.data!);
+        } else {
+          return LoadingAnimationWidget.threeArchedCircle(
+              color: Colors.white, size: 30);
+        }
+      })));
     }
   }
 }

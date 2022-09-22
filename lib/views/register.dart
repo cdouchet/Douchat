@@ -89,6 +89,8 @@ class _RegisterState extends State<Register> {
                             _username = val;
                           },
                           inputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
+
                         )),
                     Padding(
                         padding: const EdgeInsets.only(
@@ -129,7 +131,7 @@ class _RegisterState extends State<Register> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                              primary: primary,
+                              backgroundColor: primary,
                               elevation: 5.0,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(45))),

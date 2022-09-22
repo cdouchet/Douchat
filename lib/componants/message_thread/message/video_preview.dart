@@ -77,7 +77,8 @@ import 'package:video_player/video_player.dart';
 
 class VideoPreview extends StatefulWidget {
   final String url;
-  const VideoPreview({super.key, required this.url});
+  final String cookie;
+  const VideoPreview({super.key, required this.url, required this.cookie});
 
   @override
   State<VideoPreview> createState() => _VideoPreviewState();
@@ -91,7 +92,7 @@ class _VideoPreviewState extends State<VideoPreview> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.url, videoPlayerOptions: VideoPlayerOptions());
+    _controller = VideoPlayerController.network(widget.url, videoPlayerOptions: VideoPlayerOptions(), httpHeaders: {'cookie': widget.cookie});
     _initializeVideo = _controller.initialize();
     _controller.setLooping(true);
   }
@@ -117,7 +118,7 @@ class _VideoPreviewState extends State<VideoPreview> {
               _controller.seekTo(Duration());
               _controller.pause();
               isPlaying.value = false;
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenVideo(url: widget.url, startingDuration: _controller.value.position)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenVideo(url: widget.url, startingDuration: _controller.value.position, cookie: widget.cookie)));
             }
           }, child: 
            ValueListenableBuilder<bool>(

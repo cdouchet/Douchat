@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/friend_request.dart';
@@ -12,10 +13,13 @@ import 'package:douchat3/providers/friend_request_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
+import 'package:douchat3/utils/notification_photo_registar.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as flnp;
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:vibration/vibration.dart';
@@ -67,7 +71,7 @@ class ListenerService {
   }
 
   _startReceivingConversationMessages(BuildContext context) {
-    socket.on('conversation-message', (data) {
+    socket.on('conversation-message', (data) async {
       print('new Message : $data');
       Provider.of<ConversationProvider>(context, listen: false)
           .addConversationMessage(Message.fromJson(data));
@@ -84,30 +88,71 @@ class ListenerService {
           id++;
         }
         notificationIds.add(id);
-        print("NOTIFICATION ID : " + id.toString());
         final user = Provider.of<UserProvider>(context, listen: false)
             .users
             .firstWhere((u) => u.id == data['from']);
         final String from = data['from'];
-
+        final String messageText = data['type'] == 'text'
+            ? data['content']
+            : data['type'] == 'image'
+                ? '${user.username} a envoyé une image.'
+                : data['type'] == 'video'
+                    ? '${user.username} a envoyé une vidéo'
+                    : '${user.username} a envoyé un gif';
+        final List<flnp.ActiveNotification> activeNotifications =
+            (await notificationsPlugin
+                .resolvePlatformSpecificImplementation<
+                    flnp.AndroidFlutterLocalNotificationsPlugin>()
+                ?.getActiveNotifications())!;
+        activeNotifications.forEach((element) {
+          Utils.logger.i(element.title);
+          Utils.logger.i(element.channelId);
+        });
+        // if (activeNotifications.any((element) => element.channelId == data['from'])) {
+        //   final flnp.ActiveNotification notif = activeNotifications.firstWhere((n) => n.channelId == data['from']);
+        //   finalText = '${notif.body}\n$messageText';
+        //   notifId = notif.id;
+        // } else {
+        //   finalText = messageText;
+        //   notifId = id;
+        // }
+        List<flnp.Message> notifMessages = activeNotifications
+            .where((n) => n.channelId == data['from'])
+            .map((e) => flnp.Message(
+                e.body!, DateFormat().parse(data['timestamp']), null))
+            .toList();
+        if (notifMessages.isNotEmpty) {
+          id = activeNotifications
+              .firstWhere((n) => n.channelId == data['from'])
+              .id;
+        }
+        print("NOTIFICATION ID : " + id.toString());
+        notifMessages.add(flnp.Message(
+            messageText, DateFormat().parse(data['timestamp']), null));
         notificationsPlugin.show(
             id,
             user.username,
-            data['type'] == 'text'
-                ? data['content']
-                : data['type'] == 'image'
-                    ? 'a envoyé une image.'
-                    : data['type'] == 'video'
-                        ? 'a envoyé une vidéo'
-                        : 'a envoyé un gif',
+            messageText,
             flnp.NotificationDetails(
                 android: flnp.AndroidNotificationDetails(
                     data['from'], user.username,
                     enableVibration: true,
                     groupKey: data['from'],
-                    setAsGroupSummary: true,
+                    setAsGroupSummary: !activeNotifications
+                        .any((n) => n.channelId == data['from']),
                     category: "CATEGORY_MESSAGE",
                     priority: flnp.Priority.max,
+                    styleInformation: flnp.MessagingStyleInformation(
+                        flnp.Person(
+                            bot: false,
+                            name: user.username,
+                            icon: flnp.ByteArrayAndroidIcon(
+                                NotificationPhotoRegistar.getBytesFromId(
+                                        data['from']) ??
+                                    NotificationPhotoRegistar.getBytesFromId(
+                                        'person')!)),
+                        conversationTitle: user.username,
+                        messages: notifMessages),
                     importance: flnp.Importance.max)),
             payload: '{"type": "conversation", "id": "$from"}');
       } else {
@@ -147,19 +192,21 @@ class ListenerService {
 
   _startReceivingNewGroups(BuildContext context) {
     socket.on('new-group', (data) {
+      Utils.logger.i('NEW GROUP : $data');
       Provider.of<GroupProvider>(context, listen: false)
           .addGroup(Group.fromJson(data));
     });
   }
 
   _startReceivingGroupMessages(BuildContext context) {
-    socket.on('group-message', (data) {
+    socket.on('group-message', (data) async {
       print('new Group Message : $data');
       Provider.of<GroupProvider>(context, listen: false)
           .addGroupMessage(GroupMessage.fromJson(data));
-          Utils.logger.i('INCOMING GROUP MESSAGE : $data');
+      Utils.logger.i('INCOMING GROUP MESSAGE : $data');
       if (Provider.of<AppLifeCycleProvider>(context, listen: false).state !=
-          AppLifecycleState.resumed && data['type'] != 'system') {
+              AppLifecycleState.resumed &&
+          data['type'] != 'system') {
         int id = 0;
         while (notificationIds.contains(id)) {
           id++;
@@ -173,24 +220,59 @@ class ListenerService {
                 orElse: () =>
                     group.users.firstWhere((us) => us.id == data['from']))
             .username;
-        notificationsPlugin.show(
-            id,
-            group.name,
-            '$username' + (data['type'] == 'text'
+        final String messageText = '$username' +
+            (data['type'] == 'text'
                 ? ": ${data['content']}"
                 : data['type'] == 'image'
                     ? ' a envoyé une image'
                     : data['type'] == 'video'
                         ? ' a envoyé une vidéo'
-                        : ' a envoyé un gif'),
+                        : ' a envoyé un gif');
+        List<flnp.ActiveNotification> activeNotifications =
+            (await notificationsPlugin
+                .resolvePlatformSpecificImplementation<
+                    flnp.AndroidFlutterLocalNotificationsPlugin>()
+                ?.getActiveNotifications())!;
+        activeNotifications.forEach((element) {
+          Utils.logger.i(element.title);
+          Utils.logger.i(element.channelId);
+        });
+        List<flnp.Message> notifMessages = activeNotifications
+            .where((n) => n.channelId == group.id)
+            .map((e) => flnp.Message(
+                e.body!, DateFormat().parse(data['timestamp']), null))
+            .toList();
+        if (notifMessages.isNotEmpty) {
+          id =
+              activeNotifications.firstWhere((n) => n.channelId == group.id).id;
+        }
+        print('Notification id : ' + id.toString());
+        notifMessages.add(flnp.Message(
+            messageText, DateFormat().parse(data['timestamp']), null));
+        notificationsPlugin.show(
+            id,
+            group.name,
+            messageText,
             flnp.NotificationDetails(
-                android: flnp.AndroidNotificationDetails(data['from'], username,
+                android: flnp.AndroidNotificationDetails(group.id, username,
                     enableVibration: true,
-                    groupKey: data['from'],
-                    setAsGroupSummary: true,
+                    groupKey: group.id,
+                    setAsGroupSummary: !activeNotifications
+                        .any((n) => n.channelId == group.id),
                     category: "CATEGORY_MESSAGE",
                     priority: flnp.Priority.max,
-                    importance: flnp.Importance.max)),
+                    importance: flnp.Importance.max,
+                    styleInformation: flnp.MessagingStyleInformation(
+                        flnp.Person(
+                            bot: false,
+                            name: group.name,
+                            icon: flnp.ByteArrayAndroidIcon(
+                                NotificationPhotoRegistar.getBytedFromGroupId(
+                                        group.id) ??
+                                    NotificationPhotoRegistar
+                                        .getBytedFromGroupId('group')!)),
+                        conversationTitle: group.name,
+                        messages: notifMessages))),
             payload: '{"type": "group", "id": "${group.id}"}');
       } else {
         Vibration.hasVibrator().then((value) {
@@ -289,7 +371,7 @@ class ListenerService {
   }
 
   _startReceivingNewUsers(BuildContext context) {
-    socket.on('user-added', (data) {
+    socket.on('user-added', (data) async {
       Provider.of<UserProvider>(context, listen: false)
           .addUser(User.fromJson(data['user']));
       Provider.of<ConversationProvider>(context, listen: false).addConversation(
@@ -328,12 +410,18 @@ class ListenerService {
   }
 
   _startReceivingFriendRequestResponses(BuildContext context) {
-    socket.on('friend-request-response', (data) {
+    socket.on('friend-request-response', (data) async {
       if (data['accept']) {
         final User u = User.fromJson(data['user']);
         Provider.of<UserProvider>(context, listen: false).addUser(u);
         Provider.of<ConversationProvider>(context, listen: false)
             .addConversation(Conversation(user: u, messages: []));
+        NotificationPhotoRegistar.addIcon(DouchatNotificationIcon(
+            id: data['user']['id'],
+            bytes: await FlutterImageCompress.compressWithList(
+                (await Api.getContactPhoto(url: data['user']['photoUrl']))
+                    .bodyBytes,
+                quality: 20)));
       }
       Provider.of<FriendRequestProvider>(context, listen: false)
           .removeFriendRequest(data['id']);
@@ -348,9 +436,15 @@ class ListenerService {
   }
 
   _startReceivingPhotoUrlUpdate(BuildContext context) {
-    socket.on('change-photoUrl', (data) {
+    socket.on('change-photoUrl', (data) async {
       Provider.of<UserProvider>(context, listen: false)
           .updatePhotoUrl(url: data['photoUrl'], id: data['id']);
+      NotificationPhotoRegistar.updateIconBytes(
+          id: data['id'],
+          bytes: await FlutterImageCompress.compressWithList(
+              (await Api.getContactPhoto(url: data['photoUrl'])).bodyBytes,
+              rotate: 90,
+              quality: 20));
     });
   }
 

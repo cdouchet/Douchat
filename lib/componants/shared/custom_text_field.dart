@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final bool hideCharacters;
   final void Function(String str)? onSubmitted;
   final TextEditingController? controller;
+  final TextCapitalization? textCapitalization;
   const CustomTextField(
       {Key? key,
       required this.hint,
@@ -17,7 +18,7 @@ class CustomTextField extends StatelessWidget {
       this.height,
       required this.inputAction,
       this.hideCharacters = false,
-      this.onSubmitted})
+      this.onSubmitted, this.textCapitalization})
       : super(key: key);
 
   @override
@@ -41,6 +42,7 @@ class CustomTextField extends StatelessWidget {
           onChanged: onChanged,
           textInputAction: inputAction,
           cursorColor: primary,
+          textCapitalization: textCapitalization ?? TextCapitalization.none,
           decoration: InputDecoration(
               contentPadding:
                   const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
