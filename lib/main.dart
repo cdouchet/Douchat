@@ -14,6 +14,7 @@ import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
@@ -34,12 +35,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(
     debug: true,
-    ignoreSsl: true
   );
   HttpOverrides.global = MyHttpOverrides();
   notificationsPlugin.initialize(
       InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/launcher_icon')),
+          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+          iOS: IOSInitializationSettings(
+            requestAlertPermission: true,
+            requestBadgePermission: true,
+            requestSoundPermission: true,
+          )),
       onSelectNotification: notificationCallbackHandler);
   runApp(
     // LoadingProvider(
@@ -49,7 +54,7 @@ void main() async {
     //         child: LoadingAnimationWidget.threeArchedCircle(
     //             color: Colors.white, size: 80));
     //   },
-    // child: 
+    // child:
     MultiProvider(
       providers: [
         ChangeNotifierProvider<ClientProvider>(create: (_) => ClientProvider()),
@@ -57,7 +62,8 @@ void main() async {
           create: (_) => ProfilePhotoProvider(),
         ),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
-        ChangeNotifierProvider<MessageProvider>(create: (_) => MessageProvider()),
+        ChangeNotifierProvider<MessageProvider>(
+            create: (_) => MessageProvider()),
         ChangeNotifierProvider<ConversationProvider>(
             create: (_) => ConversationProvider()),
         ChangeNotifierProvider<RouteProvider>(create: (_) => RouteProvider()),
@@ -95,33 +101,24 @@ class Douchat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown
-    ]);
-    return FutureBuilder<bool>(
-        future: FlutterBackground.initialize(
-            androidConfig: androidBackgroundConfig),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    Utils.logger.i('AFTER SETTINGS ORIENTATION');
+    Utils.logger.i('BEFORE COMPOSITION START');
+    return FutureBuilder<Widget>(
+        future: CompositionRoot.start(context),
+        builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return FutureBuilder<Widget>(
-                future: CompositionRoot.start(context),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    print("snap has data");
-                    return snapshot.data!;
-                  } else {
-                    print("snap has no data");
-                    return Scaffold(
-                        body: SafeArea(
-                            child: Center(
-                                child:
-                                    LoadingAnimationWidget.threeArchedCircle(
-                                        color: Colors.white, size: 70))));
-                  }
-                });
+            print("snap has data");
+            Utils.logger.i('COMPOSITION ROOT DONE');
+            return snapshot.data!;
           } else {
-            return Container();
+            print("snap has no data");
+            return Scaffold(
+                body: SafeArea(
+                    child: Center(
+                        child: LoadingAnimationWidget.threeArchedCircle(
+                            color: Colors.white, size: 70))));
           }
         });
   }

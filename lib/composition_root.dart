@@ -130,16 +130,13 @@ class CompositionRoot {
       for (int i = 0; i < users.length; i++) {
         Uint8List? bytes;
         if (users[i].photoUrl == '') {
-         bytes =
-            (await Api.getContactPhoto(url: users[i].photoUrl)).bodyBytes;
+          bytes = (await Api.getContactPhoto(url: users[i].photoUrl)).bodyBytes;
         }
         if (bytes != null) {
-          bytes = await FlutterImageCompress.compressWithList(bytes,
-                quality: 20);
+          bytes =
+              await FlutterImageCompress.compressWithList(bytes, quality: 20);
         }
-        icons.add(DouchatNotificationIcon(
-            id: users[i].id,
-            bytes: bytes));
+        icons.add(DouchatNotificationIcon(id: users[i].id, bytes: bytes));
       }
       Utils.logger.i('Composition Root icons : $icons');
       NotificationPhotoRegistar.populate(icons);
@@ -174,16 +171,14 @@ class CompositionRoot {
       for (int i = 0; i < groups.length; i++) {
         Uint8List? bytes;
         if (groups[i].photoUrl != null) {
-         bytes =
-            (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+          bytes =
+              (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
         }
         if (bytes != null) {
-          bytes = await FlutterImageCompress.compressWithList(bytes,
-                quality: 20);
+          bytes =
+              await FlutterImageCompress.compressWithList(bytes, quality: 20);
         }
-        groupIcons.add(DouchatNotificationIcon(
-            id: groups[i].id,
-            bytes: bytes));
+        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: bytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =
