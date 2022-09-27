@@ -42,7 +42,8 @@ class PrivateMessageThread extends StatefulWidget {
   State<PrivateMessageThread> createState() => _PrivateMessageThreadState();
 }
 
-class _PrivateMessageThreadState extends State<PrivateMessageThread> with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
+class _PrivateMessageThreadState extends State<PrivateMessageThread>
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textEditingController = TextEditingController();
   Timer? _startTypingTimer;
@@ -55,7 +56,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
     if (state == AppLifecycleState.resumed) {
       notificationsPlugin.cancelAll();
     }
-    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
+    Provider.of<AppLifeCycleProvider>(context, listen: false)
+        .setAppState(state);
     super.didChangeAppLifecycleState(state);
   }
 
@@ -122,15 +124,25 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
           resizeToAvoidBottomInset: true,
           drawer: DouchatDrawer(userService: widget.userService),
           appBar: AppBar(
-              titleSpacing: 0,
-              automaticallyImplyLeading: false,
-              title: HeaderStatus(
-                      username: user.username,
-                      online: user.online,
-                      typing: null,
-                      photoUrl: user.photoUrl)
-                  .applyPadding(const EdgeInsets.all(12)),
-              ),
+            titleSpacing: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                    icon: Icon(Icons.chevron_left, color: Colors.white),
+                    onPressed: () => Navigator.pop(context)),
+                Expanded(
+                  child: HeaderStatus(
+                          username: user.username,
+                          online: user.online,
+                          typing: null,
+                          photoUrl: user.photoUrl)
+                      .applyPadding(const EdgeInsets.all(12)),
+                ),
+              ],
+            ),
+          ),
           body: GestureDetector(
               onTap: () {
                 FocusScope.of(context).requestFocus(FocusNode());
@@ -287,7 +299,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
               timeStamp: DateTime.now(),
               read: false)
         ]);
-        Api.uploadFile(file: File(file.path), type: "image", thread: "conv").then((path) {
+        Api.uploadFile(file: File(file.path), type: "image", thread: "conv")
+            .then((path) {
           if (path != null) {
             widget.messageService.sendMessage({
               'from': client.toJson(),
@@ -298,7 +311,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
               'read': false
             });
             Provider.of<ConversationProvider>(context, listen: false)
-                  .removeTempMessage(mId: 'temp$r', uId: user.id);
+                .removeTempMessage(mId: 'temp$r', uId: user.id);
           }
         });
       } else if (res['type'] == 'medias') {
@@ -389,7 +402,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread> with Automa
   }
 
   _sendReceipt(Message message) {}
-  
+
   @override
   bool get wantKeepAlive => true;
 }

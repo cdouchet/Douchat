@@ -36,23 +36,6 @@ class CompositionRoot {
 
   static Future<void> configure(String id,
       {required bool freshRegister}) async {
-    // final ca = await rootBundle.loadString('assets/chain.pem');
-    // final fileCa = await (await File(
-    //             '${(await getApplicationDocumentsDirectory()).path}/chain.pem')
-    //         .create())
-    //     .writeAsString(ca);
-    // RethinkDb r = RethinkDb();
-    // Connection connection = await r.connect(
-    //     host: 'douchat.doggo-saloon.net',
-    //     ssl: {"ca": fileCa.path},
-    //     db: 'douchat',
-    //     user: 'admin',
-    //     password: dotenv.env['RETHINKDB_PASSWORD']!);
-    // final Socket socket =
-    //     io('http://192.168.1.21:2585', OptionBuilder().disableAutoConnect());
-    // socket.onError((data) => print(data));
-    // socket.onConnectTimeout((data) => print(data));
-    // socket.connect();
     Utils.logger.d('Configuring Douchat...');
     socket = IO.io(
         'https://${dotenv.env["DOUCHAT_URI"]}:2585',

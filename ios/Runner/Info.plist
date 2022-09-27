@@ -26,12 +26,25 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Needed to take pictures and upload them</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used when taking videos</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Needed to download images and videos</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Needed to upload pictures</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>processing</string>
 		<string>remote-notification</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>socket-keep-alive</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

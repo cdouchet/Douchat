@@ -12,6 +12,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -47,6 +48,7 @@ class _FilesPageState extends State<FilesPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder<bool>(
         future: _checkMediaPermission(),
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
@@ -70,13 +72,22 @@ class _FilesPageState extends State<FilesPage>
                       Center(
                         child: IconButton(
                             icon: Icon(Icons.storage),
-                            onPressed: () {
-                              Permission.storage.request().then((status) {
-                                if (status.isGranted) {
+                            onPressed: () async {
+                              if (Platform.isAndroid) {
+                                Permission.storage.request().then((status) {
+                                  if (status.isGranted) {
+                                    setState(
+                                        () => storagePermissionGranted = true);
+                                  }
+                                });
+                              } else {
+                                final PermissionState _ps = await PhotoManager
+                                    .requestPermissionExtend();
+                                if (_ps.isAuth) {
                                   setState(
                                       () => storagePermissionGranted = true);
                                 }
-                              });
+                              }
                             }),
                       ),
                       Text('Autoriser l\'accès aux fichiers')
@@ -422,33 +433,58 @@ class _FilesPageState extends State<FilesPage>
 
   Future<bool> _checkMediaPermission() async =>
       await Permission.storage.isGranted;
+
   Stream<List<String>> _getAllStorageFiles() async* {
-    List<Directory> directories = [];
-    List<FileSystemEntity> files = [];
-    Future<Directory> cD(String ext) async =>
-        Directory(await ExternalPath.getExternalStoragePublicDirectory(ext));
-    directories.add(await cD(ExternalPath.DIRECTORY_DOWNLOADS));
-    directories.add(await cD(ExternalPath.DIRECTORY_PICTURES));
-    directories.add(await cD(ExternalPath.DIRECTORY_DOCUMENTS));
-    Utils.logger.i('ALL DIRECTORIES : ' + directories.toString());
-    try {
-      for (final Directory directory in directories) {
-        final fs = (await directory
-            .listSync(recursive: true)
-            .where((e) => e is File && (_isImage(e.path) || _isVideo(e.path)))
-            .toList()
-            .cast<File>());
-        Utils.logger.i('ALL FILES : ' + fs.toString());
-        files.addAll(fs);
-        Utils.logger.i('after adding files');
-        files.sort(
-            (a, b) => b.statSync().changed.compareTo(a.statSync().changed));
-        yield files.map((f) => f.path).toList();
-        Utils.logger.i('after yield');
+    if (Platform.isAndroid) {
+      List<Directory> directories = [];
+      List<FileSystemEntity> files = [];
+      Future<Directory> cD(String ext) async =>
+          Directory(await ExternalPath.getExternalStoragePublicDirectory(ext));
+      directories.add(await cD(ExternalPath.DIRECTORY_DOWNLOADS));
+      directories.add(await cD(ExternalPath.DIRECTORY_PICTURES));
+      directories.add(await cD(ExternalPath.DIRECTORY_DOCUMENTS));
+      Utils.logger.i('ALL DIRECTORIES : ' + directories.toString());
+      try {
+        for (final Directory directory in directories) {
+          final fs = (await directory
+              .listSync(recursive: true)
+              .where((e) => e is File && (_isImage(e.path) || _isVideo(e.path)))
+              .toList()
+              .cast<File>());
+          Utils.logger.i('ALL FILES : ' + fs.toString());
+          files.addAll(fs);
+          Utils.logger.i('after adding files');
+          files.sort(
+              (a, b) => b.statSync().changed.compareTo(a.statSync().changed));
+          yield files.map((f) => f.path).toList();
+          Utils.logger.i('after yield');
+        }
+      } catch (e, stackTrace) {
+        print(e);
+        print(stackTrace);
       }
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
+    } else {
+      try {
+        List<String> files = [];
+        final List<AssetPathEntity> paths =
+            await PhotoManager.getAssetPathList();
+        for (int i = 0; i < paths.length; i++) {
+          paths[i]
+              .getAssetListRange(start: 0, end: 80)
+              .asStream()
+              .listen((event) {
+            event.forEach((e) async {
+              File? f = await e.file;
+              if (f != null) {
+                files.add(f.path);
+              }
+            });
+          });
+          yield files;
+        }
+      } catch (e, s) {
+        Utils.logger.i('Error while processing ios medias', e, s);
+      }
     }
   }
 

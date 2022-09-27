@@ -135,13 +135,22 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
             appBar: AppBar(
                 titleSpacing: 0,
                 automaticallyImplyLeading: false,
-                title: HeaderStatus(
-                  username: group.name,
-                  online: users.any((element) => element.online),
-                  typing: null,
-                  photoUrl: group.photoUrl,
-                  isGroup: true,
-                ).applyPadding(const EdgeInsets.all(12)),
+                title: Row(
+                  children: [
+                    IconButton(
+                        icon: Icon(Icons.chevron_left, color: Colors.white),
+                        onPressed: () => Navigator.pop(context)),
+                    Expanded(
+                      child: HeaderStatus(
+                        username: group.name,
+                        online: users.any((element) => element.online),
+                        typing: null,
+                        photoUrl: group.photoUrl,
+                        isGroup: true,
+                      ).applyPadding(const EdgeInsets.all(12)),
+                    ),
+                  ],
+                ),
                 actions: [
                   IconButton(
                       icon: Icon(Icons.settings),

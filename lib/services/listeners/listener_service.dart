@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
@@ -99,62 +100,67 @@ class ListenerService {
                 : data['type'] == 'video'
                     ? '${user.username} a envoyé une vidéo'
                     : '${user.username} a envoyé un gif';
-        final List<flnp.ActiveNotification> activeNotifications =
-            (await notificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                    flnp.AndroidFlutterLocalNotificationsPlugin>()
-                ?.getActiveNotifications())!;
-        activeNotifications.forEach((element) {
-          Utils.logger.i(element.title);
-          Utils.logger.i(element.channelId);
-        });
-        // if (activeNotifications.any((element) => element.channelId == data['from'])) {
-        //   final flnp.ActiveNotification notif = activeNotifications.firstWhere((n) => n.channelId == data['from']);
-        //   finalText = '${notif.body}\n$messageText';
-        //   notifId = notif.id;
-        // } else {
-        //   finalText = messageText;
-        //   notifId = id;
-        // }
-        List<flnp.Message> notifMessages = activeNotifications
-            .where((n) => n.channelId == data['from'])
-            .map((e) => flnp.Message(
-                e.body!, DateFormat().parse(data['timestamp']), null))
-            .toList();
-        if (notifMessages.isNotEmpty) {
-          id = activeNotifications
-              .firstWhere((n) => n.channelId == data['from'])
-              .id;
+        if (Platform.isAndroid) {
+          final List<flnp.ActiveNotification> activeNotifications =
+              (await notificationsPlugin
+                  .resolvePlatformSpecificImplementation<
+                      flnp.AndroidFlutterLocalNotificationsPlugin>()
+                  ?.getActiveNotifications())!;
+          activeNotifications.forEach((element) {
+            Utils.logger.i(element.title);
+            Utils.logger.i(element.channelId);
+          });
+          // if (activeNotifications.any((element) => element.channelId == data['from'])) {
+          //   final flnp.ActiveNotification notif = activeNotifications.firstWhere((n) => n.channelId == data['from']);
+          //   finalText = '${notif.body}\n$messageText';
+          //   notifId = notif.id;
+          // } else {
+          //   finalText = messageText;
+          //   notifId = id;
+          // }
+          List<flnp.Message> notifMessages = activeNotifications
+              .where((n) => n.channelId == data['from'])
+              .map((e) => flnp.Message(
+                  e.body!, DateFormat().parse(data['timestamp']), null))
+              .toList();
+          if (notifMessages.isNotEmpty) {
+            id = activeNotifications
+                .firstWhere((n) => n.channelId == data['from'])
+                .id;
+          }
+          print("NOTIFICATION ID : " + id.toString());
+          notifMessages.add(flnp.Message(
+              messageText, DateFormat().parse(data['timestamp']), null));
+          notificationsPlugin.show(
+              id,
+              user.username,
+              messageText,
+              flnp.NotificationDetails(
+                  android: flnp.AndroidNotificationDetails(
+                      data['from'], user.username,
+                      enableVibration: true,
+                      groupKey: data['from'],
+                      setAsGroupSummary: !activeNotifications
+                          .any((n) => n.channelId == data['from']),
+                      category: "CATEGORY_MESSAGE",
+                      priority: flnp.Priority.max,
+                      styleInformation: flnp.MessagingStyleInformation(
+                          flnp.Person(
+                              bot: false,
+                              name: user.username,
+                              icon: flnp.ByteArrayAndroidIcon(
+                                  NotificationPhotoRegistar.getBytesFromId(
+                                          data['from']) ??
+                                      NotificationPhotoRegistar.getBytesFromId(
+                                          'person')!)),
+                          conversationTitle: user.username,
+                          messages: notifMessages),
+                      importance: flnp.Importance.max)),
+              payload: '{"type": "conversation", "id": "$from"}');
+        } else {
+          notificationsPlugin.show(id, user.username, messageText,
+              flnp.NotificationDetails(iOS: flnp.IOSNotificationDetails()));
         }
-        print("NOTIFICATION ID : " + id.toString());
-        notifMessages.add(flnp.Message(
-            messageText, DateFormat().parse(data['timestamp']), null));
-        notificationsPlugin.show(
-            id,
-            user.username,
-            messageText,
-            flnp.NotificationDetails(
-                android: flnp.AndroidNotificationDetails(
-                    data['from'], user.username,
-                    enableVibration: true,
-                    groupKey: data['from'],
-                    setAsGroupSummary: !activeNotifications
-                        .any((n) => n.channelId == data['from']),
-                    category: "CATEGORY_MESSAGE",
-                    priority: flnp.Priority.max,
-                    styleInformation: flnp.MessagingStyleInformation(
-                        flnp.Person(
-                            bot: false,
-                            name: user.username,
-                            icon: flnp.ByteArrayAndroidIcon(
-                                NotificationPhotoRegistar.getBytesFromId(
-                                        data['from']) ??
-                                    NotificationPhotoRegistar.getBytesFromId(
-                                        'person')!)),
-                        conversationTitle: user.username,
-                        messages: notifMessages),
-                    importance: flnp.Importance.max)),
-            payload: '{"type": "conversation", "id": "$from"}');
       } else {
         Vibration.hasVibrator().then((value) {
           if (value ?? false) {
@@ -228,52 +234,58 @@ class ListenerService {
                     : data['type'] == 'video'
                         ? ' a envoyé une vidéo'
                         : ' a envoyé un gif');
-        List<flnp.ActiveNotification> activeNotifications =
-            (await notificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                    flnp.AndroidFlutterLocalNotificationsPlugin>()
-                ?.getActiveNotifications())!;
-        activeNotifications.forEach((element) {
-          Utils.logger.i(element.title);
-          Utils.logger.i(element.channelId);
-        });
-        List<flnp.Message> notifMessages = activeNotifications
-            .where((n) => n.channelId == group.id)
-            .map((e) => flnp.Message(
-                e.body!, DateFormat().parse(data['timestamp']), null))
-            .toList();
-        if (notifMessages.isNotEmpty) {
-          id =
-              activeNotifications.firstWhere((n) => n.channelId == group.id).id;
+        if (Platform.isAndroid) {
+          List<flnp.ActiveNotification> activeNotifications =
+              (await notificationsPlugin
+                  .resolvePlatformSpecificImplementation<
+                      flnp.AndroidFlutterLocalNotificationsPlugin>()
+                  ?.getActiveNotifications())!;
+          activeNotifications.forEach((element) {
+            Utils.logger.i(element.title);
+            Utils.logger.i(element.channelId);
+          });
+          List<flnp.Message> notifMessages = activeNotifications
+              .where((n) => n.channelId == group.id)
+              .map((e) => flnp.Message(
+                  e.body!, DateFormat().parse(data['timestamp']), null))
+              .toList();
+          if (notifMessages.isNotEmpty) {
+            id = activeNotifications
+                .firstWhere((n) => n.channelId == group.id)
+                .id;
+          }
+          print('Notification id : ' + id.toString());
+          notifMessages.add(flnp.Message(
+              messageText, DateFormat().parse(data['timestamp']), null));
+          notificationsPlugin.show(
+              id,
+              group.name,
+              messageText,
+              flnp.NotificationDetails(
+                  android: flnp.AndroidNotificationDetails(group.id, username,
+                      enableVibration: true,
+                      groupKey: group.id,
+                      setAsGroupSummary: !activeNotifications
+                          .any((n) => n.channelId == group.id),
+                      category: "CATEGORY_MESSAGE",
+                      priority: flnp.Priority.max,
+                      importance: flnp.Importance.max,
+                      styleInformation: flnp.MessagingStyleInformation(
+                          flnp.Person(
+                              bot: false,
+                              name: group.name,
+                              icon: flnp.ByteArrayAndroidIcon(
+                                  NotificationPhotoRegistar.getBytedFromGroupId(
+                                          group.id) ??
+                                      NotificationPhotoRegistar
+                                          .getBytedFromGroupId('group')!)),
+                          conversationTitle: group.name,
+                          messages: notifMessages))),
+              payload: '{"type": "group", "id": "${group.id}"}');
+        } else {
+          notificationsPlugin.show(id, group.name, messageText,
+              flnp.NotificationDetails(iOS: flnp.IOSNotificationDetails()));
         }
-        print('Notification id : ' + id.toString());
-        notifMessages.add(flnp.Message(
-            messageText, DateFormat().parse(data['timestamp']), null));
-        notificationsPlugin.show(
-            id,
-            group.name,
-            messageText,
-            flnp.NotificationDetails(
-                android: flnp.AndroidNotificationDetails(group.id, username,
-                    enableVibration: true,
-                    groupKey: group.id,
-                    setAsGroupSummary: !activeNotifications
-                        .any((n) => n.channelId == group.id),
-                    category: "CATEGORY_MESSAGE",
-                    priority: flnp.Priority.max,
-                    importance: flnp.Importance.max,
-                    styleInformation: flnp.MessagingStyleInformation(
-                        flnp.Person(
-                            bot: false,
-                            name: group.name,
-                            icon: flnp.ByteArrayAndroidIcon(
-                                NotificationPhotoRegistar.getBytedFromGroupId(
-                                        group.id) ??
-                                    NotificationPhotoRegistar
-                                        .getBytedFromGroupId('group')!)),
-                        conversationTitle: group.name,
-                        messages: notifMessages))),
-            payload: '{"type": "group", "id": "${group.id}"}');
       } else {
         Vibration.hasVibrator().then((value) {
           if (value ?? false) {

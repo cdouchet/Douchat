@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:chewie/chewie.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -27,27 +30,31 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
 
   @override
   void initState() {
-    controller = VideoPlayerController.network(widget.url,
-        httpHeaders: {'cookie': widget.cookie});
-    controller.initialize();
-    chewieController = ChewieController(
-        videoPlayerController: controller,
-        autoPlay: true,
-        looping: true,
-        fullScreenByDefault: true,
-        allowMuting: true,
-        aspectRatio: controller.value.aspectRatio,
-        showControls: true,
-        deviceOrientationsOnEnterFullScreen: [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-          DeviceOrientation.portraitDown,
-          DeviceOrientation.portraitUp
-        ]);
-    Utils.logger.i(widget.startingDuration);
-    chewieController.seekTo(widget.startingDuration);
-    chewieController.play();
-    super.initState();
+    try {
+      controller = VideoPlayerController.network(widget.url,
+          httpHeaders: {'cookie': widget.cookie});
+      controller.initialize();
+      chewieController = ChewieController(
+          videoPlayerController: controller,
+          autoPlay: true,
+          looping: true,
+          fullScreenByDefault: true,
+          allowMuting: true,
+          aspectRatio: controller.value.aspectRatio,
+          showControls: true,
+          deviceOrientationsOnEnterFullScreen: [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.portraitUp
+          ]);
+      // Utils.logger.i(widget.startingDuration);
+      chewieController.seekTo(widget.startingDuration);
+      chewieController.play();
+      super.initState();
+    } catch (e, s) {
+      Utils.logger.i('error in initstate fullscreen video', e, s);
+    }
   }
 
   @override
@@ -61,37 +68,48 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SafeArea(
-      child: Center(
-        child: Stack(
-          children: [
-            Chewie(controller: chewieController),
-            Align(
-                alignment: Alignment.topLeft,
-                child: IconButton(
-                    icon: Icon(Icons.chevron_left, color: Colors.white),
-                    onPressed: () => Navigator.pop(context))),
-            Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                    icon: Icon(Icons.download, color: Colors.white),
-                    onPressed: () async {
+        appBar: AppBar(
+            leading: IconButton(
+                icon: Icon(Icons.chevron_left, color: Colors.white),
+                onPressed: () => Navigator.pop(context)),
+            actions: [
+              IconButton(
+                  icon: Icon(Icons.download, color: Colors.white),
+                  onPressed: () async {
+                    final String cookie = (await const FlutterSecureStorage()
+                        .read(key: 'access_token'))!;
+                    if (Platform.isAndroid) {
                       FlutterDownloader.enqueue(
                           url: widget.url,
                           savedDir: (await getExternalStorageDirectory())!.path,
                           fileName: widget.url.split('/').last,
-                          headers: {
-                            'cookie': (await const FlutterSecureStorage()
-                                .read(key: 'access_token'))!
-                          },
+                          headers: {'cookie': cookie},
                           openFileFromNotification: true,
                           requiresStorageNotLow: false,
                           saveInPublicStorage: true,
                           showNotification: true);
-                    }))
-          ],
-        ),
-      ),
-    ));
+                    } else {
+                      GallerySaver.saveVideo(widget.url,
+                          headers: {'cookie': cookie});
+                      // ImageDownloader.downloadImage(widget.url,
+                      //     headers: {'cookie': cookie}).then((String? id) {
+                      //   if (id != null) {
+                      //     Fluttertoast.showToast(
+                      //         msg: 'Image téléchargée',
+                      //         gravity: ToastGravity.BOTTOM);
+                      //   } else {
+                      //     Fluttertoast.showToast(
+                      //         msg: 'Erreur durant le téléchargement',
+                      //         gravity: ToastGravity.BOTTOM);
+                      //   }
+                      // });
+                    }
+                  })
+            ]),
+        body: SafeArea(
+          child: Center(
+            child: Chewie(controller: chewieController),
+          ),
+        ));
   }
 }
