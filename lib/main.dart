@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/firebase_options.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
@@ -16,6 +17,7 @@ import 'package:douchat3/services/notifications/notification_callback_handler.da
 import 'package:douchat3/services/workmanager/callback_dispatcher.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
@@ -35,6 +37,7 @@ void main() async {
   await dotenv.load(fileName: '.env');
   initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   Workmanager().registerOneOffTask("socket-keep-alive", "socket-keep-alive",
       initialDelay: Duration(seconds: 5),
