@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:http_interceptor/http/http.dart';
@@ -19,14 +20,18 @@ class Api {
     return await post(Uri.parse("$baseUrl/register"), body: {
       'username': username,
       'password': password,
-      'photoUrl': photoUrl ?? "null"
+      'photoUrl': photoUrl ?? "null",
+      'firebase_token': await FirebaseMessaging.instance.getToken()
     });
   }
 
   static Future<Response> login(
       {required String username, required String password}) async {
-    return await post(Uri.parse("$baseUrl/login"),
-        body: {'username': username, 'password': password});
+    return await post(Uri.parse("$baseUrl/login"), body: {
+      'username': username,
+      'password': password,
+      'firebase_token': await FirebaseMessaging.instance.getToken()
+    });
   }
 
   static Future<Response> isConnected(String token) async {
@@ -90,13 +95,15 @@ class Api {
   }
 
   static Future<String?> uploadFile(
-      {required File? file, required String type, required String thread}) async {
+      {required File? file,
+      required String type,
+      required String thread}) async {
     try {
       if (file == null) {
         return null;
       }
-      final request = MultipartRequest(
-          'POST', Uri.parse('$baseUrl/uploadFile/media?type=$type&thread=$thread'))
+      final request = MultipartRequest('POST',
+          Uri.parse('$baseUrl/uploadFile/media?type=$type&thread=$thread'))
         ..files.add(await MultipartFile.fromPath('picture', file.path));
 
       final result = await request.send();
@@ -114,20 +121,21 @@ class Api {
     }
   }
 
-  static Future<String?> uploadGroupPicture({required File? file, required String id}) async {
+  static Future<String?> uploadGroupPicture(
+      {required File? file, required String id}) async {
     try {
       if (file == null) {
         return null;
       }
-      final request = MultipartRequest('POST', Uri.parse('$baseUrl/uploadGroupPhoto?group=$id'))
-      ..files.add(await MultipartFile.fromPath('picture', file.path))
-      ..fields.addAll({
-        'group': id
-      });
+      final request = MultipartRequest(
+          'POST', Uri.parse('$baseUrl/uploadGroupPhoto?group=$id'))
+        ..files.add(await MultipartFile.fromPath('picture', file.path))
+        ..fields.addAll({'group': id});
       final result = await request.send();
       final response = await Response.fromStream(result);
       if (response.statusCode == 200) {
-        Utils.logger.i('success! Url : ${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}');
+        Utils.logger.i(
+            'success! Url : ${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}');
         return '${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}';
       }
       return null;
@@ -165,5 +173,12 @@ class Api {
     return await client.post(Uri.parse('$baseUrl/getGroupMessages'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'groups': groups}));
+  }
+
+  static Future<Response> updateFirebaseToken(String token) async {
+    return await client.post(Uri.parse("$baseUrl/updateFirebaseToken"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(
+            {'firebase_token': token}));
   }
 }

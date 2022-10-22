@@ -87,7 +87,7 @@ class GroupSenderMessage extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8, right: 8),
                       child: Builder(builder: (BuildContext context) {
                         String readMessage = "Lu par ";
-                        final readBy = message.readBy;
+                        final readBy = List.from(message.readBy);
                         Utils.logger.i('READ BY : ${message.readBy}');
                         readBy.removeWhere((e) => e == Provider.of<ClientProvider>(context, listen: false).client.id);
                         Utils.logger.i('AFTER REMOVAL : $readBy');
@@ -114,7 +114,7 @@ class GroupSenderMessage extends StatelessWidget {
                           if (readBy.length > 3) {
                             final int others = readBy.length - 3;
                             readMessage +=
-                                "et ${others} autre${others == 1 ? '' : 's'}}";
+                                "et ${others} autre${others == 1 ? '' : 's'}";
                           }
                         }
                         return Text(readBy.isEmpty ? '' : readMessage,

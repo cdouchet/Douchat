@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/firebase/configure_firebase.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
@@ -37,6 +38,8 @@ class CompositionRoot {
   static Future<void> configure(String id,
       {required bool freshRegister}) async {
     Utils.logger.d('Configuring Douchat...');
+    Utils.logger.d('Configuring Firebase...');
+    await configureFirebase();
     socket = IO.io(
         'https://${dotenv.env["DOUCHAT_URI"]}:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({

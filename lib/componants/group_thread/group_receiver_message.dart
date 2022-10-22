@@ -105,7 +105,7 @@ class GroupReceiverMessage extends StatelessWidget {
                   ),
                   child: Builder(builder: (BuildContext context) {
                     String readMessage = "Lu par ";
-                    List<String> readBy = message.readBy;
+                    List<String> readBy = List.from(message.readBy);
                     readBy.removeWhere((e) =>
                         e ==
                         Provider.of<ClientProvider>(context, listen: false)

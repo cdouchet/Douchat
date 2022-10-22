@@ -3,12 +3,14 @@ import 'dart:convert';
 
 import 'package:douchat3/componants/message_thread/media/files_page.dart';
 import 'package:douchat3/componants/message_thread/media/gif_page.dart';
+import 'package:douchat3/componants/shared/emoji_selector.dart';
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:emojis/emojis.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -124,6 +126,33 @@ class Utils {
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        showModalBottomSheet(
+                            context: context,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25))),
+                            builder: (BuildContext context) {
+                              return EmojiSelector();
+                            }).then((value) {
+                          if (value != null) {
+                            Utils.logger.i("Adding reaction $value");
+                          }
+                        });
+                        // Provider.of<ConversationProvider>(context, listen: false)
+                        //     .addReaction(
+                        //         id: message.id,
+                        //         userId: Provider.of<ClientProvider>(context,
+                        //                 listen: false)
+                        //             .client
+                        //             .id,
+                        //         emoji: emoji);
+                      },
+                      child: ListTile(
+                          leading: Text(Emojis.grinningFaceWithBigEyes),
+                          title: Text("Réaction"))),
                   if (message.type == "text")
                     GestureDetector(
                         onTap: () {
@@ -162,7 +191,8 @@ class Utils {
                         title: Text("Supprimer"),
                       ),
                     )
-                  ]
+                  ] else
+                    ...[]
                 ],
               ),
             )

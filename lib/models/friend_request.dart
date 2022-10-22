@@ -1,6 +1,8 @@
+import 'package:douchat3/providers/friend_request_provider.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 class FriendRequest {
   String id;
@@ -25,7 +27,8 @@ class FriendRequest {
       required bool accept,
       required String clientId,
       required String userId,
-      required String id, required UserService userService}) {
+      required String id,
+      required UserService userService}) {
     userService.respondToFriendRequest(data: {
       'accept': accept,
       'clientId': clientId,
@@ -33,7 +36,10 @@ class FriendRequest {
       'id': id
     });
     if (accept) {
-      Fluttertoast.showToast(msg: "Contact ajouté", gravity: ToastGravity.BOTTOM);
+      Fluttertoast.showToast(
+          msg: "Contact ajouté", gravity: ToastGravity.BOTTOM);
     }
+    Provider.of<FriendRequestProvider>(context, listen: false)
+        .removeFriendRequest(this.id);
   }
 }

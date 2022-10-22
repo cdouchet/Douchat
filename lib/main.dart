@@ -14,7 +14,6 @@ import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
-import 'package:douchat3/services/workmanager/callback_dispatcher.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,38 +26,39 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:workmanager/workmanager.dart';
 
 final GlobalKey<ScaffoldState> globalKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
+
+final initializationSettings = InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+          iOS: IOSInitializationSettings(
+            requestAlertPermission: true,
+            requestBadgePermission: true,
+            requestSoundPermission: true,
+          ));
 
 void main() async {
   await dotenv.load(fileName: '.env');
   initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-  Workmanager().registerOneOffTask("socket-keep-alive", "socket-keep-alive",
-      initialDelay: Duration(seconds: 5),
-      constraints: Constraints(
-          networkType: NetworkType.not_required,
-          requiresBatteryNotLow: false,
-          requiresCharging: false),
-      tag: "socket-tag",
-      backoffPolicy: BackoffPolicy.exponential);
+  // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  // Workmanager().registerOneOffTask("socket-keep-alive", "socket-keep-alive",
+  //     initialDelay: Duration(seconds: 5),
+  //     constraints: Constraints(
+  //         networkType: NetworkType.not_required,
+  //         requiresBatteryNotLow: false,
+  //         requiresCharging: false),
+  //     tag: "socket-tag",
+  //     backoffPolicy: BackoffPolicy.exponential);
   await FlutterDownloader.initialize(
     debug: true,
   );
   HttpOverrides.global = MyHttpOverrides();
   notificationsPlugin.initialize(
-      InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-          iOS: IOSInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
-          )),
+      initializationSettings,
       onSelectNotification: notificationCallbackHandler);
   runApp(
     // LoadingProvider(

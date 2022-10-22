@@ -79,18 +79,22 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
         .firstWhere((g) => g.id == widget.groupId);
     final String clientId =
         Provider.of<ClientProvider>(context, listen: false).client.id;
-    if (group.messages.any((m) => !m.readBy.contains(clientId))) {
+    if (group.messages.any((m) => m.from != clientId && !m.readBy.contains(clientId))) {
       final Iterable<GroupMessage> messagesToUpdate = group.messages
           .where((m) => m.from != clientId && !m.readBy.contains(clientId));
       final msgs = messagesToUpdate.map((e) => e.id).toList();
-      widget.groupService.sendAllReceipts(
-          messages: msgs, groupId: widget.groupId, userId: clientId);
+      Utils.logger.i("Messages to update: $msgs");
+      Utils.logger.i("Does any message have not been read: ${group.messages.any((m) => !m.readBy.contains(clientId))}");
+      if (msgs.isNotEmpty) {
+        widget.groupService.sendAllReceipts(
+            messages: msgs, groupId: widget.groupId, userId: clientId);
+      }
       WidgetsBinding.instance.addPostFrameCallback((t) {
-        Provider.of<GroupProvider>(context, listen: false).updateReadState(
-            messagesToUpdate: msgs,
-            groupId: widget.groupId,
-            readBy: clientId,
-            notify: true);
+        // Provider.of<GroupProvider>(context, listen: false).updateReadState(
+        //     messagesToUpdate: msgs,
+        //     groupId: widget.groupId,
+        //     readBy: clientId,
+        //     notify: true);
         Provider.of<RouteProvider>(context, listen: false)
             .changeGroupThreadPresence(true);
         Provider.of<RouteProvider>(context, listen: false)
@@ -254,8 +258,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 child: GroupSenderMessage(
                     message: messageList[index], isLastMessage: index == 0));
           }
-          Utils.logger.i(messageList[index].toJson());
-          Utils.logger.i(users.map((e) => e.toJson()));
+          // Utils.logger.i(messageList[index].toJson());
+          // Utils.logger.i(users.map((e) => e.toJson()));
           return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: GroupReceiverMessage(
