@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/message_thread/message/video_preview.dart';
 import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
+import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/image_preview.dart';
@@ -11,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class SenderMessage extends StatelessWidget {
@@ -43,6 +47,104 @@ class SenderMessage extends StatelessWidget {
                                   horizontal: 24, vertical: 12),
                               child: _handleMessageType(
                                   type: message.type, context: context))),
+                      if (message.reactions.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: SizedBox(
+                            height: 23,
+                            child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                reverse: true,
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: message.reactions.length,
+                                itemBuilder: (BuildContext context, int index) =>
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 6),
+                                      child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            if (message.reactions[index].ids
+                                                .contains(
+                                                    Provider.of<ClientProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .client
+                                                        .id)) {
+                                              CompositionRoot.messageService
+                                                  .removeReaction({
+                                                "clientId":
+                                                    Provider.of<ClientProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .client
+                                                        .id,
+                                                "emoji":
+                                                    message.reactions[index].emoji,
+                                                "id": message.id,
+                                                "to": message.to
+                                              });
+                                              Provider.of<ConversationProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .removeReaction(
+                                                      id: message.id,
+                                                      userId: Provider.of<
+                                                                  ClientProvider>(
+                                                              context,
+                                                              listen: false)
+                                                          .client
+                                                          .id,
+                                                      emoji: message
+                                                          .reactions[index].emoji);
+                                            } else {
+                                              CompositionRoot.messageService
+                                                  .addReaction({
+                                                "clientId":
+                                                    Provider.of<ClientProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .client
+                                                        .id,
+                                                "emoji":
+                                                    message.reactions[index].emoji,
+                                                "id": message.id,
+                                                "to": message.to
+                                              });
+                                              Provider.of<ConversationProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .addReaction(
+                                                      id: message.id,
+                                                      userId: Provider.of<
+                                                                  ClientProvider>(
+                                                              context,
+                                                              listen: false)
+                                                          .client
+                                                          .id,
+                                                      emoji: message
+                                                          .reactions[index].emoji);
+                                            }
+                                          },
+                                          child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  vertical: 3, horizontal: 6),
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  color: message.reactions[index].ids
+                                                          .contains(
+                                                              Provider.of<ClientProvider>(context, listen: false)
+                                                                  .client
+                                                                  .id)
+                                                      ? Colors.blue.withOpacity(0.3)
+                                                      : Color.fromARGB(
+                                                          255, 63, 63, 63)),
+                                              child: Text(
+                                                  "${message.reactions[index].emoji} ${message.reactions[index].ids.length}",
+                                                  style: TextStyle(fontSize: 14)))),
+                                    )),
+                          ),
+                        ),
                       Padding(
                           padding: const EdgeInsets.only(top: 12, left: 12),
                           child: Align(
@@ -169,15 +271,17 @@ class SenderMessage extends StatelessWidget {
           child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: FutureBuilder<String?>(
-        future: const FlutterSecureStorage().read(key: 'access_token'),
-          builder: (context, AsyncSnapshot<String?> snap) {
-        if (snap.hasData) {
-          return VideoPreview(url: message.content, cookie: snap.data!);
-        } else {
-          return LoadingAnimationWidget.threeArchedCircle(
-              color: Colors.white, size: 30);
-        }
-      })));
+                  future:
+                      const FlutterSecureStorage().read(key: 'access_token'),
+                  builder: (context, AsyncSnapshot<String?> snap) {
+                    if (snap.hasData) {
+                      return VideoPreview(
+                          url: message.content, cookie: snap.data!);
+                    } else {
+                      return LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 30);
+                    }
+                  })));
     }
   }
 }

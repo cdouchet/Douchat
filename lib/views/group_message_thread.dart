@@ -79,12 +79,14 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
         .firstWhere((g) => g.id == widget.groupId);
     final String clientId =
         Provider.of<ClientProvider>(context, listen: false).client.id;
-    if (group.messages.any((m) => m.from != clientId && !m.readBy.contains(clientId))) {
+    if (group.messages
+        .any((m) => m.from != clientId && !m.readBy.contains(clientId))) {
       final Iterable<GroupMessage> messagesToUpdate = group.messages
           .where((m) => m.from != clientId && !m.readBy.contains(clientId));
       final msgs = messagesToUpdate.map((e) => e.id).toList();
       Utils.logger.i("Messages to update: $msgs");
-      Utils.logger.i("Does any message have not been read: ${group.messages.any((m) => !m.readBy.contains(clientId))}");
+      Utils.logger.i(
+          "Does any message have not been read: ${group.messages.any((m) => !m.readBy.contains(clientId))}");
       if (msgs.isNotEmpty) {
         widget.groupService.sendAllReceipts(
             messages: msgs, groupId: widget.groupId, userId: clientId);
@@ -333,7 +335,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
               from: client.id,
               type: 'temp_loading_image',
               timeStamp: DateTime.now(),
-              readBy: [])
+              readBy: [],
+              reactions: [])
         ]);
         Api.uploadFile(file: File(file.path), type: "image", thread: "group")
             .then((path) {
@@ -344,7 +347,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
               'group': widget.groupId,
               'type': 'image',
               'timestamp': DateFormat().format(DateTime.now()),
-              'readBy': []
+              'readBy': [],
+              'reactions': []
             });
             Provider.of<GroupProvider>(context, listen: false)
                 .removeTempMessage(mId: 'temp$r', gId: widget.groupId);
@@ -362,7 +366,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
               type:
                   "temp_loading_${Utils.isImage(fs[i].path) ? 'image' : 'video'}",
               timeStamp: DateTime.now(),
-              readBy: []));
+              readBy: [],
+              reactions: []));
         }
         Provider.of<GroupProvider>(context, listen: false).addTempMessages(ms);
         for (int i = 0; i < fs.length; i++) {
@@ -375,7 +380,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 'group': widget.groupId,
                 'type': type,
                 'timestamp': DateFormat().format(DateTime.now()),
-                'readBy': []
+                'readBy': [],
+                'reactions': []
               });
               Provider.of<GroupProvider>(context, listen: false)
                   .removeTempMessage(mId: 'temp$i', gId: widget.groupId);
@@ -395,7 +401,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
           'content': res['url'],
           'type': 'gif',
           'timestamp': DateFormat().format(DateTime.now()),
-          'readBy': []
+          'readBy': [],
+          'reactions': []
         });
       }
     }
@@ -409,7 +416,8 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
       'content': _textEditingController.text,
       'type': 'text',
       'timestamp': DateFormat().format(DateTime.now()),
-      'readBy': []
+      'readBy': [],
+      'reactions': []
     });
     _textEditingController.clear();
     _startTypingTimer?.cancel();

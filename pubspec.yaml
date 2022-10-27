@@ -101,7 +101,7 @@ flutter_icons:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter_native_splash:
-  background_image: "assets/shower2.png"
+  color: "#000000"
 
 # The following section is specific to Flutter packages.
 flutter:

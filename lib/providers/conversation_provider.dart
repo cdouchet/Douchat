@@ -34,7 +34,10 @@ class ConversationProvider extends ChangeNotifier {
     for (Conversation c in _conversations) {
       for (Message m in c.messages) {
         if (m.id == id) {
-          _conversations.elementAt(_conversations.indexOf(c)).messages.removeWhere((e) => e.id == id);
+          _conversations
+              .elementAt(_conversations.indexOf(c))
+              .messages
+              .removeWhere((e) => e.id == id);
           didBreak = true;
           break;
         }
@@ -84,5 +87,49 @@ class ConversationProvider extends ChangeNotifier {
     if (notify) {
       notifyListeners();
     }
+  }
+
+  void addReaction(
+      {required String id, required String userId, required String emoji}) {
+    bool didBreak = false;
+    for (Conversation c in _conversations) {
+      for (Message m in c.messages) {
+        if (m.id == id) {
+          _conversations
+              .elementAt(_conversations.indexOf(c))
+              .messages
+              .firstWhere((e) => e.id == id)
+              .addReaction(user: userId, emoji: emoji);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
+  void removeReaction(
+      {required String id, required String userId, required String emoji}) {
+    bool didBreak = false;
+    for (Conversation c in _conversations) {
+      for (Message m in c.messages) {
+        if (m.id == id) {
+          _conversations
+              .elementAt(_conversations.indexOf(c))
+              .messages
+              .firstWhere((e) => e.id == id)
+              .removeReaction(user: userId, emoji: emoji);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
   }
 }

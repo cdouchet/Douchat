@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/utils/web_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -51,7 +53,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                       saveInPublicStorage: true,
                       requiresStorageNotLow: false,
                       showNotification: true);
-                } else {
+                } else if (Platform.isIOS) {
                   ImageDownloader.downloadImage(widget.imageUrl,
                       headers: {'cookie': cookie}).then((String? id) {
                     if (id != null) {
@@ -64,6 +66,8 @@ class _ImagePreviewState extends State<ImagePreview> {
                           gravity: ToastGravity.BOTTOM);
                     }
                   });
+                } else if (kIsWeb) {
+                  WebUtils.downloadFile(widget.imageUrl);
                 }
               })),
       Center(

@@ -32,7 +32,7 @@ class _EmojiSelectorState extends State<EmojiSelector> {
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      Navigator.pop(context, emojis.elementAt(index).char);
+                      Navigator.pop(context, emojis.elementAt(index));
                     },
                     child: Text(emojis.elementAt(index).char,
                         style: TextStyle(fontSize: 30)),
@@ -70,7 +70,7 @@ class _EmojiSelectorState extends State<EmojiSelector> {
                     case (EmojiGroup.activities):
                       return _buildCategory(
                           group: EmojiGroup.activities,
-                          emoji: Emojis.controlKnobs);
+                          emoji: Emojis.rugbyFootball);
                     case (EmojiGroup.travelPlaces):
                       return _buildCategory(
                           group: EmojiGroup.travelPlaces, emoji: Emojis.taxi);
@@ -87,8 +87,7 @@ class _EmojiSelectorState extends State<EmojiSelector> {
                       return _buildCategory(
                           group: EmojiGroup.peopleBody, emoji: Emojis.man);
                     case (EmojiGroup.component):
-                      return _buildCategory(
-                          group: EmojiGroup.component, emoji: "?");
+                      return Container();
                   }
                 }),
           ))

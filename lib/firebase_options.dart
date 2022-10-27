@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -49,6 +43,15 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCzmk8TYZcLF-NxVlsfUzWE_URfTWwMjy4',
+    appId: '1:610795338007:web:403d43bbff8e4cbf9a5f52',
+    messagingSenderId: '610795338007',
+    projectId: 'douchat-ed564',
+    authDomain: 'douchat-ed564.firebaseapp.com',
+    storageBucket: 'douchat-ed564.appspot.com',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAgDv-KTZ2mnW5ndh_Er3sufPljzJPgrLo',
     appId: '1:610795338007:android:4412c3e5f2b02d4f9a5f52',
@@ -65,5 +68,15 @@ class DefaultFirebaseOptions {
     storageBucket: 'douchat-ed564.appspot.com',
     iosClientId: '610795338007-8o0tvu07014pr3f66sv3fas2nqmihbk4.apps.googleusercontent.com',
     iosBundleId: 'com.example.douchat',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDIZIrqqITWlG6B3ucHc_8A803HjMKsP8E',
+    appId: '1:610795338007:ios:cb19bd80db63e4899a5f52',
+    messagingSenderId: '610795338007',
+    projectId: 'douchat-ed564',
+    storageBucket: 'douchat-ed564.appspot.com',
+    iosClientId: '610795338007-7pnf8e76gd7ada31qj32a51vd5osd402.apps.googleusercontent.com',
+    iosBundleId: 'com.example.douchat3',
   );
 }

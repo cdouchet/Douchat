@@ -156,15 +156,21 @@ class CompositionRoot {
       List<DouchatNotificationIcon> groupIcons = [];
       for (int i = 0; i < groups.length; i++) {
         Uint8List? bytes;
+        Uint8List? compressedBytes;
+        try {
+
         if (groups[i].photoUrl != null) {
           bytes =
               (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
         }
         if (bytes != null) {
-          bytes =
+          compressedBytes =
               await FlutterImageCompress.compressWithList(bytes, quality: 20);
         }
-        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: bytes));
+        } catch (e, s) {
+          Utils.logger.i("Could not compress this image (${groups[i].photoUrl})", e, s);
+        }
+        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =

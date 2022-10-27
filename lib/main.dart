@@ -17,6 +17,7 @@ import 'package:douchat3/services/notifications/notification_callback_handler.da
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
@@ -32,12 +33,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
 final initializationSettings = InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-          iOS: IOSInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
-          ));
+    android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+    iOS: IOSInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    ));
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -53,12 +54,13 @@ void main() async {
   //         requiresCharging: false),
   //     tag: "socket-tag",
   //     backoffPolicy: BackoffPolicy.exponential);
-  await FlutterDownloader.initialize(
-    debug: true,
-  );
+  if (!kIsWeb) {
+    await FlutterDownloader.initialize(
+      debug: true,
+    );
+  }
   HttpOverrides.global = MyHttpOverrides();
-  notificationsPlugin.initialize(
-      initializationSettings,
+  notificationsPlugin.initialize(initializationSettings,
       onSelectNotification: notificationCallbackHandler);
   runApp(
     // LoadingProvider(

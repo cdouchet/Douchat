@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/utils/web_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -88,7 +90,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                           requiresStorageNotLow: false,
                           saveInPublicStorage: true,
                           showNotification: true);
-                    } else {
+                    } else if (Platform.isIOS) {
                       GallerySaver.saveVideo(widget.url,
                           headers: {'cookie': cookie});
                       // ImageDownloader.downloadImage(widget.url,
@@ -103,6 +105,8 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                       //         gravity: ToastGravity.BOTTOM);
                       //   }
                       // });
+                    } else if (kIsWeb) {
+                      WebUtils.downloadFile(widget.url);
                     }
                   })
             ]),

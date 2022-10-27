@@ -297,7 +297,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               to: widget.userId,
               type: 'temp_loading_image',
               timeStamp: DateTime.now(),
-              read: false)
+              read: false,
+              reactions: [])
         ]);
         Api.uploadFile(file: File(file.path), type: "image", thread: "conv")
             .then((path) {
@@ -308,7 +309,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               'content': path,
               'type': 'image',
               'timestamp': DateFormat().format(DateTime.now()),
-              'read': false
+              'read': false,
+              'reactions': []
             });
             Provider.of<ConversationProvider>(context, listen: false)
                 .removeTempMessage(mId: 'temp$r', uId: user.id);
@@ -326,7 +328,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               type:
                   'temp_loading_${Utils.isImage(fs[i].path) ? 'image' : 'video'}',
               timeStamp: DateTime.now(),
-              read: false));
+              read: false,
+              reactions: []));
         }
         Provider.of<ConversationProvider>(context, listen: false)
             .addTempMessages(ms);
@@ -340,7 +343,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
                 'content': path,
                 'type': type,
                 'timestamp': DateFormat().format(DateTime.now()),
-                'read': false
+                'read': false,
+                'reactions': []
               });
               Provider.of<ConversationProvider>(context, listen: false)
                   .removeTempMessage(mId: 'temp$i', uId: user.id);
@@ -358,7 +362,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
           'content': res['url'],
           'type': 'gif',
           'timestamp': DateFormat().format(DateTime.now()),
-          'read': false
+          'read': false,
+          'reactions': []
         });
       }
     }
@@ -375,7 +380,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
       'content': _textEditingController.text,
       'type': 'text',
       'timestamp': DateFormat().format(DateTime.now()),
-      'read': false
+      'read': false,
+      'reactions': []
     });
     _textEditingController.clear();
     _startTypingTimer?.cancel();
