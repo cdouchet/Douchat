@@ -62,9 +62,13 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with WidgetsBindingObserver {
+class _HomeState extends State<Home>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   List<Message> messages = [];
   ReceivePort _port = ReceivePort();
+  late AnimationController _bottomIconController;
+  late Animation<double> _bottomIconAnimation;
+  bool _expanded = false;
 
   @pragma('vm:entry-point')
   static void downloadCallback(
@@ -89,6 +93,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _bottomIconController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 350));
+    _bottomIconAnimation = CurvedAnimation(
+        parent: _bottomIconController, curve: Curves.fastOutSlowIn);
     _initialSetup();
     WidgetsBinding.instance.addObserver(this);
     widget.messageService.messages();
@@ -232,53 +240,78 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                   "En ligne ${Provider.of<UserProvider>(context, listen: true).users.where((u) => u.online == true).length}"))))
                 ])),
         backgroundColor: background,
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        bottomNavigationBar: BottomAppBar(
+          child: AnimatedContainer(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.fastOutSlowIn,
+              height: (MediaQuery.of(context).size.height * 0.2) *
+                  (_expanded ? 1 : 0),
+              color: background,
+              child: Row(children: [
+                Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        print("lol");
+                      },
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: primary,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(24))),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 24, horizontal: 12),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(
+                                    "Ajouter un ami",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Icon(Icons.person_add, color: Colors.white)
+                                ])))),
+                Expanded(child: Container(color: background)),
+                Expanded(
+                    child: InkWell(
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: primary,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(24))),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 24, horizontal: 12),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text("Créer un groupe",
+                                      textAlign: TextAlign.center),
+                                  Icon(Icons.group_add, color: Colors.white)
+                                ])))),
+              ])),
+          shape: CircularNotchedRectangle(),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: FloatingActionButton(
             onPressed: () {
-              showModalBottomSheet(
-                  isScrollControlled: true,
-                  context: context,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  builder: (BuildContext context) {
-                    return CreateGroup();
-                  }).then((i) {
-                if (i != null) {
-                  final cid =
-                      Provider.of<ClientProvider>(context, listen: false)
-                          .client;
-                  showLoadingDialog(tapDismiss: false);
-                  List<String> users = i['users'];
-                  users.add(cid.id);
-                  Api.createGroup(
-                          groupName: i['title'], users: users, creator: cid.id)
-                      .then((res) {
-                    if (res.statusCode != 200) {
-                      Fluttertoast.showToast(
-                          msg: 'Erreur durant la création du groupe',
-                          gravity: ToastGravity.BOTTOM);
-                    } else {
-                      final d = jsonDecode(res.body);
-                      if (d['payload']['new_group'] != null) {
-                        CompositionRoot.groupService.sendNewGroup({
-                          "group": d['payload']['new_group'],
-                          "timestamp": DateFormat().format(DateTime.now())
-                        });
-                        Fluttertoast.showToast(
-                            msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
-                      } else {
-                        Fluttertoast.showToast(
-                            msg: 'Erreur durant la création du groupe',
-                            gravity: ToastGravity.BOTTOM);
-                      }
-                    }
-                  });
-                  hideLoadingDialog();
-                }
+              print(_bottomIconAnimation.value);
+              setState(() {
+                _expanded = !_expanded;
               });
+              if (_bottomIconAnimation.value == 0) {
+                _bottomIconController.forward();
+              } else {
+                _bottomIconController.reverse();
+              }
             },
             backgroundColor: primary,
-            child: const Icon(Icons.group_add, color: Colors.white)),
+            child: AnimatedIcon(
+              icon: AnimatedIcons.menu_close,
+              color: Colors.white,
+              progress: _bottomIconAnimation,
+            )),
         body: TabBarView(children: [
           const ConversationsAndGroups(),
           ConnectedUsers(
@@ -286,6 +319,46 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ]),
       ),
     );
+  }
+
+  void _createGroupModal() {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        builder: (BuildContext context) {
+          return CreateGroup();
+        }).then((i) {
+      if (i != null) {
+        final cid = Provider.of<ClientProvider>(context, listen: false).client;
+        showLoadingDialog(tapDismiss: false);
+        List<String> users = i['users'];
+        users.add(cid.id);
+        Api.createGroup(groupName: i['title'], users: users, creator: cid.id)
+            .then((res) {
+          if (res.statusCode != 200) {
+            Fluttertoast.showToast(
+                msg: 'Erreur durant la création du groupe',
+                gravity: ToastGravity.BOTTOM);
+          } else {
+            final d = jsonDecode(res.body);
+            if (d['payload']['new_group'] != null) {
+              CompositionRoot.groupService.sendNewGroup({
+                "group": d['payload']['new_group'],
+                "timestamp": DateFormat().format(DateTime.now())
+              });
+              Fluttertoast.showToast(
+                  msg: 'Groupe créé', gravity: ToastGravity.BOTTOM);
+            } else {
+              Fluttertoast.showToast(
+                  msg: 'Erreur durant la création du groupe',
+                  gravity: ToastGravity.BOTTOM);
+            }
+          }
+        });
+        hideLoadingDialog();
+      }
+    });
   }
 
   void _initialSetup() {
