@@ -1,12 +1,17 @@
 import 'dart:convert';
+import 'dart:html' as html;
 import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/utils/web_utils.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:http_interceptor/http/http.dart';
+import 'package:mime/mime.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
@@ -95,16 +100,20 @@ class Api {
   }
 
   static Future<String?> uploadFile(
-      {required File? file,
+      {required dynamic file,
       required String type,
       required String thread}) async {
     try {
       if (file == null) {
         return null;
       }
+
       final request = MultipartRequest('POST',
           Uri.parse('$baseUrl/uploadFile/media?type=$type&thread=$thread'))
-        ..files.add(await MultipartFile.fromPath('picture', file.path));
+        ..files.add(kIsWeb
+            ? await MultipartFile.fromBytes(
+                "picture", (file as FilePickerResult).files.single.bytes!)
+            : await MultipartFile.fromPath('picture', file.path));
 
       final result = await request.send();
       final response = await Response.fromStream(result);
@@ -178,7 +187,24 @@ class Api {
   static Future<Response> updateFirebaseToken(String token) async {
     return await client.post(Uri.parse("$baseUrl/updateFirebaseToken"),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode(
-            {'firebase_token': token}));
+        body: jsonEncode({'firebase_token': token}));
+  }
+
+  static Future<bool> downloadFile(String url) async {
+    try {
+      final cookie = await Utils.getPlatformToken();
+      final req = get(Uri.parse(url),
+          headers: kIsWeb
+              ? {"Authorization": "Bearer $cookie"}
+              : {"cookie": cookie});
+      final res = await req;
+      final fileUrl = html.Url.createObjectUrlFromBlob(
+          html.Blob(res.bodyBytes, lookupMimeType(url.split('/').last)));
+      WebUtils.downloadFile(fileUrl, url.split('/').last);
+      return true;
+    } catch (e, s) {
+      Utils.logger.i("Error while downloading file", e, s);
+      return false;
+    }
   }
 }

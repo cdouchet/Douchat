@@ -27,6 +27,7 @@ import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/services/listeners/listener_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -78,9 +79,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print("CHANGING APP LIFE CYCLE");
     print(state.toString());
-    if (state == AppLifecycleState.resumed) {
-      notificationsPlugin.cancelAll();
-    }
     Provider.of<AppLifeCycleProvider>(context, listen: false)
         .setAppState(state);
     super.didChangeAppLifecycleState(state);
@@ -92,6 +90,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     _initialSetup();
     WidgetsBinding.instance.addObserver(this);
     widget.messageService.messages();
+    if (!kIsWeb) {
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
@@ -100,8 +99,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       int progress = data[2];
       setState(() {});
     });
-
-    FlutterDownloader.registerCallback(downloadCallback);
+      FlutterDownloader.registerCallback(downloadCallback);
+    }
   }
 
   @override
@@ -126,6 +125,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         appBar: AppBar(
             automaticallyImplyLeading: false,
             actions: <Widget>[
+                   
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Stack(
@@ -291,7 +291,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void _initialSetup() {
     Provider.of<AppLifeCycleProvider>(context, listen: false)
         .setAppState(AppLifecycleState.resumed);
-    CompositionRoot.listenerService.setup();
     setProviders(globalKey.currentContext!,
             user: widget.client,
             users: widget.users,

@@ -7,10 +7,8 @@ import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/message_thread/receiver_message.dart';
 import 'package:douchat3/componants/message_thread/sender_message.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
-import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/user.dart';
-import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/route_provider.dart';
@@ -19,8 +17,8 @@ import 'package:douchat3/services/messages/message_service.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -48,18 +46,6 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
   final TextEditingController _textEditingController = TextEditingController();
   Timer? _startTypingTimer;
   Timer? _stopTypingTimer;
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("CHANGING APP LIFE CYCLE");
-    print(state.toString());
-    if (state == AppLifecycleState.resumed) {
-      notificationsPlugin.cancelAll();
-    }
-    Provider.of<AppLifeCycleProvider>(context, listen: false)
-        .setAppState(state);
-    super.didChangeAppLifecycleState(state);
-  }
 
   @override
   void initState() {
@@ -286,7 +272,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
     final res = await Utils.showMediaPickFile(context);
     if (res != null) {
       if (res['type'] == "photo_taken") {
-        final XFile file = res['file'];
+        final dynamic file = res['file'];
         final int r = Random().nextInt(5000);
         Provider.of<ConversationProvider>(context, listen: false)
             .addTempMessages([
@@ -300,7 +286,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               read: false,
               reactions: [])
         ]);
-        Api.uploadFile(file: File(file.path), type: "image", thread: "conv")
+        Api.uploadFile(file: kIsWeb ? file : File(file.path), type: "image", thread: "conv")
             .then((path) {
           if (path != null) {
             widget.messageService.sendMessage({

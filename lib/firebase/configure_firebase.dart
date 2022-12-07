@@ -4,6 +4,7 @@ import 'package:douchat3/api/api.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> configureFirebase() async {
@@ -31,7 +32,9 @@ Future<void> configureFirebase() async {
       criticalAlert: false,
       provisional: false,
       sound: false);
-  FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
+  }
 }
 
 @pragma('vm:entry-point')

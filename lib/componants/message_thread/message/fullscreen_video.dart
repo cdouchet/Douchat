@@ -1,8 +1,9 @@
+import 'dart:html' as html;
 import 'dart:io';
 
 import 'package:chewie/chewie.dart';
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/utils/utils.dart';
-import 'package:douchat3/utils/web_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +35,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
   void initState() {
     try {
       controller = VideoPlayerController.network(widget.url,
-          httpHeaders: {'cookie': widget.cookie});
+          httpHeaders: kIsWeb ? {'authorization': "Bearer ${widget.cookie}"} : {'cookie': widget.cookie});
       controller.initialize();
       chewieController = ChewieController(
           videoPlayerController: controller,
@@ -78,21 +79,21 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
               IconButton(
                   icon: Icon(Icons.download, color: Colors.white),
                   onPressed: () async {
-                    final String cookie = (await const FlutterSecureStorage()
+                    final String cookie = kIsWeb ? html.document.cookie!.split('=')[1] : (await const FlutterSecureStorage()
                         .read(key: 'access_token'))!;
                     if (Platform.isAndroid) {
                       FlutterDownloader.enqueue(
                           url: widget.url,
                           savedDir: (await getExternalStorageDirectory())!.path,
                           fileName: widget.url.split('/').last,
-                          headers: {'cookie': cookie},
+                          headers: kIsWeb ? {'authorization': "Bearer $cookie"} : {'cookie': cookie},
                           openFileFromNotification: true,
                           requiresStorageNotLow: false,
                           saveInPublicStorage: true,
                           showNotification: true);
                     } else if (Platform.isIOS) {
                       GallerySaver.saveVideo(widget.url,
-                          headers: {'cookie': cookie});
+                          headers: kIsWeb ? {"authorization": "Bearer $cookie"} : {'cookie': cookie});
                       // ImageDownloader.downloadImage(widget.url,
                       //     headers: {'cookie': cookie}).then((String? id) {
                       //   if (id != null) {
@@ -106,7 +107,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                       //   }
                       // });
                     } else if (kIsWeb) {
-                      WebUtils.downloadFile(widget.url);
+                      Api.downloadFile(widget.url);
                     }
                   })
             ]),

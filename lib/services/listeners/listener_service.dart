@@ -16,10 +16,10 @@ import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/utils/notification_photo_registar.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as flnp;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' as flnp;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart';
@@ -38,10 +38,6 @@ class ListenerService {
   messages() {
     socket.on('test', (data) => print(data));
     print("started listening for messages");
-  }
-
-  setup() {
-    notificationsPlugin.cancelAll();
   }
 
   startReceivingEvents(BuildContext context) {
@@ -104,6 +100,7 @@ class ListenerService {
                 : data['type'] == 'video'
                     ? '${user.username} a envoyé une vidéo'
                     : '${user.username} a envoyé un gif';
+        
         if (Platform.isAndroid) {
           final List<flnp.ActiveNotification> activeNotifications =
               (await notificationsPlugin
@@ -114,14 +111,14 @@ class ListenerService {
             Utils.logger.i(element.title);
             Utils.logger.i(element.channelId);
           });
-          // if (activeNotifications.any((element) => element.channelId == data['from'])) {
-          //   final flnp.ActiveNotification notif = activeNotifications.firstWhere((n) => n.channelId == data['from']);
-          //   finalText = '${notif.body}\n$messageText';
-          //   notifId = notif.id;
-          // } else {
-          //   finalText = messageText;
-          //   notifId = id;
-          // }
+        // if (activeNotifications.any((element) => element.channelId == data['from'])) {
+        //   final flnp.ActiveNotification notif = activeNotifications.firstWhere((n) => n.channelId == data['from']);
+        //   finalText = '${notif.body}\n$messageText';
+        //   notifId = notif.id;
+        // } else {
+        //   finalText = messageText;
+        //   notifId = id;
+        // }
           List<flnp.Message> notifMessages = activeNotifications
               .where((n) => n.channelId == data['from'])
               .map((e) => flnp.Message(
@@ -166,20 +163,22 @@ class ListenerService {
               flnp.NotificationDetails(iOS: flnp.IOSNotificationDetails()));
         }
       } else {
-        Vibration.hasVibrator().then((value) {
-          if (value ?? false) {
-            if (Provider.of<RouteProvider>(context, listen: false)
-                .isOnPrivateThread) {
+        if (!kIsWeb) {
+          Vibration.hasVibrator().then((value) {
+            if (value ?? false) {
               if (Provider.of<RouteProvider>(context, listen: false)
-                      .privateThreadId ==
-                  data['from']) {
+                  .isOnPrivateThread) {
+                if (Provider.of<RouteProvider>(context, listen: false)
+                        .privateThreadId ==
+                    data['from']) {
+                  Vibration.vibrate(duration: 100, amplitude: 40);
+                }
+              } else {
                 Vibration.vibrate(duration: 100, amplitude: 40);
               }
-            } else {
-              Vibration.vibrate(duration: 100, amplitude: 40);
             }
-          }
-        });
+          });
+        }
       }
     });
   }
@@ -252,73 +251,76 @@ class ListenerService {
                     : data['type'] == 'video'
                         ? ' a envoyé une vidéo'
                         : ' a envoyé un gif');
-        if (Platform.isAndroid) {
-          List<flnp.ActiveNotification> activeNotifications =
-              (await notificationsPlugin
-                  .resolvePlatformSpecificImplementation<
-                      flnp.AndroidFlutterLocalNotificationsPlugin>()
-                  ?.getActiveNotifications())!;
-          activeNotifications.forEach((element) {
-            Utils.logger.i(element.title);
-            Utils.logger.i(element.channelId);
-          });
-          List<flnp.Message> notifMessages = activeNotifications
-              .where((n) => n.channelId == group.id)
-              .map((e) => flnp.Message(
-                  e.body!, DateFormat().parse(data['timestamp']), null))
-              .toList();
-          if (notifMessages.isNotEmpty) {
-            id = activeNotifications
-                .firstWhere((n) => n.channelId == group.id)
-                .id;
-          }
-          print('Notification id : ' + id.toString());
-          notifMessages.add(flnp.Message(
-              messageText, DateFormat().parse(data['timestamp']), null));
-          notificationsPlugin.show(
-              id,
-              group.name,
-              messageText,
-              flnp.NotificationDetails(
-                  android: flnp.AndroidNotificationDetails(group.id, username,
-                      enableVibration: true,
-                      groupKey: group.id,
-                      setAsGroupSummary: !activeNotifications
-                          .any((n) => n.channelId == group.id),
-                      category: "CATEGORY_MESSAGE",
-                      priority: flnp.Priority.max,
-                      importance: flnp.Importance.max,
-                      styleInformation: flnp.MessagingStyleInformation(
-                          flnp.Person(
-                              bot: false,
-                              name: group.name,
-                              icon: flnp.ByteArrayAndroidIcon(
-                                  NotificationPhotoRegistar.getBytedFromGroupId(
-                                          group.id) ??
-                                      NotificationPhotoRegistar
-                                          .getBytedFromGroupId('group')!)),
-                          conversationTitle: group.name,
-                          messages: notifMessages))),
-              payload: '{"type": "group", "id": "${group.id}"}');
-        } else {
-          notificationsPlugin.show(id, group.name, messageText,
-              flnp.NotificationDetails(iOS: flnp.IOSNotificationDetails()));
-        }
+       
+        // if (Platform.isAndroid) {
+        //   List<flnp.ActiveNotification> activeNotifications =
+        //       (await notificationsPlugin
+        //           .resolvePlatformSpecificImplementation<
+        //               flnp.AndroidFlutterLocalNotificationsPlugin>()
+        //           ?.getActiveNotifications())!;
+        //   activeNotifications.forEach((element) {
+        //     Utils.logger.i(element.title);
+        //     Utils.logger.i(element.channelId);
+        //   });
+        //   List<flnp.Message> notifMessages = activeNotifications
+        //       .where((n) => n.channelId == group.id)
+        //       .map((e) => flnp.Message(
+        //           e.body!, DateFormat().parse(data['timestamp']), null))
+        //       .toList();
+        //   if (notifMessages.isNotEmpty) {
+        //     id = activeNotifications
+        //         .firstWhere((n) => n.channelId == group.id)
+        //         .id;
+        //   }
+        //   print('Notification id : ' + id.toString());
+        //   notifMessages.add(flnp.Message(
+        //       messageText, DateFormat().parse(data['timestamp']), null));
+        //   notificationsPlugin.show(
+        //       id,
+        //       group.name,
+        //       messageText,
+        //       flnp.NotificationDetails(
+        //           android: flnp.AndroidNotificationDetails(group.id, username,
+        //               enableVibration: true,
+        //               groupKey: group.id,
+        //               setAsGroupSummary: !activeNotifications
+        //                   .any((n) => n.channelId == group.id),
+        //               category: "CATEGORY_MESSAGE",
+        //               priority: flnp.Priority.max,
+        //               importance: flnp.Importance.max,
+        //               styleInformation: flnp.MessagingStyleInformation(
+        //                   flnp.Person(
+        //                       bot: false,
+        //                       name: group.name,
+        //                       icon: flnp.ByteArrayAndroidIcon(
+        //                           NotificationPhotoRegistar.getBytedFromGroupId(
+        //                                   group.id) ??
+        //                               NotificationPhotoRegistar
+        //                                   .getBytedFromGroupId('group')!)),
+        //                   conversationTitle: group.name,
+        //                   messages: notifMessages))),
+        //       payload: '{"type": "group", "id": "${group.id}"}');
+        // } else {
+        //   notificationsPlugin.show(id, group.name, messageText,
+        //       flnp.NotificationDetails(iOS: flnp.IOSNotificationDetails()));
+        // }
       } else {
-        Vibration.hasVibrator().then((value) {
-          if (value ?? false) {
-            if (Provider.of<RouteProvider>(context, listen: false)
-                .isOnGroupThread) {
+        if (!kIsWeb) {
+          Vibration.hasVibrator().then((value) {
+            if (value ?? false) {
               if (Provider.of<RouteProvider>(context, listen: false)
-                      .groupThreadId ==
-                  data['from']) {
+                  .isOnGroupThread) {
+                if (Provider.of<RouteProvider>(context, listen: false)
+                        .groupThreadId ==
+                    data['from']) {
+                  Vibration.vibrate(duration: 100, amplitude: 40);
+                }
+              } else {
                 Vibration.vibrate(duration: 100, amplitude: 40);
               }
-            } else {
-              Vibration.vibrate(duration: 100, amplitude: 40);
             }
-          }
-        });
+          });
+        }
       }
     });
   }
@@ -434,6 +436,7 @@ class ListenerService {
           id++;
         }
         notificationIds.add(id);
+        
         notificationsPlugin.show(
             id,
             "Nouvelle demande d'ami",

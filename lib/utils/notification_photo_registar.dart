@@ -1,6 +1,5 @@
-import 'package:douchat3/api/api.dart';
 import 'package:douchat3/utils/utils.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class DouchatNotificationIcon {
   final String id;
@@ -49,15 +48,11 @@ class NotificationPhotoRegistar {
   static Future<void> setup() async {
     notificationIcons.add(DouchatNotificationIcon(
         id: 'person',
-        bytes: (await Api.getContactPhoto(
-                url:
-                    'https://cdn.icon-icons.com/icons2/1369/PNG/512/-person_90382.png'))
-            .bodyBytes));
+        bytes:
+            (await rootBundle.load("person.png")).buffer.asUint8List()));
     groupNotificationIcons.add(DouchatNotificationIcon(
         id: 'group',
-        bytes: (await Api.getContactPhoto(
-                url:
-                    'https://cdn-icons-png.flaticon.com/512/104/104116.png?w=360'))
-            .bodyBytes));
+        bytes:
+            (await rootBundle.load("group.png")).buffer.asUint8List()));
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/firebase/configure_firebase.dart';
@@ -38,13 +39,14 @@ class CompositionRoot {
   static Future<void> configure(String id,
       {required bool freshRegister}) async {
     Utils.logger.d('Configuring Douchat...');
+    
     Utils.logger.d('Configuring Firebase...');
     await configureFirebase();
     socket = IO.io(
         'https://${dotenv.env["DOUCHAT_URI"]}:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
           'id': id,
-          'token': await const FlutterSecureStorage().read(key: 'access_token'),
+          'token': kIsWeb ? document.cookie?.split('=')[1] : await const FlutterSecureStorage().read(key: 'access_token'),
           'freshRegister': freshRegister ? 'true' : 'false'
         }).build());
     Utils.logger.d('Socket io object : ' + socket.toString());
@@ -61,8 +63,7 @@ class CompositionRoot {
     socket.on('fromServer', (_) => print(_));
 
     print('instantiating ListenerService');
-    listenerService = ListenerService(
-        socket: socket, notificationsPlugin: notificationsPlugin);
+    listenerService = ListenerService(socket: socket, notificationsPlugin: notificationsPlugin);
     userService = UserService(socket);
     messageService = MessageService(socket: socket);
     groupService = GroupService(socket: socket);
@@ -73,21 +74,24 @@ class CompositionRoot {
 
   static Future<Widget> start(BuildContext context) async {
     try {
-      final List<Permission> perms = [
-        Permission.notification,
-      ];
-      for (final Permission p in perms) {
-        if (await p.isDenied) {
-          p.request();
+      if (!kIsWeb) {
+        final List<Permission> perms = [
+          Permission.notification,
+        ];
+        for (final Permission p in perms) {
+          if (await p.isDenied) {
+            p.request();
+          }
         }
       }
       // await FlutterSecureStorage().delete(key: 'access_token');
-      final token =
+      final token = kIsWeb ? document.cookie?.split('=')[1] :
           await const FlutterSecureStorage().read(key: 'access_token');
       print('after read token');
-      if (token == null) {
+      if (token == null || token.isEmpty) {
         return composeLogin();
       }
+      Utils.logger.i("Token: ", token);
       print('token is not null');
       final isConnected =
           jsonDecode((await Api.isConnected(token)).body)['payload'];
@@ -158,19 +162,20 @@ class CompositionRoot {
         Uint8List? bytes;
         Uint8List? compressedBytes;
         try {
-
-        if (groups[i].photoUrl != null) {
-          bytes =
-              (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
-        }
-        if (bytes != null) {
-          compressedBytes =
-              await FlutterImageCompress.compressWithList(bytes, quality: 20);
-        }
+          if (groups[i].photoUrl != null) {
+            bytes =
+                (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+          }
+          if (bytes != null) {
+            compressedBytes =
+                await FlutterImageCompress.compressWithList(bytes, quality: 20);
+          }
         } catch (e, s) {
-          Utils.logger.i("Could not compress this image (${groups[i].photoUrl})", e, s);
+          Utils.logger
+              .i("Could not compress this image (${groups[i].photoUrl})", e, s);
         }
-        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
+        groupIcons.add(
+            DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =

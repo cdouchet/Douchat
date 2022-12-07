@@ -1,7 +1,11 @@
+import 'dart:html';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart';
 
 class CachedImageWithCookie extends StatefulWidget {
   final CachedNetworkImage image;
@@ -14,7 +18,9 @@ class CachedImageWithCookie extends StatefulWidget {
 class _CachedImageWithCookieState extends State<CachedImageWithCookie> {
   late Future<String> future;
   Future<String> getCookie() async {
-    return (await const FlutterSecureStorage().read(key: 'access_token')) ?? "";
+    return kIsWeb
+        ? document.cookie!.split('=')[1]
+        : (await const FlutterSecureStorage().read(key: 'access_token')) ?? "";
   }
 
   @override
@@ -45,7 +51,7 @@ class _CachedImageWithCookieState extends State<CachedImageWithCookie> {
               filterQuality: i.filterQuality,
               fit: i.fit,
               height: i.height,
-              httpHeaders: {'cookie': snap.data},
+              httpHeaders: kIsWeb ? {"authorization": "Bearer ${snap.data}"} : {'cookie': snap.data},
               imageBuilder: i.imageBuilder,
               key: i.key,
               matchTextDirection: i.matchTextDirection,
@@ -59,6 +65,7 @@ class _CachedImageWithCookieState extends State<CachedImageWithCookie> {
               repeat: i.repeat,
               useOldImageOnUrlChange: i.useOldImageOnUrlChange,
               width: i.width,
+              imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
             );
           } else {
             return LoadingAnimationWidget.threeArchedCircle(

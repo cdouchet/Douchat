@@ -7,11 +7,9 @@ import 'package:douchat3/componants/group_thread/group_receiver_message.dart';
 import 'package:douchat3/componants/group_thread/group_sender_message.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
-import 'package:douchat3/main.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
-import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/providers/route_provider.dart';
@@ -46,18 +44,6 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
   final TextEditingController _textEditingController = TextEditingController();
   Timer? _startTypingTimer;
   Timer? _stopTypingTimer;
-
-  @override
-  didChangeAppLifecycleState(AppLifecycleState state) {
-    print("CHANGING APP LIFE CYCLE");
-    print(state.toString());
-    if (state == AppLifecycleState.resumed) {
-      notificationsPlugin.cancelAll();
-    }
-    Provider.of<AppLifeCycleProvider>(context, listen: false)
-        .setAppState(state);
-    super.didChangeAppLifecycleState(state);
-  }
 
   @override
   void initState() {

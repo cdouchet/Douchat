@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/utils/utils.dart';
-import 'package:douchat3/utils/web_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -41,13 +41,12 @@ class _ImagePreviewState extends State<ImagePreview> {
           child: IconButton(
               icon: Icon(Icons.download, color: Colors.white),
               onPressed: () async {
-                final String cookie = (await const FlutterSecureStorage()
-                    .read(key: 'access_token'))!;
+                final String cookie = await Utils.getPlatformToken();
                 if (Platform.isAndroid) {
                   final taskId = await FlutterDownloader.enqueue(
                       url: widget.imageUrl,
                       savedDir: (await getExternalStorageDirectory())!.path,
-                      headers: {'cookie': cookie},
+                      headers: kIsWeb ? {"authorization": "Bearer $cookie"} : {'cookie': cookie},
                       fileName: widget.imageUrl.split('/').last,
                       openFileFromNotification: true,
                       saveInPublicStorage: true,
@@ -55,7 +54,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                       showNotification: true);
                 } else if (Platform.isIOS) {
                   ImageDownloader.downloadImage(widget.imageUrl,
-                      headers: {'cookie': cookie}).then((String? id) {
+                      headers: kIsWeb ? {"authorization": "Bearer $cookie"} : {'cookie': cookie}).then((String? id) {
                     if (id != null) {
                       Fluttertoast.showToast(
                           msg: 'Image téléchargée',
@@ -67,7 +66,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                     }
                   });
                 } else if (kIsWeb) {
-                  WebUtils.downloadFile(widget.imageUrl);
+                  Api.downloadFile(widget.imageUrl);
                 }
               })),
       Center(

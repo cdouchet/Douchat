@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:douchat3/componants/message_thread/media/files_page.dart';
 import 'package:douchat3/componants/message_thread/media/gif_page.dart';
@@ -14,8 +15,11 @@ import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:emojis/emoji.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart';
@@ -83,8 +87,15 @@ class Utils {
                       children: [
                         ElevatedButton(
                                 onPressed: () async {
-                                  final file = await ImagePicker()
-                                      .pickImage(source: ImageSource.camera);
+                                  dynamic file;
+                                  if (kIsWeb) {
+                                    file = FilePicker.platform.pickFiles(
+                                      allowMultiple: false,
+                                    );
+                                  } else {
+                                    file = await ImagePicker()
+                                        .pickImage(source: ImageSource.camera);
+                                  }
                                   Navigator.pop(context,
                                       {'type': 'photo_taken', 'file': file});
                                 },
@@ -143,7 +154,8 @@ class Utils {
                           if (value != null) {
                             Utils.logger.i("Adding reaction $value");
                             CompositionRoot.messageService.addReaction({
-                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                              "clientId": Provider.of<ClientProvider>(
+                                      globalKey.currentContext!,
                                       listen: false)
                                   .client
                                   .id,
@@ -151,11 +163,13 @@ class Utils {
                               "id": message.id,
                               "to": sender ? message.to : message.from
                             });
-                            Provider.of<ConversationProvider>(globalKey.currentContext!,
+                            Provider.of<ConversationProvider>(
+                                    globalKey.currentContext!,
                                     listen: false)
                                 .addReaction(
                                     id: message.id,
-                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                    userId: Provider.of<ClientProvider>(
+                                            globalKey.currentContext!,
                                             listen: false)
                                         .client
                                         .id,
@@ -241,7 +255,8 @@ class Utils {
                           if (value != null) {
                             Utils.logger.i("Adding reaction $value");
                             CompositionRoot.groupService.addReaction({
-                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                              "clientId": Provider.of<ClientProvider>(
+                                      globalKey.currentContext!,
                                       listen: false)
                                   .client
                                   .id,
@@ -249,11 +264,13 @@ class Utils {
                               "id": message.id,
                               "group": message.group
                             });
-                            Provider.of<GroupProvider>(globalKey.currentContext!,
+                            Provider.of<GroupProvider>(
+                                    globalKey.currentContext!,
                                     listen: false)
                                 .addReaction(
                                     id: message.id,
-                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                    userId: Provider.of<ClientProvider>(
+                                            globalKey.currentContext!,
                                             listen: false)
                                         .client
                                         .id,
@@ -307,6 +324,12 @@ class Utils {
             )
           ]);
         });
+  }
+
+  static Future<String> getPlatformToken() async {
+    return kIsWeb
+        ? document.cookie!.split('=')[1]
+        : ((await const FlutterSecureStorage().read(key: "access_token")) ?? "");
   }
 
   static bool isImage(String path) {

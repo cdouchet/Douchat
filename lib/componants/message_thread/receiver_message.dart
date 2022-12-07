@@ -9,7 +9,6 @@ import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:douchat3/views/image_preview.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -221,7 +220,7 @@ class ReceiverMessage extends StatelessWidget {
                 child: CachedImageWithCookie(
                   image: CachedNetworkImage(
                     imageUrl: message.content,
-                    fit: BoxFit.fill,
+                    fit: BoxFit.contain,
                     progressIndicatorBuilder: (BuildContext context, String url,
                             DownloadProgress progress) =>
                         LoadingAnimationWidget.threeArchedCircle(
@@ -235,7 +234,7 @@ class ReceiverMessage extends StatelessWidget {
       );
     } else {
       return FutureBuilder<String?>(
-          future: const FlutterSecureStorage().read(key: 'access_token'),
+          future: Utils.getPlatformToken(),
           builder: (context, AsyncSnapshot<String?> snap) {
             if (snap.hasData) {
               return VideoPreview(url: message.content, cookie: snap.data!);

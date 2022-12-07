@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:douchat3/api/api.dart';
-import 'package:douchat3/main.dart';
-import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
@@ -38,17 +36,6 @@ class _QrScanPageState extends State<QrScanPage> with WidgetsBindingObserver {
     } else if (Platform.isIOS) {
       controller!.resumeCamera();
     }
-  }
-
-    @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("CHANGING APP LIFE CYCLE");
-    print(state.toString());
-    if (state == AppLifecycleState.resumed) {
-      notificationsPlugin.cancelAll();
-    }
-    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
-    super.didChangeAppLifecycleState(state);
   }
 
   @override

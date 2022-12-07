@@ -70,6 +70,7 @@
 // }
 
 import 'package:douchat3/componants/message_thread/message/fullscreen_video.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -92,7 +93,7 @@ class _VideoPreviewState extends State<VideoPreview> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.url, videoPlayerOptions: VideoPlayerOptions(), httpHeaders: {'cookie': widget.cookie});
+    _controller = VideoPlayerController.network(widget.url, videoPlayerOptions: VideoPlayerOptions(), httpHeaders: kIsWeb ? {"authorization": "Bearer ${widget.cookie}"} : {'cookie': widget.cookie});
     _initializeVideo = _controller.initialize();
     _controller.setLooping(true);
   }

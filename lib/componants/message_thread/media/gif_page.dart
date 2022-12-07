@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/tenor.dart';
-import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -102,8 +101,7 @@ class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
                                   },
                                   child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: CachedImageWithCookie(
-                                        image: CachedNetworkImage(
+                                      child: CachedNetworkImage(
                                             imageUrl: url,
                                             fit: BoxFit.fill,
                                             progressIndicatorBuilder:
@@ -115,7 +113,7 @@ class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
                                                         .threeArchedCircle(
                                                             color: Colors.white,
                                                             size: 50)),
-                                      )),
+                                      ),
                                 );
                               }),
                         );

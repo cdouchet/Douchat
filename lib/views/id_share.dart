@@ -1,5 +1,3 @@
-import 'package:douchat3/main.dart';
-import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/users/user_service.dart';
@@ -20,17 +18,6 @@ class IdShare extends StatefulWidget {
 }
 
 class _IdShareState extends State<IdShare> with WidgetsBindingObserver {
-    @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("CHANGING APP LIFE CYCLE");
-    print(state.toString());
-    if (state == AppLifecycleState.resumed) {
-      notificationsPlugin.cancelAll();
-    }
-    Provider.of<AppLifeCycleProvider>(context, listen: false).setAppState(state);
-    super.didChangeAppLifecycleState(state);
-  }
-
   @override
   void initState() {
     super.initState();

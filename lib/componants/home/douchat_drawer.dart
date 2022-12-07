@@ -1,7 +1,11 @@
+import 'dart:html';
+
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/login.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -51,6 +55,15 @@ class DouchatDrawer extends StatelessWidget {
             .applyPadding(const EdgeInsets.only(bottom: 12)),
         GestureDetector(
           onTap: () {
+            if (kIsWeb) {
+              document.cookie = "token=";
+                  CompositionRoot.socket.destroy();
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => Login()),
+                  (r) => false);
+              return;
+            }
             CompositionRoot.socket.clearListeners();
             CompositionRoot.socket.disconnect();
             const FlutterSecureStorage().delete(key: 'access_token').then((_) {

@@ -32,18 +32,11 @@ final GlobalKey<ScaffoldState> globalKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
-final initializationSettings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-    iOS: IOSInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    ));
-
 void main() async {
   await dotenv.load(fileName: '.env');
   initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
+  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   // Workmanager().registerOneOffTask("socket-keep-alive", "socket-keep-alive",
@@ -60,8 +53,18 @@ void main() async {
     );
   }
   HttpOverrides.global = MyHttpOverrides();
-  notificationsPlugin.initialize(initializationSettings,
-      onSelectNotification: notificationCallbackHandler);
+  notificationsPlugin.initialize(
+    InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+      iOS: IOSInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true
+      ),
+      
+    ),
+    onSelectNotification: notificationCallbackHandler
+  );
   runApp(
     // LoadingProvider(
     // themeData: LoadingThemeData(),
@@ -92,6 +95,7 @@ void main() async {
       ],
       builder: (c, w) => MaterialApp(
           key: globalKey,
+          title: "Douchat",
           locale: Locale('fr', 'FR'),
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
