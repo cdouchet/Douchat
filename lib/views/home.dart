@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/home/connected_users.dart';
@@ -244,74 +245,118 @@ class _HomeState extends State<Home>
           child: AnimatedContainer(
               duration: const Duration(milliseconds: 350),
               curve: Curves.fastOutSlowIn,
-              height: (MediaQuery.of(context).size.height * 0.2) *
-                  (_expanded ? 1 : 0),
-              color: background,
-              child: Row(children: [
-                Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        print("lol");
-                      },
-                        child: Container(
-                            decoration: BoxDecoration(
-                                color: primary,
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(24))),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 24, horizontal: 12),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Text(
-                                    "Ajouter un ami",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Icon(Icons.person_add, color: Colors.white)
-                                ])))),
-                Expanded(child: Container(color: background)),
-                Expanded(
-                    child: InkWell(
-                        child: Container(
-                            decoration: BoxDecoration(
-                                color: primary,
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(24))),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 24, horizontal: 12),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Text("Créer un groupe",
-                                      textAlign: TextAlign.center),
-                                  Icon(Icons.group_add, color: Colors.white)
-                                ])))),
-              ])),
+              height: 120 * (_expanded ? 1 : 0),
+              color: Colors.transparent,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Column(children: [
+                    Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(120),
+                            color: primary),
+                        child: Icon(Icons.person_add, color: Colors.white)),
+                    Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(120),
+                            color: primary),
+                        child: Icon(Icons.group_add, color: Colors.white))
+                  ])
+                ],
+              )
+              // Row(children: [
+              //   Expanded(
+              //       child: InkWell(
+              //           onTap: () {
+              //             print("lol");
+              //           },
+              //           child: Container(
+              //               decoration: BoxDecoration(
+              //                   color: primary,
+              //                   borderRadius: BorderRadius.only(
+              //                       topRight: Radius.circular(24))),
+              //               padding: const EdgeInsets.symmetric(
+              //                   vertical: 24, horizontal: 12),
+              //               child: Column(
+              //                   crossAxisAlignment: CrossAxisAlignment.center,
+              //                   mainAxisAlignment:
+              //                       MainAxisAlignment.spaceEvenly,
+              //                   children: [
+              //                     Text(
+              //                       "Ajouter un ami",
+              //                       textAlign: TextAlign.center,
+              //                     ),
+              //                     Icon(Icons.person_add, color: Colors.white)
+              //                   ])))),
+              //   Expanded(child: Container(color: background)),
+              //   Expanded(
+              //       child: InkWell(
+              //           child: Container(
+              //               decoration: BoxDecoration(
+              //                   color: primary,
+              //                   borderRadius: BorderRadius.only(
+              //                       topLeft: Radius.circular(24))),
+              //               padding: const EdgeInsets.symmetric(
+              //                   vertical: 24, horizontal: 12),
+              //               child: Column(
+              //                   crossAxisAlignment: CrossAxisAlignment.center,
+              //                   mainAxisAlignment:
+              //                       MainAxisAlignment.spaceEvenly,
+              //                   children: [
+              //                     Text("Créer un groupe",
+              //                         textAlign: TextAlign.center),
+              //                     Icon(Icons.group_add, color: Colors.white)
+              //                   ])))),
+              // ])
+              ),
           shape: CircularNotchedRectangle(),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: FloatingActionButton(
+            backgroundColor: primary,
+            foregroundColor: Colors.white,
             onPressed: () {
-              print(_bottomIconAnimation.value);
-              setState(() {
-                _expanded = !_expanded;
-              });
+              print("touched");
               if (_bottomIconAnimation.value == 0) {
-                _bottomIconController.forward();
+                _bottomIconController.forward().then((value) {});
               } else {
-                _bottomIconController.reverse();
+                _bottomIconController.reverse().then((value) {});
               }
             },
-            backgroundColor: primary,
-            child: AnimatedIcon(
-              icon: AnimatedIcons.menu_close,
-              color: Colors.white,
-              progress: _bottomIconAnimation,
-            )),
+            child: Stack(
+                alignment: Alignment.bottomRight,
+                clipBehavior: Clip.none,
+                children: [
+                  Align(
+                      alignment: Alignment.center,
+                      child: AnimatedIcon(
+                        progress: _bottomIconAnimation,
+                        icon: AnimatedIcons.menu_close,
+                      )),
+                  ..._createActionList().toList()
+                ])),
+        // FloatingActionButton(
+        //     onPressed: () {
+        //       print(_bottomIconAnimation.value);
+        //       setState(() {
+        //         _expanded = !_expanded;
+        //       });
+        //       if (_bottomIconAnimation.value == 0) {
+        //         _bottomIconController.forward();
+        //       } else {
+        //         _bottomIconController.reverse();
+        //       }
+        //     },
+        //     backgroundColor: primary,
+        //     child: AnimatedIcon(
+        //       icon: AnimatedIcons.menu_close,
+        //       color: Colors.white,
+        //       progress: _bottomIconAnimation,
+        //     )),
         body: TabBarView(children: [
           const ConversationsAndGroups(),
           ConnectedUsers(
@@ -319,6 +364,41 @@ class _HomeState extends State<Home>
         ]),
       ),
     );
+  }
+
+  Iterable<Widget> _createActionList() sync* {
+    final List<Map<String, dynamic>> infos = [
+      {"direction": 45, "icon": Icon(Icons.group_add, color: Colors.white)},
+      {"direction": 90, "icon": Icon(Icons.person_add, color: Colors.white)}
+    ];
+    for (int i = 0; i < 2; i++) {
+      yield AnimatedBuilder(
+          animation: _bottomIconAnimation,
+          builder: (context, child) {
+            final offset = Offset.fromDirection(
+                infos[i]["direction"] * (math.pi / 180.0),
+                _bottomIconAnimation.value * 120);
+            return Positioned(
+                right: 4.0 + offset.dx,
+                bottom: 4.0 + offset.dy,
+                child: Transform.rotate(
+                    angle: (1.0 - _bottomIconAnimation.value) * math.pi / 2,
+                    child: child!));
+          },
+          child: FadeTransition(
+              opacity: _bottomIconAnimation,
+              child: RawMaterialButton(
+                  shape: CircleBorder(),
+                  elevation: 0,
+                  padding: const EdgeInsets.all(18),
+                  fillColor: primary,
+                  onPressed: () {},
+                  child: infos[i]["icon"])));
+    }
+  }
+
+  void _expandActionButton() {
+    if (!_expanded) {}
   }
 
   void _createGroupModal() {
