@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/componants/message_thread/message/video_preview.dart';
 import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
+import 'package:douchat3/componants/shared/user_details.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
@@ -19,11 +20,13 @@ class GroupReceiverMessage extends StatelessWidget {
   final String photoUrl;
   final GroupMessage message;
   final bool isLastMessage;
+  final String userId;
   const GroupReceiverMessage(
       {Key? key,
       required this.photoUrl,
       required this.message,
-      required this.isLastMessage})
+      required this.isLastMessage,
+      required this.userId})
       : super(key: key);
 
   @override
@@ -38,17 +41,19 @@ class GroupReceiverMessage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 6, left: 6),
-            child: Text((Provider.of<UserProvider>(context, listen: true)
-                .users
-                .firstWhere((u) => u.id == message.from,
-                    orElse: () =>
-                        Provider.of<GroupProvider>(context, listen: true)
+            child: Text(
+                (Provider.of<UserProvider>(context, listen: true)
+                    .users
+                    .firstWhere((u) => u.id == message.from,
+                        orElse: () => Provider.of<GroupProvider>(context,
+                                listen: true)
                             .getGroup(message.group)
                             .users
-                            .firstWhere((u) => u.id == message.from))).username, style: Theme.of(context)
-                              .textTheme
-                              .caption!
-                              .copyWith(color: Colors.white.withOpacity(0.8))),
+                            .firstWhere((u) => u.id == message.from))).username,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption!
+                    .copyWith(color: Colors.white.withOpacity(0.8))),
           ),
           FractionallySizedBox(
               alignment: Alignment.topLeft,
@@ -61,7 +66,9 @@ class GroupReceiverMessage extends StatelessWidget {
                         children: [
                           DecoratedBox(
                               decoration: BoxDecoration(
-                                  color: message.type == "text" ? bubbleDark : Colors.transparent,
+                                  color: message.type == "text"
+                                      ? bubbleDark
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(30)),
                               position: DecorationPosition.background,
                               child: Padding(
@@ -81,21 +88,44 @@ class GroupReceiverMessage extends StatelessWidget {
                                           .overline!
                                           .copyWith(color: Colors.white70))))
                         ])),
-                CircleAvatar(
-                    backgroundColor: Colors.black,
-                    radius: 18,
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: CachedImageWithCookie(
-                          image: CachedNetworkImage(
-                            imageUrl: photoUrl,
-                            width: 30,
-                            height: 30,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) =>
-                                Icon(Icons.person, color: Colors.white),
-                          ),
-                        )))
+                GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                        isScrollControlled: true,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(25))),
+                        context: context,
+                        builder: (context) => UserDetails(
+                          conversation: false,
+                            user: Provider.of<UserProvider>(context,
+                                    listen: true)
+                                .users
+                                .firstWhere((u) => u.id == message.from,
+                                    orElse: () => Provider.of<GroupProvider>(
+                                            context,
+                                            listen: true)
+                                        .getGroup(message.group)
+                                        .users
+                                        .firstWhere(
+                                            (u) => u.id == message.from))));
+                  },
+                  child: CircleAvatar(
+                      backgroundColor: Colors.black,
+                      radius: 18,
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: CachedImageWithCookie(
+                            image: CachedNetworkImage(
+                              imageUrl: photoUrl,
+                              width: 30,
+                              height: 30,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.person, color: Colors.white),
+                            ),
+                          ))),
+                )
               ])),
           isLastMessage
               ? Padding(
@@ -202,7 +232,10 @@ class GroupReceiverMessage extends StatelessWidget {
           future: const FlutterSecureStorage().read(key: 'access_token'),
           builder: (context, AsyncSnapshot<String?> snap) {
             if (snap.hasData) {
-              return ClipRRect(borderRadius: BorderRadius.circular(12), child: VideoPreview(url: message.content, cookie: snap.data!));
+              return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      VideoPreview(url: message.content, cookie: snap.data!));
             } else {
               return LoadingAnimationWidget.threeArchedCircle(
                   color: Colors.white, size: 30);

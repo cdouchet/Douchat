@@ -3,6 +3,7 @@ import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/users/user_service.dart';
+import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -50,26 +51,7 @@ class _IdShareState extends State<IdShare> with WidgetsBindingObserver {
             leading: IconButton(
                 icon: const Icon(Icons.chevron_left, color: Colors.white),
                 onPressed: () => Navigator.pop(context)),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: RawMaterialButton(
-                    onPressed: () => Navigator.pushNamed(context, qrScan,
-                                arguments: {'userService': widget.userService})
-                            .then((code) {
-                          if ((code as Map)['success'] == true) {
-                            Fluttertoast.showToast(
-                                msg: 'Le contact a bien reçu une requête',
-                                gravity: ToastGravity.BOTTOM);
-                          } else {
-                            Fluttertoast.showToast(
-                                msg: code['reason'],
-                                gravity: ToastGravity.BOTTOM);
-                          }
-                        }),
-                    child: const Text('Scanner un code QR')),
-              )
-            ]),
+           ),
         body: SafeArea(
             child: Padding(
           padding: const EdgeInsets.all(16),
@@ -89,13 +71,41 @@ class _IdShareState extends State<IdShare> with WidgetsBindingObserver {
                 ),
               ],
             ).applyPadding(const EdgeInsets.only(bottom: 16)),
-            Center(
-              child: Text(
-                  'Demandez à un autre utilisateur de Douchat de scanner ce code afin qu\'il puisse vous ajouter en contact',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyText2!
-                      .copyWith(fontSize: 22)),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Center(
+                    child: Text(
+                        'Demandez à un autre utilisateur de Douchat de scanner ce code afin qu\'il puisse vous ajouter en contact',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2!
+                            .copyWith(fontSize: 22)),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(36),
+                    child: RawMaterialButton(
+                      fillColor: primary,
+                      padding: const EdgeInsets.all(12),
+                      
+                        onPressed: () => Navigator.pushNamed(context, qrScan,
+                                    arguments: {'userService': widget.userService})
+                                .then((code) {
+                              if ((code as Map)['success'] == true) {
+                                Fluttertoast.showToast(
+                                    msg: 'Le contact a bien reçu une requête',
+                                    gravity: ToastGravity.BOTTOM);
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg: code['reason'],
+                                    gravity: ToastGravity.BOTTOM);
+                              }
+                            }),
+                        child: const Text('Scanner un code QR')),
+                  ),
+                ],
+              ),
             )
           ]),
         )));

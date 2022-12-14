@@ -134,6 +134,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
                     onPressed: () => Navigator.pop(context)),
                 Expanded(
                   child: HeaderStatus(
+                    isPrivateThread: true,
+                    privateThreadUserId: widget.userId,
                           username: user.username,
                           online: user.online,
                           typing: null,
@@ -251,7 +253,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               controller: _textEditingController,
               textInputAction: TextInputAction.newline,
               keyboardType: TextInputType.multiline,
-              maxLines: null,
+              maxLines: 4,
+              minLines: 1,
               style: Theme.of(context).textTheme.caption,
               cursorColor: primary,
               cursorHeight: 18,
@@ -372,7 +375,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
     widget.messageService.sendMessage({
       'from': client.toJson(),
       'to': user.toJson(),
-      'content': _textEditingController.text,
+      'content': _textEditingController.text.trim(),
       'type': 'text',
       'timestamp': DateFormat().format(DateTime.now()),
       'read': false

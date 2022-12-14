@@ -54,4 +54,8 @@ class UserService {
   void respondToFriendRequest({required dynamic data}) {
     socket.emit('friend-request-response', data);
   }
+
+  void removeContact({required dynamic data}) {
+    socket.emit("remove-contact", data);
+  }
 }

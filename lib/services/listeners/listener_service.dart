@@ -54,6 +54,7 @@ class ListenerService {
     _startReceivingNewUsers(context);
     _startReceivingFriendRequests(context);
     _startReceivingFriendRequestResponses(context);
+    _startReceivingContactDelete(context);
 
     _startReceivingConversationMessages(context);
     _startReceivingConversationReceipts(context);
@@ -457,6 +458,14 @@ class ListenerService {
               (await Api.getContactPhoto(url: data['photoUrl'])).bodyBytes,
               rotate: 90,
               quality: 20));
+    });
+  }
+
+  _startReceivingContactDelete(BuildContext context) {
+    socket.on('remove-contact', (data) async {
+      Provider.of<UserProvider>(context, listen: false).removeUser(data["id"]);
+      Provider.of<ConversationProvider>(context, listen: false)
+          .removeConversation(data["id"]);
     });
   }
 

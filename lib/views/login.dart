@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:douchat3/componants/register/logo.dart';
 import 'package:douchat3/componants/shared/custom_text_field.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/loginGetters.dart';
 import 'package:douchat3/views/register.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -76,6 +80,39 @@ class _LoginState extends State<Login> {
                             .headline5!
                             .copyWith(color: Colors.white)),
                     const Spacer(flex: 1),
+                    if (kIsWeb) ...[
+                      ElevatedButton(
+                          onPressed: () async {
+                            if (Platform.isAndroid || Platform.isIOS) {
+                              // TODO: Find ios app id + check if app is installed
+                              final appId = Platform.isAndroid
+                                  ? "com.example.douchat3"
+                                  : "IOSAPPID";
+                              final url = Uri.parse(Platform.isAndroid
+                                  ? "market://details?id=$appId"
+                                  : "https://apps.apple.com/app/id$appId");
+                              launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: primary,
+                              elevation: 5.0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(45))),
+                          child: Container(
+                              alignment: Alignment.center,
+                              height: 45,
+                              child: Text('Télécharger l\'application',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .button!
+                                      .copyWith(
+                                          fontSize: 18.0,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)))),
+                      const Spacer(flex: 1),
+                    ],
                     Padding(
                         padding: const EdgeInsets.only(left: 20.0, right: 20),
                         child: CustomTextField(

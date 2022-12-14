@@ -90,6 +90,7 @@ class _QrScanPageState extends State<QrScanPage> with WidgetsBindingObserver {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    controller.resumeCamera();
     controller.scannedDataStream.listen((scanData) {
       try {
 
@@ -115,6 +116,7 @@ class _QrScanPageState extends State<QrScanPage> with WidgetsBindingObserver {
             Navigator.pop(context,
                 {'success': false, 'reason': 'Ce contact est déjà ajouté'});
           } else {
+            
             // Provider.of<UserProvider>(context, listen: false)
             //     .addUser(User.fromJson(decoded['payload']['user']));
             // Provider.of<ConversationProvider>(context, listen: false)

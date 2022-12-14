@@ -8,6 +8,7 @@ import 'package:douchat3/componants/home/connected_users.dart';
 import 'package:douchat3/componants/home/conversations_and_groups.dart';
 import 'package:douchat3/componants/home/create_group.dart';
 import 'package:douchat3/componants/home/douchat_drawer.dart';
+import 'package:douchat3/componants/home/expandable_fab.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/friend_request.dart';
@@ -241,122 +242,18 @@ class _HomeState extends State<Home>
                                   "En ligne ${Provider.of<UserProvider>(context, listen: true).users.where((u) => u.online == true).length}"))))
                 ])),
         backgroundColor: background,
-        bottomNavigationBar: BottomAppBar(
-          child: AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.fastOutSlowIn,
-              height: 120 * (_expanded ? 1 : 0),
-              color: Colors.transparent,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(children: [
-                    Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(120),
-                            color: primary),
-                        child: Icon(Icons.person_add, color: Colors.white)),
-                    Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(120),
-                            color: primary),
-                        child: Icon(Icons.group_add, color: Colors.white))
-                  ])
-                ],
-              )
-              // Row(children: [
-              //   Expanded(
-              //       child: InkWell(
-              //           onTap: () {
-              //             print("lol");
-              //           },
-              //           child: Container(
-              //               decoration: BoxDecoration(
-              //                   color: primary,
-              //                   borderRadius: BorderRadius.only(
-              //                       topRight: Radius.circular(24))),
-              //               padding: const EdgeInsets.symmetric(
-              //                   vertical: 24, horizontal: 12),
-              //               child: Column(
-              //                   crossAxisAlignment: CrossAxisAlignment.center,
-              //                   mainAxisAlignment:
-              //                       MainAxisAlignment.spaceEvenly,
-              //                   children: [
-              //                     Text(
-              //                       "Ajouter un ami",
-              //                       textAlign: TextAlign.center,
-              //                     ),
-              //                     Icon(Icons.person_add, color: Colors.white)
-              //                   ])))),
-              //   Expanded(child: Container(color: background)),
-              //   Expanded(
-              //       child: InkWell(
-              //           child: Container(
-              //               decoration: BoxDecoration(
-              //                   color: primary,
-              //                   borderRadius: BorderRadius.only(
-              //                       topLeft: Radius.circular(24))),
-              //               padding: const EdgeInsets.symmetric(
-              //                   vertical: 24, horizontal: 12),
-              //               child: Column(
-              //                   crossAxisAlignment: CrossAxisAlignment.center,
-              //                   mainAxisAlignment:
-              //                       MainAxisAlignment.spaceEvenly,
-              //                   children: [
-              //                     Text("Créer un groupe",
-              //                         textAlign: TextAlign.center),
-              //                     Icon(Icons.group_add, color: Colors.white)
-              //                   ])))),
-              // ])
-              ),
-          shape: CircularNotchedRectangle(),
-        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: FloatingActionButton(
-            backgroundColor: primary,
-            foregroundColor: Colors.white,
-            onPressed: () {
-              print("touched");
-              if (_bottomIconAnimation.value == 0) {
-                _bottomIconController.forward().then((value) {});
-              } else {
-                _bottomIconController.reverse().then((value) {});
-              }
-            },
-            child: Stack(
-                alignment: Alignment.bottomRight,
-                clipBehavior: Clip.none,
-                children: [
-                  Align(
-                      alignment: Alignment.center,
-                      child: AnimatedIcon(
-                        progress: _bottomIconAnimation,
-                        icon: AnimatedIcons.menu_close,
-                      )),
-                  ..._createActionList().toList()
-                ])),
-        // FloatingActionButton(
-        //     onPressed: () {
-        //       print(_bottomIconAnimation.value);
-        //       setState(() {
-        //         _expanded = !_expanded;
-        //       });
-        //       if (_bottomIconAnimation.value == 0) {
-        //         _bottomIconController.forward();
-        //       } else {
-        //         _bottomIconController.reverse();
-        //       }
-        //     },
-        //     backgroundColor: primary,
-        //     child: AnimatedIcon(
-        //       icon: AnimatedIcons.menu_close,
-        //       color: Colors.white,
-        //       progress: _bottomIconAnimation,
-        //     )),
+        floatingActionButton: ExpandableFab(
+          distance: 120,
+          children: [
+            ActionButton(
+                icon: Icon(Icons.group_add, color: Colors.white),
+                onPressed: () => _createGroupModal()),
+            ActionButton(
+                icon: Icon(Icons.person_add, color: Colors.white),
+                onPressed: () => _addPersonRoute())
+          ],
+        ),
         body: TabBarView(children: [
           const ConversationsAndGroups(),
           ConnectedUsers(
@@ -399,6 +296,11 @@ class _HomeState extends State<Home>
 
   void _expandActionButton() {
     if (!_expanded) {}
+  }
+
+  void _addPersonRoute() {
+    Navigator.pushNamed(context, idShare,
+        arguments: {'userService': widget.userService});
   }
 
   void _createGroupModal() {

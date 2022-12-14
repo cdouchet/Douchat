@@ -19,18 +19,6 @@ class DouchatDrawer extends StatelessWidget {
           child: Column(children: [
         const Spacer(),
         GestureDetector(
-                onTap: () => Navigator.pushNamed(context, idShare,
-                    arguments: {'userService': userService}),
-                child: ListTile(
-                    tileColor: tileColor,
-                    leading: const Icon(Icons.ios_share, color: Colors.white),
-                    title: Text('Partage d\'identifiants',
-                        style: Theme.of(context)
-                            .textTheme
-                            .caption!
-                            .copyWith(color: Colors.white))))
-            .applyPadding(const EdgeInsets.only(bottom: 12)),
-        GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, settingsStr,
                       arguments: {'userService': userService});

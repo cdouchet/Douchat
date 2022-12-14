@@ -74,6 +74,8 @@ dependencies:
   gallery_saver: ^2.3.2
   workmanager: ^0.5.0
   photo_manager: ^2.3.0
+  pull_to_reveal: ^0.0.3-nullsafety.0
+  url_launcher: ^6.1.7
   
 dev_dependencies:
   flutter_test:

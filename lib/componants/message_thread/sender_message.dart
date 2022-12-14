@@ -35,7 +35,7 @@ class SenderMessage extends StatelessWidget {
                     children: [
                       DecoratedBox(
                           decoration: BoxDecoration(
-                              color: primary,
+                              color: message.type == "text" ? primary : Colors.transparent,
                               borderRadius: BorderRadius.circular(30)),
                           position: DecorationPosition.background,
                           child: Padding(
@@ -152,7 +152,7 @@ class SenderMessage extends StatelessWidget {
                 child: CachedImageWithCookie(
                   image: CachedNetworkImage(
                     imageUrl: message.content,
-                    fit: BoxFit.fill,
+                    fit: BoxFit.cover,
                     progressIndicatorBuilder: (BuildContext context, String url,
                             DownloadProgress progress) =>
                         LoadingAnimationWidget.threeArchedCircle(
@@ -172,7 +172,7 @@ class SenderMessage extends StatelessWidget {
         future: const FlutterSecureStorage().read(key: 'access_token'),
           builder: (context, AsyncSnapshot<String?> snap) {
         if (snap.hasData) {
-          return VideoPreview(url: message.content, cookie: snap.data!);
+          return ClipRRect(borderRadius: BorderRadius.circular(12), child: VideoPreview(url: message.content, cookie: snap.data!));
         } else {
           return LoadingAnimationWidget.threeArchedCircle(
               color: Colors.white, size: 30);

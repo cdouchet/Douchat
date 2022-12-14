@@ -19,6 +19,11 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeConversation(String convUserId) {
+    _conversations.removeWhere((e) => e.user.id == convUserId);
+    notifyListeners();
+  }
+
   void addConversationMessage(Message message) {
     _conversations
         .firstWhere((c) => c.user.id == message.from,

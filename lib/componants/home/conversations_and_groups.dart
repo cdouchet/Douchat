@@ -12,6 +12,7 @@ import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pull_to_reveal/pull_to_reveal.dart';
 
 class ConversationsAndGroups extends StatefulWidget {
   const ConversationsAndGroups({Key? key}) : super(key: key);
@@ -21,6 +22,14 @@ class ConversationsAndGroups extends StatefulWidget {
 }
 
 class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     // print('USERS : ${Provider.of<UserProvider>(context, listen: false).users}');
@@ -58,22 +67,73 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
       }
       return -10000000000000000;
     });
+    final String s = searchController.text.trim().toLowerCase();
+    all = all.where((e) {
+      if (e is Group) {
+        return e.name.trim().toLowerCase().contains(s) ||
+            e.users.any((e) => e.username.trim().toLowerCase().contains(s));
+      } else {
+        return (e as Conversation).user.username.trim().toLowerCase().contains(s);
+      }
+    }).toList();
     Utils.logger.i('After build');
     return Container(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
           Expanded(
-              child: ListView.builder(
-                  itemCount: all.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (_isGroup(all[index])) {
-                      return _buildGroup(id: all[index].id);
-                    }
-                    if (all[index].messages.isEmpty) {
-                      return Container();
-                    }
-                    return _buildConversation(userId: all[index].user.id);
-                  }))
+              child: PullToRevealTopItemList(
+            itemCount: all.length,
+            itemBuilder: (BuildContext context, int index) {
+              if (_isGroup(all[index])) {
+                return _buildGroup(id: all[index].id);
+              }
+              if (all[index].messages.isEmpty) {
+                return Container();
+              }
+              return _buildConversation(userId: all[index].user.id);
+            },
+            revealableHeight: 50,
+            revealableBuilder: (BuildContext context, RevealableToggler opener,
+                RevealableToggler closer, BoxConstraints constraints) {
+              return TextFormField(
+                  autocorrect: false,
+                  controller: searchController,
+                  cursorColor: primary,
+                  keyboardType: TextInputType.text,
+                  maxLines: 1,
+                  minLines: 1,
+                  textAlignVertical: TextAlignVertical.center,
+                  onChanged: (String changes) {
+                    setState(() {});
+                  },
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption!
+                      .copyWith(fontSize: 16),
+                  decoration: InputDecoration(
+                      suffixIcon: searchController.text.isEmpty
+                          ? null
+                          : GestureDetector(
+                              onTap: () {
+                                searchController.clear();
+                                setState(() {});
+                              },
+                              behavior: HitTestBehavior.translucent,
+                              child: Icon(Icons.close,
+                                  color: Colors.white.withOpacity(0.3))),
+                      isCollapsed: true,
+                      hintText: "Recherche",
+                      // contentPadding: const EdgeInsets.all(6),
+                      prefixIcon: Icon(Icons.search, size: 18, color: primary),
+                      prefixIconColor: primary,
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(12),
+                          gapPadding: 6),
+                      fillColor: bubbleDark,
+                      filled: true));
+            },
+          ))
         ]));
   }
 

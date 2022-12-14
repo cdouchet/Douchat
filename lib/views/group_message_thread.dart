@@ -147,6 +147,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                         typing: null,
                         photoUrl: group.photoUrl,
                         isGroup: true,
+                        groupId: widget.groupId,
                       ).applyPadding(const EdgeInsets.all(12)),
                     ),
                   ],
@@ -254,16 +255,15 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 child: GroupSenderMessage(
                     message: messageList[index], isLastMessage: index == 0));
           }
-          Utils.logger.i(messageList[index].toJson());
-          Utils.logger.i(users.map((e) => e.toJson()));
+          final User u =
+              users.firstWhere((u) => u.id == messageList[index].from);
           return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: GroupReceiverMessage(
+                  userId: u.id,
                   message: messageList[index],
                   isLastMessage: index == 0,
-                  photoUrl: users
-                      .firstWhere((u) => u.id == messageList[index].from)
-                      .photoUrl));
+                  photoUrl: u.photoUrl));
         });
   }
 
@@ -286,9 +286,11 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 controller: _textEditingController,
                 textInputAction: TextInputAction.newline,
                 keyboardType: TextInputType.multiline,
-                maxLines: null,
+                maxLines: 4,
+                minLines: 1,
                 style: Theme.of(context).textTheme.caption,
                 cursorColor: primary,
+                textCapitalization: TextCapitalization.sentences,
                 cursorHeight: 18,
                 onChanged: (str) => _sendTypingNotification(
                     str,
@@ -402,7 +404,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
     widget.groupService.sendMessage({
       'from': client.id,
       'group': widget.groupId,
-      'content': _textEditingController.text,
+      'content': _textEditingController.text.trim(),
       'type': 'text',
       'timestamp': DateFormat().format(DateTime.now()),
       'readBy': []

@@ -67,15 +67,21 @@ class _ImagePreviewState extends State<ImagePreview> {
                 }
               })),
       Center(
-        child: CachedImageWithCookie(
-          image: CachedNetworkImage(
-              fit: BoxFit.cover,
-              imageUrl: widget.imageUrl,
-              // imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) {
-              //   return Image(image: imageProvider);
-              // }
-              errorWidget: (context, url, error) =>
-                  Icon(Icons.error, color: Colors.white)),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.85,
+          width: double.maxFinite,
+          child: InteractiveViewer(
+            child: CachedImageWithCookie(
+              image: CachedNetworkImage(
+                  fit: BoxFit.cover,
+                  imageUrl: widget.imageUrl,
+                  // imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) {
+                  //   return Image(image: imageProvider);
+                  // }
+                  errorWidget: (context, url, error) =>
+                      Icon(Icons.error, color: Colors.white)),
+            ),
+          ),
         ),
       )
     ]))));
