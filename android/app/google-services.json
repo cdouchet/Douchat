@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "610795338007",
+    "project_id": "douchat-ed564",
+    "storage_bucket": "douchat-ed564.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610795338007:android:4412c3e5f2b02d4f9a5f52",
+        "android_client_info": {
+          "package_name": "com.example.douchat3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "610795338007-it028coavf782tv30utovn67dgcb9tmt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgDv-KTZ2mnW5ndh_Er3sufPljzJPgrLo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "610795338007-it028coavf782tv30utovn67dgcb9tmt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "610795338007-7pnf8e76gd7ada31qj32a51vd5osd402.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.douchat3"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

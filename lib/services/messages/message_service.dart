@@ -22,6 +22,14 @@ class MessageService {
     socket.emit('remove-conversation-message', data);
   }
 
+  void addReaction(dynamic data) {
+    socket.emit('add-conversation-reaction', data);
+  }
+
+  void removeReaction(dynamic data) {
+    socket.emit('remove-conversation-reaction', data);
+  }
+
   void sendAllReceipts(
       {required List<String> messages,
       required String userId,

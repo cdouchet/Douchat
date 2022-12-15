@@ -3,12 +3,17 @@ import 'dart:convert';
 
 import 'package:douchat3/componants/message_thread/media/files_page.dart';
 import 'package:douchat3/componants/message_thread/media/gif_page.dart';
+import 'package:douchat3/componants/shared/emoji_selector.dart';
 import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/providers/conversation_provider.dart';
+import 'package:douchat3/providers/group_provider.dart';
 import 'package:douchat3/themes/colors.dart';
+import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -124,6 +129,43 @@ class Utils {
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        showModalBottomSheet<Emoji?>(
+                            context: context,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25))),
+                            builder: (BuildContext ctx) {
+                              return EmojiSelector();
+                            }).then((value) {
+                          if (value != null) {
+                            Utils.logger.i("Adding reaction $value");
+                            CompositionRoot.messageService.addReaction({
+                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                                      listen: false)
+                                  .client
+                                  .id,
+                              "emoji": value.toString(),
+                              "id": message.id,
+                              "to": sender ? message.to : message.from
+                            });
+                            Provider.of<ConversationProvider>(globalKey.currentContext!,
+                                    listen: false)
+                                .addReaction(
+                                    id: message.id,
+                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                            listen: false)
+                                        .client
+                                        .id,
+                                    emoji: value.toString());
+                          }
+                        });
+                      },
+                      child: ListTile(
+                          leading: Icon(Icons.emoji_emotions),
+                          title: Text("Réaction"))),
                   if (message.type == "text")
                     GestureDetector(
                         onTap: () {
@@ -162,7 +204,8 @@ class Utils {
                         title: Text("Supprimer"),
                       ),
                     )
-                  ]
+                  ] else
+                    ...[]
                 ],
               ),
             )
@@ -184,6 +227,43 @@ class Utils {
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        showModalBottomSheet<Emoji?>(
+                            context: context,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25))),
+                            builder: (BuildContext ctx) {
+                              return EmojiSelector();
+                            }).then((value) {
+                          if (value != null) {
+                            Utils.logger.i("Adding reaction $value");
+                            CompositionRoot.groupService.addReaction({
+                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                                      listen: false)
+                                  .client
+                                  .id,
+                              "emoji": value.toString(),
+                              "id": message.id,
+                              "group": message.group
+                            });
+                            Provider.of<GroupProvider>(globalKey.currentContext!,
+                                    listen: false)
+                                .addReaction(
+                                    id: message.id,
+                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                            listen: false)
+                                        .client
+                                        .id,
+                                    emoji: value.toString());
+                          }
+                        });
+                      },
+                      child: ListTile(
+                          leading: Icon(Icons.emoji_emotions),
+                          title: Text("Réaction"))),
                   if (message.type == "text")
                     GestureDetector(
                         onTap: () {

@@ -115,4 +115,48 @@ class GroupProvider extends ChangeNotifier {
     _getGroup(id).addUser(user);
     notifyListeners();
   }
+
+  void addReaction(
+      {required String id, required String userId, required String emoji}) {
+    bool didBreak = false;
+    for (Group g in _groups) {
+      for (GroupMessage m in g.messages) {
+        if (m.id == id) {
+          _groups
+              .elementAt(_groups.indexOf(g))
+              .messages
+              .firstWhere((e) => e.id == id)
+              .addReaction(user: userId, emoji: emoji);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
+  void removeReaction(
+      {required String id, required String userId, required String emoji}) {
+    bool didBreak = false;
+    for (Group g in _groups) {
+      for (GroupMessage m in g.messages) {
+        if (m.id == id) {
+          _groups
+              .elementAt(_groups.indexOf(g))
+              .messages
+              .firstWhere((e) => e.id == id)
+              .removeReaction(user: userId, emoji: emoji);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
 }

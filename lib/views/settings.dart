@@ -68,19 +68,17 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
               onPressed: () => Navigator.pop(context))
         ]),
         ClipRRect(
-                borderRadius: BorderRadius.circular(250),
-                child: CachedImageWithCookie(
-                  image: CachedNetworkImage(
-                      imageUrl: clientProvider.client.photoUrl,
-                      width: 175,
-                      height: 175,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, error, stackTrace) => const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 102)),
-                ))
-            .applyPadding(const EdgeInsets.only(bottom: 12)),
+            borderRadius: BorderRadius.circular(250),
+            child: CachedImageWithCookie(
+                image: CachedNetworkImage(
+                    imageUrl: clientProvider.client.photoUrl,
+                    width: 175,
+                    height: 175,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, error, stackTrace) {
+                      return const Icon(Icons.person,
+                          color: Colors.white, size: 102);
+                    }))).applyPadding(const EdgeInsets.only(bottom: 12)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -27,6 +27,14 @@ class GroupService {
     socket.emit('remove-group-message', data);
   }
 
+  void addReaction(dynamic data) {
+    socket.emit('add-group-reaction', data);
+  }
+
+  void removeReaction(dynamic data) {
+    socket.emit('remove-group-reaction', data);
+  }
+
   void sendAllReceipts(
       {required List<String> messages,
       required String groupId,

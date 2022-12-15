@@ -59,6 +59,8 @@ class ListenerService {
     _startReceivingConversationMessages(context);
     _startReceivingConversationReceipts(context);
     _startReceivingConversationMessageRemovals(context);
+    _startReceivingConversationReactionAddition(context);
+    _startReceivingConversationReactionRemoval(context);
 
     _startReceivingNewGroups(context);
     _startReceivingGroupMessages(context);
@@ -69,6 +71,8 @@ class ListenerService {
     _startReceivingGroupAdminUpdate(context);
     _startReceivingGroupUserAddition(context);
     _startReceivingGroupUserRemoval(context);
+    _startReceivingGroupReactionAddition(context);
+    _startReceivingGroupReactionRemoval(context);
     // _startReceivingSelfConversationMessages(context);
   }
 
@@ -194,6 +198,20 @@ class ListenerService {
     socket.on('remove-conversation-message', (data) {
       Provider.of<ConversationProvider>(context, listen: false)
           .removeConversationMessage(data);
+    });
+  }
+
+  _startReceivingConversationReactionAddition(BuildContext context) {
+    socket.on("add-conversation-reaction", (data) {
+      Provider.of<ConversationProvider>(context, listen: false).addReaction(
+          id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
+    });
+  }
+
+  _startReceivingConversationReactionRemoval(BuildContext context) {
+    socket.on("remove-conversation-reaction", (data) {
+      Provider.of<ConversationProvider>(context, listen: false).removeReaction(
+          id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
     });
   }
 
@@ -358,6 +376,21 @@ class ListenerService {
     socket.on('group-user-addition', (data) {
       _groupProvider(context)
           .addUser(user: User.fromJson(data['user']), id: data['group']);
+    });
+  }
+
+  _startReceivingGroupReactionAddition(BuildContext context) {
+    socket.on('add-group-reaction', (data) {
+      Utils.logger.i("Group reaction added");
+      _groupProvider(context).addReaction(
+          id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
+    });
+  }
+
+  _startReceivingGroupReactionRemoval(BuildContext context) {
+    socket.on("remove-group-reaction", (data) {
+      _groupProvider(context).removeReaction(
+          id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
     });
   }
 

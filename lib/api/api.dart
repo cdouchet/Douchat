@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:douchat3/api/interceptors/global_interceptor.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:http_interceptor/http/http.dart';
@@ -19,14 +20,18 @@ class Api {
     return await post(Uri.parse("$baseUrl/register"), body: {
       'username': username,
       'password': password,
-      'photoUrl': photoUrl ?? "null"
+      'photoUrl': photoUrl ?? "null",
+      'firebase_token': await FirebaseMessaging.instance.getToken()
     });
   }
 
   static Future<Response> login(
       {required String username, required String password}) async {
-    return await post(Uri.parse("$baseUrl/login"),
-        body: {'username': username, 'password': password});
+    return await post(Uri.parse("$baseUrl/login"), body: {
+      'username': username,
+      'password': password,
+      'firebase_token': await FirebaseMessaging.instance.getToken()
+    });
   }
 
   static Future<Response> isConnected(String token) async {
@@ -173,5 +178,11 @@ class Api {
   static Future<Response> removeContact(String userToRemove) async {
     return await client
         .delete(Uri.parse("$baseUrl/removeContact?u=$userToRemove"));
+  }
+
+  static Future<Response> updateFirebaseToken(String token) async {
+    return await client.post(Uri.parse("$baseUrl/updateFirebaseToken"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({'firebase_token': token}));
   }
 }

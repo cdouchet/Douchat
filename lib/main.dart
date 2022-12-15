@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/firebase_options.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
@@ -15,6 +16,8 @@ import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
@@ -29,10 +32,19 @@ final GlobalKey<ScaffoldState> globalKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
+final initializationSettings = InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+    iOS: IOSInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    ));
+
 void main() async {
   await dotenv.load(fileName: '.env');
   initializeDateFormatting('fr_FR', null);
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   // Workmanager().registerOneOffTask("socket-keep-alive", "socket-keep-alive",
   //     initialDelay: Duration(seconds: 5),
@@ -42,18 +54,13 @@ void main() async {
   //         requiresCharging: false),
   //     tag: "socket-tag",
   //     backoffPolicy: BackoffPolicy.exponential);
-  await FlutterDownloader.initialize(
-    debug: true,
-  );
+  if (!kIsWeb) {
+    await FlutterDownloader.initialize(
+      debug: true,
+    );
+  }
   HttpOverrides.global = MyHttpOverrides();
-  notificationsPlugin.initialize(
-      InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
-          iOS: IOSInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
-          )),
+  notificationsPlugin.initialize(initializationSettings,
       onSelectNotification: notificationCallbackHandler);
   runApp(
     // LoadingProvider(

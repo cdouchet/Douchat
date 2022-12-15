@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/firebase/configure_firebase.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
@@ -37,6 +38,8 @@ class CompositionRoot {
   static Future<void> configure(String id,
       {required bool freshRegister}) async {
     Utils.logger.d('Configuring Douchat...');
+    Utils.logger.d('Configuring Firebase...');
+    await configureFirebase();
     socket = IO.io(
         'https://${dotenv.env["DOUCHAT_URI"]}:2585',
         IO.OptionBuilder().setTransports(['websocket']).setQuery({
@@ -153,15 +156,21 @@ class CompositionRoot {
       List<DouchatNotificationIcon> groupIcons = [];
       for (int i = 0; i < groups.length; i++) {
         Uint8List? bytes;
+        Uint8List? compressedBytes;
+        try {
+
         if (groups[i].photoUrl != null) {
           bytes =
               (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
         }
         if (bytes != null) {
-          bytes =
+          compressedBytes =
               await FlutterImageCompress.compressWithList(bytes, quality: 20);
         }
-        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: bytes));
+        } catch (e, s) {
+          Utils.logger.i("Could not compress this image (${groups[i].photoUrl})", e, s);
+        }
+        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =
