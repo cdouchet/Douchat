@@ -34,6 +34,17 @@ class Api {
     });
   }
 
+  static Future<Response> resetPassword({required String email}) async {
+    return await post(Uri.parse("$baseUrl/resetPassword"),
+        body: {"email": email});
+  }
+
+  static Future<Response> confirmResetPassword(
+      {required String token, required String password}) async {
+    return await post(Uri.parse("$baseUrl/confirmResetPassword"),
+        body: {"token": token, "password": password});
+  }
+
   static Future<Response> isConnected(String token) async {
     return await post(Uri.parse("$baseUrl/isConnected"),
         body: {'token': token});

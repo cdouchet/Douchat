@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:douchat3/utils/utils.dart';
-import 'package:douchat3/utils/web_utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -105,9 +103,10 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                       //         gravity: ToastGravity.BOTTOM);
                       //   }
                       // });
-                    } else if (kIsWeb) {
-                      WebUtils.downloadFile(widget.url);
                     }
+                    //  else if (kIsWeb) {
+                    //   WebUtils.downloadFile(widget.url);
+                    // }
                   })
             ]),
         body: SafeArea(

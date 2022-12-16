@@ -1,5 +1,6 @@
 import 'package:douchat3/themes/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hint;
@@ -10,8 +11,12 @@ class CustomTextField extends StatelessWidget {
   final void Function(String str)? onSubmitted;
   final TextEditingController? controller;
   final TextCapitalization? textCapitalization;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextInputType? inputType;
   const CustomTextField(
       {Key? key,
+      this.inputFormatters,
+      this.inputType,
       required this.hint,
       required this.onChanged,
       this.controller,
@@ -34,11 +39,13 @@ class CustomTextField extends StatelessWidget {
                     : const Color(0xFF393737),
                 width: 1.5)),
         child: TextField(
+          
+          inputFormatters: inputFormatters,
           controller: controller,
           onSubmitted: onSubmitted,
           obscureText: hideCharacters,
           style: const TextStyle(color: bubbleLight),
-          keyboardType: TextInputType.text,
+          keyboardType: inputType,
           onChanged: onChanged,
           textInputAction: inputAction,
           cursorColor: primary,

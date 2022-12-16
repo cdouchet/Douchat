@@ -18,15 +18,17 @@ import 'package:douchat3/views/friend_request_view.dart';
 import 'package:douchat3/views/group_message_thread.dart';
 import 'package:douchat3/views/home.dart';
 import 'package:douchat3/views/login.dart';
+import 'package:douchat3/views/password_reset/reset_password_confirmation.dart';
 import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:uni_links/uni_links.dart';
 
 class CompositionRoot {
   static late ListenerService listenerService;
@@ -81,6 +83,26 @@ class CompositionRoot {
           p.request();
         }
       }
+      linkStream.listen((newLink) {
+        if (newLink != null) {
+          if (newLink.split("/#/")[1].startsWith("password-reset")) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              late String token;
+              try {
+                token = newLink.split("/#/")[1].split("reset?token=")[1];
+              } catch (e) {
+                Utils.logger.i("Wrong url format");
+                return;
+              }
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ResetPasswordConfirmation(token: token)));
+            });
+          }
+        }
+      });
       // await FlutterSecureStorage().delete(key: 'access_token');
       final token =
           await const FlutterSecureStorage().read(key: 'access_token');
@@ -158,19 +180,20 @@ class CompositionRoot {
         Uint8List? bytes;
         Uint8List? compressedBytes;
         try {
-
-        if (groups[i].photoUrl != null) {
-          bytes =
-              (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
-        }
-        if (bytes != null) {
-          compressedBytes =
-              await FlutterImageCompress.compressWithList(bytes, quality: 20);
-        }
+          if (groups[i].photoUrl != null) {
+            bytes =
+                (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+          }
+          if (bytes != null) {
+            compressedBytes =
+                await FlutterImageCompress.compressWithList(bytes, quality: 20);
+          }
         } catch (e, s) {
-          Utils.logger.i("Could not compress this image (${groups[i].photoUrl})", e, s);
+          Utils.logger
+              .i("Could not compress this image (${groups[i].photoUrl})", e, s);
         }
-        groupIcons.add(DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
+        groupIcons.add(
+            DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =

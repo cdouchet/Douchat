@@ -4,10 +4,14 @@ import 'package:douchat3/componants/register/logo.dart';
 import 'package:douchat3/componants/shared/custom_text_field.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/loginGetters.dart';
+import 'package:douchat3/utils/utils.dart';
+import 'package:douchat3/views/password_reset/reset_password.dart';
+import 'package:douchat3/views/password_reset/reset_password_confirmation.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Login extends StatefulWidget {
@@ -27,6 +31,32 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
+    handleInitialLink();
+  }
+
+  Future<void> handleInitialLink() async {
+    final link = await getInitialLink();
+    if (link == null) {
+      Utils.logger.i("No initial link");
+      return;
+    }
+    Utils.logger.i("Started from app link");
+    if (link.split("/#/")[1].startsWith("password-reset")) {
+      Utils.logger.i("Asking password reset");
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        late String token;
+        try {
+          token = link.split("/#/")[1].split("reset?token=")[1];
+        } catch (e) {
+          Utils.logger.i("Wrong url format");
+          return;
+        }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ResetPasswordConfirmation(token: token)));
+      });
+    }
   }
 
   Widget _logo(BuildContext context) {
@@ -191,6 +221,18 @@ class _LoginState extends State<Login> {
                                     fontSize: 18,
                                     decoration: TextDecoration.underline))),
                     const Spacer(),
+                    InkWell(
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ResetPassword())),
+                        child: Text("Mot de passe oublié ?",
+                            style: Theme.of(context)
+                                .textTheme
+                                .caption!
+                                .copyWith(
+                                    fontSize: 18,
+                                    decoration: TextDecoration.underline))),
                     loading
                         ? LoadingAnimationWidget.threeArchedCircle(
                             color: Colors.white, size: 30)
