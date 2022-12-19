@@ -25,6 +25,7 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool typing = false;
   final TextEditingController textEditingController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -109,19 +110,36 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(45)))),
         ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: ElevatedButton(
+              onPressed: () => _changePhoto(),
+              child:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Icon(Icons.photo, color: Colors.white)),
+                Text('Changer de photo'),
+              ]),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: primary,
+                  elevation: 5.0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(45)))),
+        ),
         ElevatedButton(
-            onPressed: () => _changePhoto(),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Icon(Icons.photo, color: Colors.white)),
-              Text('Changer de photo'),
-            ]),
             style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 elevation: 5.0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(45))))
+                    borderRadius: BorderRadius.circular(45))),
+            onPressed: () => _changeEmail(),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(Icons.email, color: Colors.white)),
+              Text("Changer d'email")
+            ]))
       ]),
     )));
   }
@@ -142,6 +160,77 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
         });
       }
     });
+  }
+
+  _changeEmail() {
+    setState(() => typing = true);
+    showDialog(
+        context: context,
+        builder: (context) {
+          return WillPopScope(
+            child: AlertDialog(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                content: GestureDetector(
+                    onTap: () {
+                      if (emailController.text.isNotEmpty) {
+                        Api.updateEmail(emailController.text).then((res) {
+                          String text = "";
+                          if (res.statusCode == 401) {
+                            text = "Relancez l'application";
+                          } else if (res.statusCode == 500) {
+                            text =
+                                "Erreur du serveur. Veuillez réessayer plus tard";
+                          } else {
+                            text = "Votre email a été mise à jour";
+                          }
+
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(text)));
+                          Navigator.of(context).pop();
+                          setState(() {
+                            typing = false;
+                          });
+                        });
+                      }
+                    },
+                    child: Container(
+                        alignment: Alignment.center,
+                        color: Colors.transparent,
+                        child: Wrap(children: [
+                          TextField(
+                              maxLength: 20,
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Entrer une nouvelle email',
+                                  hintStyle: Theme.of(context)
+                                      .textTheme
+                                      .caption!
+                                      .copyWith(
+                                          color: Colors.white.withOpacity(0.1),
+                                          fontSize: 24)),
+                              controller: emailController,
+                              autofocus: true,
+                              maxLines: 1,
+                              minLines: 1,
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1!
+                                  .copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                        ])))),
+            onWillPop: () {
+              setState(() => typing = false);
+
+              return Future.value(true);
+            },
+          );
+        });
   }
 
   _changeUsername() {

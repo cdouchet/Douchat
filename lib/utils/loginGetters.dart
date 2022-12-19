@@ -120,12 +120,13 @@ class LoginGetters {
   static Future<bool> getEverythingAndRegister(
       {required BuildContext context,
       required String u,
+      required String e,
       required String p}) async {
     final photoUrl = await Api.uploadProfilePicture(
         Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile);
     print("photoUrl$photoUrl");
     final res =
-        await Api.register(username: u, password: p, photoUrl: photoUrl);
+        await Api.register(username: u, password: p, photoUrl: photoUrl, email: e);
     if (res.statusCode == 200) {
       final decoded = jsonDecode(res.body)['payload'];
       final clientProvider =

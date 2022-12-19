@@ -261,8 +261,10 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 child: GroupSenderMessage(
                     message: messageList[index], isLastMessage: index == 0));
           }
-          final User u =
-              users.firstWhere((u) => u.id == messageList[index].from);
+          Utils.logger.i("ALL UUUUUSSSSEEEEERS : ${users.map((e) => e.toJson())}");
+          final User? u =
+              users.firstWhere((u) => u.id == messageList[index].from, orElse: () => null);
+              // TODO: Fix group user missing
           return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: GroupReceiverMessage(

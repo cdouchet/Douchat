@@ -46,7 +46,9 @@ class GroupSenderMessage extends StatelessWidget {
                         children: [
                           DecoratedBox(
                               decoration: BoxDecoration(
-                                  color: primary,
+                                  color: message.type == "text"
+                                      ? primary
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(30)),
                               position: DecorationPosition.background,
                               child: Padding(
@@ -288,7 +290,7 @@ class GroupSenderMessage extends StatelessWidget {
             child: CachedImageWithCookie(
               image: CachedNetworkImage(
                   imageUrl: message.content,
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
                   progressIndicatorBuilder: (BuildContext context, String url,
                           DownloadProgress loadingProgress) =>
                       LoadingAnimationWidget.threeArchedCircle(
@@ -308,16 +310,19 @@ class GroupSenderMessage extends StatelessWidget {
             width: 220,
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: CachedImageWithCookie(
-                  image: CachedNetworkImage(
-                    imageUrl: message.content,
-                    fit: BoxFit.fill,
-                    progressIndicatorBuilder: (BuildContext context, String url,
-                            DownloadProgress progress) =>
-                        LoadingAnimationWidget.threeArchedCircle(
-                            color: Colors.white, size: 30),
-                    errorWidget: (_, __, ___) =>
-                        Icon(Icons.error, color: bubbleDark),
+                child: Hero(
+                  tag: message.content,
+                  child: CachedImageWithCookie(
+                    image: CachedNetworkImage(
+                      imageUrl: message.content,
+                      fit: BoxFit.cover,
+                      progressIndicatorBuilder: (BuildContext context, String url,
+                              DownloadProgress progress) =>
+                          LoadingAnimationWidget.threeArchedCircle(
+                              color: Colors.white, size: 30),
+                      errorWidget: (_, __, ___) =>
+                          Icon(Icons.error, color: bubbleDark),
+                    ),
                   ),
                 ))),
       );

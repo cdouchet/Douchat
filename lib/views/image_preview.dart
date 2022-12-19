@@ -73,16 +73,19 @@ class _ImagePreviewState extends State<ImagePreview> {
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.85,
           width: double.maxFinite,
-          child: InteractiveViewer(
-            child: CachedImageWithCookie(
-              image: CachedNetworkImage(
-                  fit: BoxFit.cover,
-                  imageUrl: widget.imageUrl,
-                  // imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) {
-                  //   return Image(image: imageProvider);
-                  // }
-                  errorWidget: (context, url, error) =>
-                      Icon(Icons.error, color: Colors.white)),
+          child: Hero(
+            tag: widget.imageUrl,
+            child: InteractiveViewer(
+              child: CachedImageWithCookie(
+                image: CachedNetworkImage(
+                    fit: BoxFit.contain,
+                    imageUrl: widget.imageUrl,
+                    // imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) {
+                    //   return Image(image: imageProvider);
+                    // }
+                    errorWidget: (context, url, error) =>
+                        Icon(Icons.error, color: Colors.white)),
+              ),
             ),
           ),
         ),

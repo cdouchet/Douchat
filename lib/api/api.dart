@@ -16,10 +16,12 @@ class Api {
   static Future<Response> register(
       {required String username,
       required String password,
+      required String email,
       String? photoUrl}) async {
     return await post(Uri.parse("$baseUrl/register"), body: {
       'username': username,
       'password': password,
+      'email': email,
       'photoUrl': photoUrl ?? "null",
       'firebase_token': await FirebaseMessaging.instance.getToken()
     });
@@ -195,5 +197,11 @@ class Api {
     return await client.post(Uri.parse("$baseUrl/updateFirebaseToken"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({'firebase_token': token}));
+  }
+
+  static Future<Response> updateEmail(String email) async {
+    return await client.post(Uri.parse("$baseUrl/updateEmail"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({'email': email}));
   }
 }

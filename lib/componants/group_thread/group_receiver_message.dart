@@ -290,7 +290,7 @@ class GroupReceiverMessage extends StatelessWidget {
             child: CachedImageWithCookie(
               image: CachedNetworkImage(
                   imageUrl: message.content,
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
                   progressIndicatorBuilder: (BuildContext context, String url,
                           DownloadProgress loadingProgress) =>
                       LoadingAnimationWidget.threeArchedCircle(

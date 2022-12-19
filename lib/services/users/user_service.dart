@@ -36,6 +36,8 @@ class UserService {
     });
   }
 
+  
+
   void changePhotoUrl(
       {required BuildContext context, required String photoUrl}) {
     socket.emit(

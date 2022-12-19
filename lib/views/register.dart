@@ -20,6 +20,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   String _username = '';
   String _password = '';
+  String _email = '';
   bool loading = false;
 
   @override
@@ -92,6 +93,18 @@ class _RegisterState extends State<Register> {
                           textCapitalization: TextCapitalization.words,
 
                         )),
+                        Padding(
+                        padding: const EdgeInsets.only(
+                            left: 20.0, right: 20, top: 20),
+                        child: CustomTextField(
+                          hint: 'Quel est ton email ?',
+                          height: 45,
+                          onChanged: (val) {
+                            _email = val;
+                          },
+                          inputAction: TextInputAction.next,
+                          hideCharacters: false,
+                        )),
                     Padding(
                         padding: const EdgeInsets.only(
                             left: 20.0, right: 20, top: 20),
@@ -104,6 +117,7 @@ class _RegisterState extends State<Register> {
                           inputAction: TextInputAction.done,
                           hideCharacters: true,
                         )),
+                        
                     const SizedBox(height: 30),
                     Padding(
                       padding: const EdgeInsets.only(
@@ -124,6 +138,7 @@ class _RegisterState extends State<Register> {
                               setState(() => loading = true);
                               if (!(await LoginGetters.getEverythingAndRegister(
                                   context: context,
+                                  e: _email,
                                   u: _username,
                                   p: _password))) {
                                 setState(() => loading = false);
@@ -165,6 +180,7 @@ class _RegisterState extends State<Register> {
     var error = '';
     if (_username.isEmpty) error = 'Entrer un nom d\'utilisateur';
     if (_password.isEmpty) error = '$error\n Entrer un mot de passe';
+    if (_email.isEmpty) error = '$error\n Entrer une email';
     if (_username.length > 20) {
       error =
           '$error\n Le nom d\'utilisateur ne doit pas comporter plus de 20 caractères';
