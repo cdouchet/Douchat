@@ -23,6 +23,7 @@ import 'package:douchat3/views/group_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:douchat3/utils/utils.dart';
 
@@ -261,17 +262,34 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                 child: GroupSenderMessage(
                     message: messageList[index], isLastMessage: index == 0));
           }
-          Utils.logger.i("ALL UUUUUSSSSEEEEERS : ${users.map((e) => e.toJson())}");
-          final User? u =
-              users.firstWhere((u) => u.id == messageList[index].from, orElse: () => null);
-              // TODO: Fix group user missing
+          Utils.logger
+              .i("ALL UUUUUSSSSEEEEERS : ${users.map((e) => e.toJson())}");
+          late Future<User> u;
+          if (users.any((e) => e.id == messageList[index].from)) {
+            u = Future.delayed(
+                Duration.zero,
+                () => users
+                    .firstWhere((user) => user.id == messageList[index].from));
+          } else {
+            u = User.fromNetwork(messageList[index].from);
+          }
+
+          // TODO: Fix group user missing
           return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: GroupReceiverMessage(
-                  userId: u.id,
-                  message: messageList[index],
-                  isLastMessage: index == 0,
-                  photoUrl: u.photoUrl));
+              child: FutureBuilder<User>(
+                  future: u,
+                  builder: (context, snap) {
+                    if (snap.data == null) {
+                      return LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 10);
+                    }
+                    return GroupReceiverMessage(
+                        userId: snap.data!.id,
+                        message: messageList[index],
+                        isLastMessage: index == 0,
+                        photoUrl: snap.data!.photoUrl);
+                  }));
         });
   }
 

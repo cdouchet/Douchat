@@ -11,6 +11,7 @@ import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/profile_photo.dart';
 import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/utils/notification_photo_registar.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -22,6 +23,7 @@ class LoginGetters {
       required String u,
       required String p}) async {
     final log = await Api.login(username: u, password: p);
+    Utils.logger.i("Response login : ${log.body}");
     if (log.statusCode == 200) {
       final clientProvider =
           Provider.of<ClientProvider>(context, listen: false);
@@ -111,8 +113,10 @@ class LoginGetters {
       });
       return true;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(jsonDecode(log.body)['payload']['error'])));
+      final decoded = jsonDecode(log.body)["payload"]["error"];
+      print(log.body);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(decoded)));
       return false;
     }
   }
@@ -125,8 +129,9 @@ class LoginGetters {
     final photoUrl = await Api.uploadProfilePicture(
         Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile);
     print("photoUrl$photoUrl");
-    final res =
-        await Api.register(username: u, password: p, photoUrl: photoUrl, email: e);
+    final res = await Api.register(
+        username: u, password: p, photoUrl: photoUrl, email: e);
+    Utils.logger.e("Could not register : ${res.body}");
     if (res.statusCode == 200) {
       final decoded = jsonDecode(res.body)['payload'];
       final clientProvider =

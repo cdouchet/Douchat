@@ -286,6 +286,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.1"
+  flutter_exit_app:
+    dependency: "direct main"
+    description:
+      name: flutter_exit_app
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.2"
   flutter_image_compress:
     dependency: "direct main"
     description:

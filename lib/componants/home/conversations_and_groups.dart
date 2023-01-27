@@ -48,6 +48,11 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
     // if (usersConversations.isEmpty) {
     //   usersConversations = [];
     // }
+
+    final bool hasConvOrGroup =
+        Provider.of<GroupProvider>(context).groups.isNotEmpty ||
+            Provider.of<ConversationProvider>(context).conversations.isNotEmpty;
+
     Utils.logger.i('Before build');
     List<Conversation> convs =
         Provider.of<ConversationProvider>(context, listen: true)
@@ -73,67 +78,90 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
         return e.name.trim().toLowerCase().contains(s) ||
             e.users.any((e) => e.username.trim().toLowerCase().contains(s));
       } else {
-        return (e as Conversation).user.username.trim().toLowerCase().contains(s);
+        return (e as Conversation)
+            .user
+            .username
+            .trim()
+            .toLowerCase()
+            .contains(s);
       }
     }).toList();
     Utils.logger.i('After build');
     return Container(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
-          Expanded(
-              child: PullToRevealTopItemList(
-            itemCount: all.length,
-            itemBuilder: (BuildContext context, int index) {
-              if (_isGroup(all[index])) {
-                return _buildGroup(id: all[index].id);
-              }
-              if (all[index].messages.isEmpty) {
-                return Container();
-              }
-              return _buildConversation(userId: all[index].user.id);
-            },
-            revealableHeight: 50,
-            revealableBuilder: (BuildContext context, RevealableToggler opener,
-                RevealableToggler closer, BoxConstraints constraints) {
-              return TextFormField(
-                  autocorrect: false,
-                  controller: searchController,
-                  cursorColor: primary,
-                  keyboardType: TextInputType.text,
-                  maxLines: 1,
-                  minLines: 1,
-                  textAlignVertical: TextAlignVertical.center,
-                  onChanged: (String changes) {
-                    setState(() {});
+          hasConvOrGroup
+              ? Expanded(
+                  child: PullToRevealTopItemList(
+                  itemCount: all.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (_isGroup(all[index])) {
+                      return _buildGroup(id: all[index].id);
+                    }
+                    if (all[index].messages.isEmpty) {
+                      return Container();
+                    }
+                    return _buildConversation(userId: all[index].user.id);
                   },
-                  style: Theme.of(context)
-                      .textTheme
-                      .caption!
-                      .copyWith(fontSize: 16),
-                  decoration: InputDecoration(
-                      suffixIcon: searchController.text.isEmpty
-                          ? null
-                          : GestureDetector(
-                              onTap: () {
-                                searchController.clear();
-                                setState(() {});
-                              },
-                              behavior: HitTestBehavior.translucent,
-                              child: Icon(Icons.close,
-                                  color: Colors.white.withOpacity(0.3))),
-                      isCollapsed: true,
-                      hintText: "Recherche",
-                      // contentPadding: const EdgeInsets.all(6),
-                      prefixIcon: Icon(Icons.search, size: 18, color: primary),
-                      prefixIconColor: primary,
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(12),
-                          gapPadding: 6),
-                      fillColor: bubbleDark,
-                      filled: true));
-            },
-          ))
+                  revealableHeight: 50,
+                  revealableBuilder: (BuildContext context,
+                      RevealableToggler opener,
+                      RevealableToggler closer,
+                      BoxConstraints constraints) {
+                    return TextFormField(
+                        autocorrect: false,
+                        controller: searchController,
+                        cursorColor: primary,
+                        keyboardType: TextInputType.text,
+                        maxLines: 1,
+                        minLines: 1,
+                        textAlignVertical: TextAlignVertical.center,
+                        onChanged: (String changes) {
+                          setState(() {});
+                        },
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption!
+                            .copyWith(fontSize: 16),
+                        decoration: InputDecoration(
+                            suffixIcon: searchController.text.isEmpty
+                                ? null
+                                : GestureDetector(
+                                    onTap: () {
+                                      searchController.clear();
+                                      setState(() {});
+                                    },
+                                    behavior: HitTestBehavior.translucent,
+                                    child: Icon(Icons.close,
+                                        color: Colors.white.withOpacity(0.3))),
+                            isCollapsed: true,
+                            hintText: "Recherche",
+                            // contentPadding: const EdgeInsets.all(6),
+                            prefixIcon:
+                                Icon(Icons.search, size: 18, color: primary),
+                            prefixIconColor: primary,
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(12),
+                                gapPadding: 6),
+                            fillColor: bubbleDark,
+                            filled: true));
+                  },
+                ))
+              : Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Aucune conversation. Taper l'icône en bas à gauche pour commencer",
+                            textAlign: TextAlign.center,
+                          )
+                        ]),
+                  ),
+                ),
+          SizedBox(height: 120)
         ]));
   }
 

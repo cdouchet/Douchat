@@ -27,7 +27,7 @@ class ConnectedUsers extends StatelessWidget {
                         online: true, user: u, context: context);
                   }),
             ),
-            const Text('Offline'),
+            const Text('Hors ligne'),
             Expanded(
               child: ListView.builder(
                   itemCount: offlineUsers.length,

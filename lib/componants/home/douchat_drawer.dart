@@ -3,7 +3,7 @@ import 'package:douchat3/routes/router.dart';
 import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DouchatDrawer extends StatelessWidget {
@@ -45,7 +45,7 @@ class DouchatDrawer extends StatelessWidget {
               // Navigator.push(
               //     context, MaterialPageRoute(builder: (_) => Login()));
               // Phoenix.rebirth(context);
-              SystemNavigator.pop();
+              FlutterExitApp.exitApp(iosForceExit: true);
             });
           },
           child: ListTile(

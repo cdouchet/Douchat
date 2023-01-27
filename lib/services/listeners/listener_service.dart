@@ -74,6 +74,7 @@ class ListenerService {
     _startReceivingGroupReactionAddition(context);
     _startReceivingGroupReactionRemoval(context);
     // _startReceivingSelfConversationMessages(context);
+    print("Listeners set");
   }
 
   _startReceivingConversationMessages(BuildContext context) {

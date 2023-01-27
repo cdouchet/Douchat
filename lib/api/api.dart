@@ -10,7 +10,7 @@ import 'package:http_interceptor/http/http.dart';
 
 class Api {
   // static const String baseUrl = "https://cloud.doggo-saloon.net:2585";
-  static String baseUrl = "https://${dotenv.env["DOUCHAT_URI"]}:2585";
+  static String baseUrl = "https://${dotenv.env["DOUCHAT_URI"]}";
   static Client client =
       InterceptedClient.build(interceptors: [GlobalInterceptor()]);
   static Future<Response> register(
@@ -102,6 +102,7 @@ class Api {
         'POST', Uri.parse("$baseUrl/uploadFile/profilePicture"));
     request.files.add(await MultipartFile.fromPath('picture', file.path));
     final result = await request.send();
+    print((await Response.fromStream(result)).body);
     if (result.statusCode != 200) return null;
     final response = await Response.fromStream(result);
     return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}/${response.body}';

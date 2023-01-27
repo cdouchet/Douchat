@@ -43,14 +43,18 @@ class GroupReceiverMessage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 6, left: 6),
             child: Text(
-                (Provider.of<UserProvider>(context, listen: true)
-                    .users
-                    .firstWhere((u) => u.id == message.from,
-                        orElse: () => Provider.of<GroupProvider>(context,
-                                listen: true)
-                            .getGroup(message.group)
+                userId == "user"
+                    ? "Supprimé"
+                    : (Provider.of<UserProvider>(context, listen: true)
                             .users
-                            .firstWhere((u) => u.id == message.from))).username,
+                            .firstWhere((u) => u.id == message.from,
+                                orElse: () => Provider.of<GroupProvider>(
+                                        context,
+                                        listen: true)
+                                    .getGroup(message.group)
+                                    .users
+                                    .firstWhere((u) => u.id == message.from)))
+                        .username,
                 style: Theme.of(context)
                     .textTheme
                     .caption!
@@ -77,103 +81,108 @@ class GroupReceiverMessage extends StatelessWidget {
                                       horizontal: 24, vertical: 12),
                                   child: _handleMessageType(
                                       type: message.type, context: context))),
-                                      if (message.reactions.isNotEmpty)
-                                Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: SizedBox(
-                            height: 23,
-                            child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                physics: const BouncingScrollPhysics(),
-                                itemCount: message.reactions.length,
-                                itemBuilder: (BuildContext context, int index) =>
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 6),
-                                      child: GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () {
-                                            if (message.reactions[index].ids
-                                                .contains(
-                                                    Provider.of<ClientProvider>(
+                          if (message.reactions.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: SizedBox(
+                                height: 23,
+                                child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    physics: const BouncingScrollPhysics(),
+                                    itemCount: message.reactions.length,
+                                    itemBuilder: (BuildContext context,
+                                            int index) =>
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 6),
+                                          child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: () {
+                                                if (message.reactions[index].ids
+                                                    .contains(Provider.of<
+                                                                ClientProvider>(
                                                             context,
                                                             listen: false)
                                                         .client
                                                         .id)) {
-                                              CompositionRoot.groupService
-                                                  .removeReaction({
-                                                "clientId":
-                                                    Provider.of<ClientProvider>(
+                                                  CompositionRoot.groupService
+                                                      .removeReaction({
+                                                    "clientId": Provider.of<
+                                                                ClientProvider>(
                                                             context,
                                                             listen: false)
                                                         .client
                                                         .id,
-                                                "emoji":
-                                                    message.reactions[index].emoji,
-                                                "id": message.id,
-                                                "group": message.group
-                                              });
-                                              Provider.of<GroupProvider>(
-                                                      context,
-                                                      listen: false)
-                                                  .removeReaction(
-                                                      id: message.id,
-                                                      userId: Provider.of<
-                                                                  ClientProvider>(
-                                                              context,
-                                                              listen: false)
-                                                          .client
-                                                          .id,
-                                                      emoji: message
-                                                          .reactions[index].emoji);
-                                            } else {
-                                              CompositionRoot.groupService
-                                                  .addReaction({
-                                                "clientId":
-                                                    Provider.of<ClientProvider>(
+                                                    "emoji": message
+                                                        .reactions[index].emoji,
+                                                    "id": message.id,
+                                                    "group": message.group
+                                                  });
+                                                  Provider.of<GroupProvider>(
+                                                          context,
+                                                          listen: false)
+                                                      .removeReaction(
+                                                          id: message.id,
+                                                          userId: Provider.of<
+                                                                      ClientProvider>(
+                                                                  context,
+                                                                  listen: false)
+                                                              .client
+                                                              .id,
+                                                          emoji: message
+                                                              .reactions[index]
+                                                              .emoji);
+                                                } else {
+                                                  CompositionRoot.groupService
+                                                      .addReaction({
+                                                    "clientId": Provider.of<
+                                                                ClientProvider>(
                                                             context,
                                                             listen: false)
                                                         .client
                                                         .id,
-                                                "emoji":
-                                                    message.reactions[index].emoji,
-                                                "id": message.id,
-                                                "group": message.group
-                                              });
-                                              Provider.of<GroupProvider>(
-                                                      context,
-                                                      listen: false)
-                                                  .addReaction(
-                                                      id: message.id,
-                                                      userId: Provider.of<
-                                                                  ClientProvider>(
-                                                              context,
-                                                              listen: false)
-                                                          .client
-                                                          .id,
-                                                      emoji: message
-                                                          .reactions[index].emoji);
-                                            }
-                                          },
-                                          child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  vertical: 3, horizontal: 6),
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  color: message.reactions[index].ids
-                                                          .contains(
+                                                    "emoji": message
+                                                        .reactions[index].emoji,
+                                                    "id": message.id,
+                                                    "group": message.group
+                                                  });
+                                                  Provider.of<GroupProvider>(
+                                                          context,
+                                                          listen: false)
+                                                      .addReaction(
+                                                          id: message.id,
+                                                          userId: Provider.of<
+                                                                      ClientProvider>(
+                                                                  context,
+                                                                  listen: false)
+                                                              .client
+                                                              .id,
+                                                          emoji: message
+                                                              .reactions[index]
+                                                              .emoji);
+                                                }
+                                              },
+                                              child: Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                      vertical: 3,
+                                                      horizontal: 6),
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
+                                                      color: message.reactions[index].ids.contains(
                                                               Provider.of<ClientProvider>(context, listen: false)
                                                                   .client
                                                                   .id)
-                                                      ? Colors.blue.withOpacity(0.3)
-                                                      : Color.fromARGB(
-                                                          255, 63, 63, 63)),
-                                              child: Text(
-                                                  "${message.reactions[index].emoji} ${message.reactions[index].ids.length}",
-                                                  style: TextStyle(fontSize: 14)))),
-                                    )),
-                          ),
-                        ),
+                                                          ? Colors.blue
+                                                              .withOpacity(0.3)
+                                                          : Color.fromARGB(
+                                                              255, 63, 63, 63)),
+                                                  child: Text("${message.reactions[index].emoji} ${message.reactions[index].ids.length}",
+                                                      style: TextStyle(fontSize: 14)))),
+                                        )),
+                              ),
+                            ),
                           Padding(
                               padding: const EdgeInsets.only(top: 12, left: 12),
                               child: Align(
@@ -191,11 +200,11 @@ class GroupReceiverMessage extends StatelessWidget {
                     showModalBottomSheet(
                         isScrollControlled: true,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(25))),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(25))),
                         context: context,
                         builder: (context) => UserDetails(
-                          conversation: false,
+                            conversation: false,
                             user: Provider.of<UserProvider>(context,
                                     listen: true)
                                 .users

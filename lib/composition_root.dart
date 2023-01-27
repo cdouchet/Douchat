@@ -23,7 +23,6 @@ import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -43,8 +42,11 @@ class CompositionRoot {
     Utils.logger.d('Configuring Firebase...');
     await configureFirebase();
     socket = IO.io(
-        'https://${dotenv.env["DOUCHAT_URI"]}:2585',
-        IO.OptionBuilder().setTransports(['websocket']).setQuery({
+        'https://douchat.doggo-saloon.net',
+        IO.OptionBuilder()
+            .setTimeout(2000)
+            .setPath("/api/messaging")
+            .setTransports(['websocket']).setQuery({
           'id': id,
           'token': await const FlutterSecureStorage().read(key: 'access_token'),
           'freshRegister': freshRegister ? 'true' : 'false'
@@ -53,13 +55,20 @@ class CompositionRoot {
     socket.onConnect((_) {
       Utils.logger.i('Socket connected');
     });
+    socket.onError((_) {
+      print("Socket error");
+    });
+    socket.onConnectTimeout((data) {
+      Utils.logger.i("Socket timed out");
+    });
+    socket.onAny((event, data) {
+      print('$event : $data');
+    });
+
     socket.connect();
 
     socket.on('event', (data) => print(data));
 
-    socket.onError((_) {
-      print("Socket error");
-    });
     socket.on('fromServer', (_) => print(_));
 
     print('instantiating ListenerService');
