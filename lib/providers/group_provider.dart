@@ -28,6 +28,59 @@ class GroupProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateListGroupMessage(List<GroupMessage> msgs) {
+    bool didBreak = false;
+    List<String> msgsStr = msgs.map((e) => e.id).toList();
+    for (int i = 0; i < _groups.length; i++) {
+      if (didBreak) {
+        break;
+      }
+      for (int j = 0; j < _groups[i].messages.length; j++) {
+        if (didBreak) {
+          break;
+        }
+        for (int k = 0; k < msgsStr.length; k++) {
+          if (msgsStr.contains(_groups[i].messages[j].id)) {
+            _groups[i].messages.replaceRange(j, j + 1, [msgs[k]]);
+            msgsStr.removeAt(k);
+            msgs.removeAt(k);
+            if (msgsStr.isEmpty) {
+              didBreak = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  void updateGroup(Group g) {
+    final grp = _groups.firstWhere((gr) => g.id == gr.id);
+    grp.updateName(g.name);
+    grp.updatePhotoUrl(g.photoUrl);
+    grp.updateAdmin(g.admin);
+    grp.updateUsers(g.users);
+    notifyListeners();
+  }
+
+  void updateGroupMessage(GroupMessage msg) {
+    bool didBreak = false;
+    for (int i = 0; i < _groups.length; i++) {
+      for (int j = 0; j < _groups[i].messages.length; j++) {
+        if (_groups[i].messages[j].id == msg.id) {
+          _groups[i].messages.replaceRange(j, j + 1, [msg]);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
   void removeGroupMessage(String id) {
     bool didBreak = false;
     for (Group g in _groups) {
@@ -45,6 +98,7 @@ class GroupProvider extends ChangeNotifier {
         break;
       }
     }
+    notifyListeners();
   }
 
   void updateReadState(

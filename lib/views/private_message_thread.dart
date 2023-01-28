@@ -134,8 +134,8 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
                     onPressed: () => Navigator.pop(context)),
                 Expanded(
                   child: HeaderStatus(
-                    isPrivateThread: true,
-                    privateThreadUserId: widget.userId,
+                          isPrivateThread: true,
+                          privateThreadUserId: widget.userId,
                           username: user.username,
                           online: user.online,
                           typing: null,
@@ -248,7 +248,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
         child: Padding(
           padding:
               // EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-              EdgeInsets.only(bottom: 0),
+              EdgeInsets.only(bottom: 12),
           child: TextFormField(
               controller: _textEditingController,
               textInputAction: TextInputAction.newline,
@@ -301,7 +301,9 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
               type: 'temp_loading_image',
               timeStamp: DateTime.now(),
               read: false,
-              reactions: [])
+              reactions: [],
+              updatedAt: DateTime.now(),
+              deleted: false)
         ]);
         Api.uploadFile(file: File(file.path), type: "image", thread: "conv")
             .then((path) {
@@ -332,7 +334,9 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
                   'temp_loading_${Utils.isImage(fs[i].path) ? 'image' : 'video'}',
               timeStamp: DateTime.now(),
               read: false,
-              reactions: []));
+              reactions: [],
+              updatedAt: DateTime.now(),
+              deleted: false));
         }
         Provider.of<ConversationProvider>(context, listen: false)
             .addTempMessages(ms);

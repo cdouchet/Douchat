@@ -52,12 +52,11 @@ class CompositionRoot {
           'freshRegister': freshRegister ? 'true' : 'false'
         }).build());
     Utils.logger.d('Socket io object : ' + socket.toString());
-    socket.onConnect((_) {
-      Utils.logger.i('Socket connected');
-    });
+    socket.onDisconnect((data) => print("DISCONNECTED SOCKET"));
     socket.onError((_) {
       print("Socket error");
     });
+
     socket.onConnectTimeout((data) {
       Utils.logger.i("Socket timed out");
     });
@@ -158,29 +157,35 @@ class CompositionRoot {
       Utils.logger.i('Composition Root icons : $icons');
       NotificationPhotoRegistar.populate(icons);
       await NotificationPhotoRegistar.setup();
-      Utils.logger
-          .d((await Api.getConversationMessages(clientId: user.id)).body);
-      final List<Message> messages = (jsonDecode(
-              (await Api.getConversationMessages(clientId: user.id))
-                  .body)['payload']['messages'] as List)
+      // Utils.logger
+      //     .d((await Api.getConversationMessages(clientId: user.id)).body);
+      // final List<Message> messages = (jsonDecode(
+      //         (await Api.getConversationMessages(clientId: user.id))
+      //             .body)['payload']['messages'] as List)
+      //     .map((e) => Message.fromJson(e))
+      //     .toList();
+      final groupsAndMessages = await Api.getGroupsAndConversationMessages();
+      final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
+      final grps = decodedGroupsAndMessages["groups"];
+      final convs = (decodedGroupsAndMessages["conversations"] as List)
           .map((e) => Message.fromJson(e))
           .toList();
-      messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+
+      convs.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
       print('after settings users');
 
       List<Conversation> conversations = users
           .map((u) => Conversation(
-              messages: messages
+              messages: convs
                   .where((m) =>
                       (m.from == u.id && m.to == user.id) ||
                       (m.from == user.id && m.to == u.id))
                   .toList(),
               user: u))
           .toList();
-      final grps = jsonDecode((await Api.getGroups(clientId: user.id)).body);
-      final List<Group> groups = (grps['payload']['groups'] as List)
-          .map((g) => Group.fromJson(g))
-          .toList();
+      // final grps = jsonDecode((await Api.getGroups(clientId: user.id)).body);
+      final List<Group> groups =
+          (grps as List).map((g) => Group.fromJson(g)).toList();
       groups.forEach((g) {
         Utils.logger.i('GROUP PHOTO URL : ${g.photoUrl}');
       });
@@ -233,7 +238,7 @@ class CompositionRoot {
         return composeHome(
             client: user,
             users: users,
-            messages: messages,
+            messages: convs,
             conversations: conversations,
             groups: groups,
             friendRequests: friendRequests);

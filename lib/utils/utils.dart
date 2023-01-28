@@ -7,6 +7,7 @@ import 'package:douchat3/componants/shared/emoji_selector.dart';
 import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
@@ -32,6 +33,30 @@ class Utils {
     return (jsonDecode((await data).body)['payload']['users'] as List)
         .map((e) => User.fromJson(e))
         .toList();
+  }
+
+  static Future<void> manageNewMessages(
+      BuildContext context, List<Message> messages, List<Group> groups) async {
+    final convProvider =
+        Provider.of<ConversationProvider>(context, listen: false);
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    messages.forEach((message) {
+      if (message.deleted) {
+        convProvider.removeConversationMessage(message.id);
+        return;
+      }
+      convProvider.updateConversationMessage(message);
+    });
+    groups.forEach((group) {
+      groupProvider.updateGroup(group);
+      group.messages.forEach((msg) {
+        if (msg.deleted) {
+          groupProvider.removeGroupMessage(msg.id);
+          return;
+        }
+        groupProvider.updateGroupMessage(msg);
+      });
+    });
   }
 
   static Future<dynamic> showMediaPickFile(BuildContext context) async {
@@ -143,7 +168,8 @@ class Utils {
                           if (value != null) {
                             Utils.logger.i("Adding reaction $value");
                             CompositionRoot.messageService.addReaction({
-                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                              "clientId": Provider.of<ClientProvider>(
+                                      globalKey.currentContext!,
                                       listen: false)
                                   .client
                                   .id,
@@ -151,11 +177,13 @@ class Utils {
                               "id": message.id,
                               "to": sender ? message.to : message.from
                             });
-                            Provider.of<ConversationProvider>(globalKey.currentContext!,
+                            Provider.of<ConversationProvider>(
+                                    globalKey.currentContext!,
                                     listen: false)
                                 .addReaction(
                                     id: message.id,
-                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                    userId: Provider.of<ClientProvider>(
+                                            globalKey.currentContext!,
                                             listen: false)
                                         .client
                                         .id,
@@ -241,7 +269,8 @@ class Utils {
                           if (value != null) {
                             Utils.logger.i("Adding reaction $value");
                             CompositionRoot.groupService.addReaction({
-                              "clientId": Provider.of<ClientProvider>(globalKey.currentContext!,
+                              "clientId": Provider.of<ClientProvider>(
+                                      globalKey.currentContext!,
                                       listen: false)
                                   .client
                                   .id,
@@ -249,11 +278,13 @@ class Utils {
                               "id": message.id,
                               "group": message.group
                             });
-                            Provider.of<GroupProvider>(globalKey.currentContext!,
+                            Provider.of<GroupProvider>(
+                                    globalKey.currentContext!,
                                     listen: false)
                                 .addReaction(
                                     id: message.id,
-                                    userId: Provider.of<ClientProvider>(globalKey.currentContext!,
+                                    userId: Provider.of<ClientProvider>(
+                                            globalKey.currentContext!,
                                             listen: false)
                                         .client
                                         .id,

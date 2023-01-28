@@ -159,6 +159,11 @@ class Api {
     }
   }
 
+  static Future<Response> getGroupsAndConversationMessages() async {
+    return await client
+        .get(Uri.parse("$baseUrl/getGroupsAndConversationMessages"));
+  }
+
   static Future<Response> getConversationMessages(
       {required String clientId}) async {
     return await client

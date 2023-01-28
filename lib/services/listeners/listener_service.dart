@@ -77,6 +77,15 @@ class ListenerService {
     print("Listeners set");
   }
 
+  _messageRefresher(BuildContext context) {
+    socket.onConnect((_) {
+      Utils.logger.i('Socket connected');
+    });
+    socket.onReconnect((data) {
+      Utils.logger.i("Reconnected");
+    });
+  }
+
   _startReceivingConversationMessages(BuildContext context) {
     socket.on('conversation-message', (data) async {
       print('new Message : $data');

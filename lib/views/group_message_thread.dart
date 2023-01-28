@@ -307,7 +307,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
           _stopTypingTimer?.cancel();
         },
         child: Padding(
-            padding: const EdgeInsets.only(bottom: 0),
+            padding: const EdgeInsets.only(bottom: 12),
             child: TextFormField(
                 controller: _textEditingController,
                 textInputAction: TextInputAction.newline,
@@ -358,7 +358,9 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
               type: 'temp_loading_image',
               timeStamp: DateTime.now(),
               readBy: [],
-              reactions: [])
+              reactions: [],
+              updatedAt: DateTime.now(),
+              deleted: false)
         ]);
         Api.uploadFile(file: File(file.path), type: "image", thread: "group")
             .then((path) {
@@ -389,7 +391,9 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
                   "temp_loading_${Utils.isImage(fs[i].path) ? 'image' : 'video'}",
               timeStamp: DateTime.now(),
               readBy: [],
-              reactions: []));
+              reactions: [],
+              updatedAt: DateTime.now(),
+              deleted: false));
         }
         Provider.of<GroupProvider>(context, listen: false).addTempMessages(ms);
         for (int i = 0; i < fs.length; i++) {

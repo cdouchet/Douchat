@@ -10,6 +10,8 @@ class Message {
   final DateTime timeStamp;
   bool read;
   List<MessageReaction> reactions;
+  DateTime updatedAt;
+  bool deleted;
 
   Message(
       {required this.id,
@@ -19,7 +21,9 @@ class Message {
       required this.type,
       required this.timeStamp,
       required this.read,
-      required this.reactions});
+      required this.reactions,
+      required this.updatedAt,
+      required this.deleted});
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -29,7 +33,9 @@ class Message {
         "type": type,
         "timestamp": DateFormat().format(timeStamp),
         "read": read,
-        "reactions": reactions.map((e) => e.toJson()).toList()
+        "reactions": reactions.map((e) => e.toJson()).toList(),
+        "updated_at": DateFormat().format(updatedAt),
+        "deleted": deleted
       };
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -42,7 +48,9 @@ class Message {
       read: json['read'],
       reactions: (json["reactions"] as List)
           .map((e) => MessageReaction.fromJson(e))
-          .toList());
+          .toList(),
+      updatedAt: DateFormat().parse(json['updated_at']),
+      deleted: json["deleted"]);
 
   void updateMessageState(bool update) => read = update;
   void updateTypeState(String t) => type = t;
@@ -64,5 +72,31 @@ class Message {
     } else {
       throw Exception("Tried to remove a non existing reaction");
     }
+  }
+
+  Message copyWith({
+    String? id,
+    dynamic? content,
+    String? from,
+    String? to,
+    String? type,
+    DateTime? timeStamp,
+    bool? read,
+    List<MessageReaction>? reactions,
+    DateTime? updatedAt,
+    bool? deleted,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      from: from ?? this.from,
+      to: to ?? this.to,
+      type: type ?? this.type,
+      timeStamp: timeStamp ?? this.timeStamp,
+      read: read ?? this.read,
+      reactions: reactions ?? this.reactions,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deleted: deleted ?? this.deleted,
+    );
   }
 }

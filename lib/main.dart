@@ -13,6 +13,7 @@ import 'package:douchat3/providers/profile_photo.dart';
 import 'package:douchat3/providers/route_provider.dart';
 import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/routes/router.dart';
+import 'package:douchat3/services/db/sqlite.dart';
 import 'package:douchat3/services/notifications/notification_callback_handler.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
@@ -31,6 +32,7 @@ import 'package:provider/provider.dart';
 final GlobalKey<ScaffoldState> globalKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
+final db = DouchatDBSQLite();
 
 final initializationSettings = InitializationSettings(
     android: AndroidInitializationSettings('@mipmap/launcher_icon'),

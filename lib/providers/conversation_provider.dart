@@ -34,6 +34,50 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateListConversationMessage(List<Message> msgs) {
+    bool didBreak = false;
+    List<String> msgsStr = msgs.map((e) => e.id).toList();
+    for (int i = 0; i < _conversations.length; i++) {
+      if (didBreak) {
+        break;
+      }
+      for (int j = 0; j < _conversations[i].messages.length; j++) {
+        if (didBreak) {
+          break;
+        }
+        for (int k = 0; k < msgsStr.length; k++) {
+          if (msgsStr.contains(_conversations[i].messages[j].id)) {
+            _conversations[i].messages.replaceRange(j, j + 1, [msgs[k]]);
+            msgsStr.removeAt(k);
+            msgs.removeAt(k);
+            if (msgsStr.isEmpty) {
+              didBreak = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  void updateConversationMessage(Message msg) {
+    bool didBreak = false;
+    for (int i = 0; i < _conversations.length; i++) {
+      for (int j = 0; j < _conversations[i].messages.length; j++) {
+        if (_conversations[i].messages[j].id == msg.id) {
+          _conversations[i].messages.replaceRange(j, j + 1, [msg]);
+          didBreak = true;
+          break;
+        }
+      }
+      if (didBreak) {
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
   void removeConversationMessage(String id) {
     bool didBreak = false;
     for (Conversation c in _conversations) {

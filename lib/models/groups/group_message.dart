@@ -10,6 +10,8 @@ class GroupMessage {
   final DateTime timeStamp;
   List<String> readBy;
   List<MessageReaction> reactions;
+  DateTime updatedAt;
+  bool deleted;
 
   GroupMessage(
       {required this.id,
@@ -19,7 +21,9 @@ class GroupMessage {
       required this.type,
       required this.timeStamp,
       required this.readBy,
-      required this.reactions});
+      required this.reactions,
+      required this.updatedAt,
+      required this.deleted});
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -28,7 +32,9 @@ class GroupMessage {
         'type': type,
         'timestamp': DateFormat().format(timeStamp),
         'readBy': readBy,
-        'reactions': reactions.map((e) => e.toJson()).toList()
+        'reactions': reactions.map((e) => e.toJson()).toList(),
+        'updated_at': DateFormat().format(updatedAt),
+        'deleted': deleted
       };
 
   factory GroupMessage.fromJson(Map<String, dynamic> json) => GroupMessage(
@@ -41,7 +47,9 @@ class GroupMessage {
       readBy: json['readBy'].cast<String>(),
       reactions: (json['reactions'] as List)
           .map((e) => MessageReaction.fromJson(e))
-          .toList());
+          .toList(),
+      updatedAt: DateFormat().parse(json["updated_at"]),
+      deleted: json["deleted"]);
 
   void updateMessageReadState(String userId) {
     if (!readBy.contains(userId)) {

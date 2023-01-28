@@ -29,7 +29,8 @@ class Group implements ConversationOrGroup {
     final List<GroupMessage> ms = (json['messages'] as List)
         .map((e) => GroupMessage.fromJson(e))
         .toList();
-    final List<User> us = (json['users'] as List).map((e) => User.fromJson(e)).toList();
+    final List<User> us =
+        (json['users'] as List).map((e) => User.fromJson(e)).toList();
     return Group(
         id: json['id'],
         users: us,
@@ -44,8 +45,9 @@ class Group implements ConversationOrGroup {
   }
 
   void updateName(String n) => name = n;
-  void updatePhotoUrl(String p) => photoUrl = p;
+  void updatePhotoUrl(String? p) => photoUrl = p;
   void updateAdmin(String a) => admin = a;
   void removeUser(String id) => users.removeWhere((u) => u.id == id);
   void addUser(User u) => users.add(u);
+  void updateUsers(List<User> us) => users = us;
 }
