@@ -82,6 +82,7 @@ class CompositionRoot {
   static void disposeServices() {}
 
   static Future<Widget> start(BuildContext context) async {
+    await db.initDb();
     try {
       final List<Permission> perms = [
         Permission.notification,
@@ -168,12 +169,13 @@ class CompositionRoot {
       final List<Group> grousp = dbData.item2;
       final List<Message> dbMessages = dbData.item1;
       final List<User> dbUsers = dbData.item3;
+      Utils.logger.i("DB MESSAGES : ${dbMessages}");
       final groupsAndMessages = await Api.getGroupsAndConversationMessages();
       final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
       final grps = decodedGroupsAndMessages["groups"];
       final List<Group> parsedApiGroups =
           (grps as List).map((g) => Group.fromJson(g)).toList();
-      final convs = decodedGroupsAndMessages["convs"];
+      final convs = decodedGroupsAndMessages["conversations"];
       final List<Message> parsedApiConversations =
           (convs as List).map((c) => Message.fromJson(c)).toList();
       dbMessages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
@@ -182,7 +184,7 @@ class CompositionRoot {
       //     .map((e) => Message.fromJson(e))
       //     .toList();
 
-      convs.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+      dbMessages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
       print('after settings users');
 
       List<Conversation> conversations = users

@@ -41,16 +41,18 @@ class GroupMessage {
   factory GroupMessage.fromJson(Map<String, dynamic> json) => GroupMessage(
       id: json['id'],
       content: json['content'],
-      group: json['group'],
-      from: json['from'],
+      group: json['group'] ?? json["group_id"],
+      from: json['from'] ?? json["from_id"],
       type: json['type'],
       timeStamp: DateFormat().parse(json['timestamp']),
       readBy: json['readBy'].cast<String>(),
       reactions: (json['reactions'] as List)
           .map((e) => MessageReaction.fromJson(e))
           .toList(),
-      updatedAt: DateFormat().parse(json["updated_at"]),
-      deleted: json["deleted"]);
+      updatedAt: (double.tryParse(json["updated_at"][0]) != null)
+          ? DateFormat("yyyy-MM-ddThh:mm:ss").parse(json['updated_at'])
+          : DateFormat().parse(json["updated_at"]),
+      deleted: json["deleted"] ?? false);
 
   void updateMessageReadState(String userId) {
     if (!readBy.contains(userId)) {

@@ -25,6 +25,12 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void sortMessages() {
+    _conversations.forEach((c) {
+      c.messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+    });
+  }
+
   void addConversationMessage(Message message) {
     _conversations
         .firstWhere((c) => c.user.id == message.from,

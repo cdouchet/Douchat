@@ -32,6 +32,12 @@ class GroupProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void sortMessages() {
+    _groups.forEach((g) {
+      g.messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+    });
+  }
+
   bool doGroupMessageExists(String id) {
     return _groups.any((g) => g.messages.any((m) => m.id == id));
   }

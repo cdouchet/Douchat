@@ -39,7 +39,9 @@ class SenderMessage extends StatelessWidget {
                     children: [
                       DecoratedBox(
                           decoration: BoxDecoration(
-                              color: message.type == "text" ? primary : Colors.transparent,
+                              color: message.type == "text"
+                                  ? primary
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(30)),
                           position: DecorationPosition.background,
                           child: Padding(
@@ -51,13 +53,14 @@ class SenderMessage extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: SizedBox(
-                            height: 23,
+                            height: 30,
                             child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 reverse: true,
                                 physics: const BouncingScrollPhysics(),
                                 itemCount: message.reactions.length,
-                                itemBuilder: (BuildContext context, int index) =>
+                                itemBuilder: (BuildContext context,
+                                        int index) =>
                                     Padding(
                                       padding: const EdgeInsets.only(right: 6),
                                       child: GestureDetector(
@@ -78,8 +81,8 @@ class SenderMessage extends StatelessWidget {
                                                             listen: false)
                                                         .client
                                                         .id,
-                                                "emoji":
-                                                    message.reactions[index].emoji,
+                                                "emoji": message
+                                                    .reactions[index].emoji,
                                                 "id": message.id,
                                                 "to": message.to
                                               });
@@ -95,7 +98,8 @@ class SenderMessage extends StatelessWidget {
                                                           .client
                                                           .id,
                                                       emoji: message
-                                                          .reactions[index].emoji);
+                                                          .reactions[index]
+                                                          .emoji);
                                             } else {
                                               CompositionRoot.messageService
                                                   .addReaction({
@@ -105,8 +109,8 @@ class SenderMessage extends StatelessWidget {
                                                             listen: false)
                                                         .client
                                                         .id,
-                                                "emoji":
-                                                    message.reactions[index].emoji,
+                                                "emoji": message
+                                                    .reactions[index].emoji,
                                                 "id": message.id,
                                                 "to": message.to
                                               });
@@ -122,7 +126,8 @@ class SenderMessage extends StatelessWidget {
                                                           .client
                                                           .id,
                                                       emoji: message
-                                                          .reactions[index].emoji);
+                                                          .reactions[index]
+                                                          .emoji);
                                             }
                                           },
                                           child: Container(
@@ -131,12 +136,14 @@ class SenderMessage extends StatelessWidget {
                                               decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(6),
-                                                  color: message.reactions[index].ids
+                                                  color: message
+                                                          .reactions[index].ids
                                                           .contains(
                                                               Provider.of<ClientProvider>(context, listen: false)
                                                                   .client
                                                                   .id)
-                                                      ? Colors.blue.withOpacity(0.3)
+                                                      ? Colors.blue
+                                                          .withOpacity(0.3)
                                                       : Color.fromARGB(
                                                           255, 63, 63, 63)),
                                               child: Text(
@@ -271,15 +278,19 @@ class SenderMessage extends StatelessWidget {
           child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: FutureBuilder<String?>(
-        future: const FlutterSecureStorage().read(key: 'access_token'),
-          builder: (context, AsyncSnapshot<String?> snap) {
-        if (snap.hasData) {
-          return ClipRRect(borderRadius: BorderRadius.circular(12), child: VideoPreview(url: message.content, cookie: snap.data!));
-        } else {
-          return LoadingAnimationWidget.threeArchedCircle(
-              color: Colors.white, size: 30);
-        }
-      })));
+                  future:
+                      const FlutterSecureStorage().read(key: 'access_token'),
+                  builder: (context, AsyncSnapshot<String?> snap) {
+                    if (snap.hasData) {
+                      return ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: VideoPreview(
+                              url: message.content, cookie: snap.data!));
+                    } else {
+                      return LoadingAnimationWidget.threeArchedCircle(
+                          color: Colors.white, size: 30);
+                    }
+                  })));
     }
   }
 }

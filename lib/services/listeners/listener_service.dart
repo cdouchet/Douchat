@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/composition_root.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/friend_request.dart';
@@ -9,6 +10,7 @@ import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
+import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/friend_request_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
@@ -45,6 +47,8 @@ class ListenerService {
   }
 
   startReceivingEvents(BuildContext context) {
+    _messageRefresher(context);
+
     _startReceivingConnectionEvents(context);
     _startReceivingDisconnectEvents(context);
     _sendDisconnection();
@@ -78,10 +82,29 @@ class ListenerService {
   }
 
   _messageRefresher(BuildContext context) {
-    socket.onConnect((_) {
-      Utils.logger.i('Socket connected');
+    socket.onConnect((_) async {
+      final groupsAndMessages = await Api.getGroupsAndConversationMessages();
+      print(groupsAndMessages.body);
+      final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
+      final grps = decodedGroupsAndMessages["groups"];
+      final List<Group> parsedApiGroups =
+          (grps as List).map((g) => Group.fromJson(g)).toList();
+      final convs = decodedGroupsAndMessages["conversations"];
+      final List<Message> parsedApiConversations =
+          (convs as List).map((c) => Message.fromJson(c)).toList();
+      final List<User> users = (jsonDecode((await Api.getUsers(
+                  clientId: Provider.of<ClientProvider>(context, listen: false)
+                      .client
+                      .id))
+              .body)['payload']['users'] as List)
+          .map((e) => User.fromJson(e))
+          .toList();
+      Provider.of<UserProvider>(context, listen: false).changeUsers(users);
+      Utils.manageNewMessages(context, parsedApiConversations, parsedApiGroups);
+      CompositionRoot.socket.emit("douchat-reconnect");
     });
     socket.onReconnect((data) {
+      print("Reconnected");
       Utils.logger.i("Reconnected");
     });
   }

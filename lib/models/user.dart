@@ -20,7 +20,7 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => User(
       id: json['id'],
       username: json['username'],
-      photoUrl: json['photoUrl'],
+      photoUrl: json['photoUrl'] ?? json["photo_url"],
       online: json['online']);
 
   static Future<User> fromNetwork(String id) async {

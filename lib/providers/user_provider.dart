@@ -14,6 +14,11 @@ class UserProvider extends ChangeNotifier {
     _users = newUsers;
   }
 
+  void changeUsers(List<User> newUsers) {
+    _users = newUsers;
+    notifyListeners();
+  }
+
   addUser(User user) {
     _users.add(user);
     db.insertUser(user);

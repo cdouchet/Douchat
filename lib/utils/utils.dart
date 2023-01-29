@@ -13,7 +13,6 @@ import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
-import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
@@ -36,12 +35,12 @@ class Utils {
         .toList();
   }
 
-  static Future<void> manageNewMessages(BuildContext context,
-      List<Message> messages, List<Group> groups) async {
+  static Future<void> manageNewMessages(
+      BuildContext context, List<Message> messages, List<Group> groups) async {
     final convProvider =
         Provider.of<ConversationProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    // final userProvider = Provider.of<UserProvider>(context, listen: false);
     messages.forEach((message) {
       if (message.deleted) {
         convProvider.removeConversationMessage(message.id);
@@ -53,6 +52,7 @@ class Utils {
       }
       convProvider.addConversationMessage(message);
     });
+    convProvider.sortMessages();
     groups.forEach((group) {
       groupProvider.updateGroup(group);
       group.messages.forEach((msg) {
@@ -67,6 +67,8 @@ class Utils {
         groupProvider.addGroupMessage(msg);
       });
     });
+    groupProvider.sortMessages();
+
     // users.forEach((user) {
     //   if (userProvider.doUserAlreadyExists(user.id)) {
     //     userProvider.updateUser(user);

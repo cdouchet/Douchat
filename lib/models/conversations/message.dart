@@ -2,6 +2,12 @@ import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message_reaction.dart';
 import 'package:intl/intl.dart';
 
+extension BoolParsing on String {
+  bool parseBool() {
+    return this.toLowerCase() == "true";
+  }
+}
+
 class Message {
   final String id;
   dynamic content;
@@ -42,16 +48,20 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) => Message(
       id: json['id'],
       content: json['content'],
-      from: json['from'],
-      to: json['to'],
+      from: json['from'] ?? json["from_id"],
+      to: json['to'] ?? json["to_id"],
       type: json['type'],
       timeStamp: DateFormat().parse(json['timestamp']),
-      read: json['read'],
+      read: json["read"] is bool
+          ? json["read"]
+          : (json["read"] as String).parseBool(),
       reactions: (json["reactions"] as List)
           .map((e) => MessageReaction.fromJson(e))
           .toList(),
-      updatedAt: DateFormat().parse(json['updated_at']),
-      deleted: json["deleted"]);
+      updatedAt: (double.tryParse(json["updated_at"][0]) != null)
+          ? DateFormat("yyyy-MM-ddThh:mm:ss").parse(json['updated_at'])
+          : DateFormat().parse(json["updated_at"]),
+      deleted: json["deleted"] ?? false);
 
   void updateMessageState(bool update) => read = update;
   void updateTypeState(String t) => type = t;

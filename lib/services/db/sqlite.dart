@@ -12,9 +12,7 @@ import '../../models/groups/group_message.dart';
 class DouchatDBSQLite {
   late Database db;
 
-  DouchatDBSQLite() {
-    _initDb();
-  }
+  DouchatDBSQLite() {}
 
   void deleteGroupReaction(String messageId, String emoji) {
     db.rawDelete(
@@ -23,12 +21,13 @@ class DouchatDBSQLite {
 
   void updateGroupReaction(List<String> ids, String messageId) {
     db.rawUpdate(
-        "UPDATE groupReactions SET ids = $ids WHERE message = $messageId");
+        "UPDATE groupReactions SET ids = ${jsonEncode(ids)} WHERE message = $messageId");
   }
 
   void insertGroupReaction(MessageReaction reaction, String messageId) {
     Map<String, dynamic> toJson = reaction.toJson();
     toJson["message"] = messageId;
+    toJson["ids"] = jsonEncode(toJson["ids"]);
     db.insert("groupReactions", toJson);
   }
 
@@ -37,12 +36,26 @@ class DouchatDBSQLite {
   }
 
   void updateGroupMessage(GroupMessage message) {
-    db.update("groupMessages", message.toJson(),
+    Map<String, dynamic> toJson = message.toJson();
+    toJson["from_id"] = toJson["id"];
+    toJson.remove("from");
+    toJson["group_id"] = toJson["group"];
+    toJson["readBy"] = jsonEncode(toJson["readBy"]);
+    toJson.remove("reactions");
+    toJson.remove("deleted");
+    db.update("groupMessages", toJson,
         where: "id = ?", whereArgs: [message.id]);
   }
 
   void insertGroupMessage(GroupMessage message) {
-    db.insert("groupMessages", message.toJson());
+    Map<String, dynamic> toJson = message.toJson();
+    toJson["from_id"] = toJson["id"];
+    toJson.remove("from");
+    toJson["group_id"] = toJson["group"];
+    toJson["readBy"] = jsonEncode(toJson["readBy"]);
+    toJson.remove("reactions");
+    toJson.remove("deleted");
+    db.insert("groupMessages", toJson);
   }
 
   void deleteConversationReaction(String messageId, String emoji) {
@@ -52,12 +65,13 @@ class DouchatDBSQLite {
 
   void updateConversationReaction(List<String> ids, String messageId) {
     db.rawUpdate(
-        "UPDATE conversationReactions SET ids = $ids WHERE message = $messageId");
+        "UPDATE conversationReactions SET ids = ${jsonEncode(ids)} WHERE message = $messageId");
   }
 
   void insertConversationReaction(MessageReaction reaction, String messageId) {
     Map<String, dynamic> toJson = reaction.toJson();
     toJson["message"] = messageId;
+    toJson["ids"] = jsonEncode(toJson["ids"]);
     db.insert("conversationReactions", toJson);
   }
 
@@ -66,12 +80,28 @@ class DouchatDBSQLite {
   }
 
   void updateConversationMessage(Message message) {
-    db.update("conversations", message.toJson(),
+    Map<String, dynamic> toJson = message.toJson();
+    toJson["from_id"] = toJson["from"];
+    toJson.remove("from");
+    toJson["to_id"] = toJson["to"];
+    toJson.remove("to");
+    toJson.remove("reactions");
+    toJson["read"] = toJson["read"].toString();
+    toJson.remove("deleted");
+    db.update("conversations", toJson,
         where: "id = ?", whereArgs: [message.id]);
   }
 
   void insertConversationMessage(Message message) {
-    db.insert("conversations", message.toJson());
+    Map<String, dynamic> toJson = message.toJson();
+    toJson["from_id"] = toJson["from"];
+    toJson.remove("from");
+    toJson["to_id"] = toJson["to"];
+    toJson.remove("to");
+    toJson.remove("reactions");
+    toJson["read"] = toJson["read"].toString();
+    toJson.remove("deleted");
+    db.insert("conversations", toJson);
   }
 
   void deleteGroup(String id) {
@@ -79,11 +109,15 @@ class DouchatDBSQLite {
   }
 
   void updateGroup(Group group) {
+    Map<String, dynamic> toJson = group.toJson();
+    toJson["users"] = jsonEncode(toJson["users"]);
     db.update("groups", group.toJson(), where: "id = ?", whereArgs: [group.id]);
   }
 
   void insertGroup(Group group) {
-    db.insert("groups", group.toJson());
+    Map<String, dynamic> toJson = group.toJson();
+    toJson["users"] = jsonEncode(toJson["users"]);
+    db.insert("groups", toJson);
   }
 
   void deleteUser(String id) {
@@ -91,28 +125,51 @@ class DouchatDBSQLite {
   }
 
   void updateUser(User user) {
-    db.update("users", user.toJson(), where: "id = ?", whereArgs: [user.id]);
+    final toJson = user.toJson();
+    toJson["photo_url"] = toJson["photoUrl"];
+    toJson.remove("photoUrl");
+    db.update("users", toJson, where: "id = ?", whereArgs: [user.id]);
   }
 
   void insertUser(User user) {
-    db.insert("users", user.toJson());
+    final toJson = user.toJson();
+    toJson["photo_url"] = toJson["photoUrl"];
+    toJson.remove("photoUrl");
+    db.insert("users", toJson);
   }
 
   Future<Tuple3<List<Message>, List<Group>, List<User>>>
       retrieveMessagesAndGroups() async {
-    final conversationsQuery = await db.query("conversations");
-    final conversationReactionsQuery = await db.query("conversationReactions");
-    final groupQuery = await db.query("groups");
-    final groupMessagesQuery = await db.query("groupMessages");
-    final groupMessagesReactionsQuery = await db.query("groupReactions");
-    final usersQuery = await db.query("users");
+    final cq = await db.query("conversations");
+    List conversationsQuery =
+        cq.map((row) => row.map((key, value) => MapEntry(key, value))).toList();
+    final crq = await db.query("conversationReactions");
+    List conversationReactionsQuery = crq
+        .map((row) => row.map((key, value) => MapEntry(key, value)))
+        .toList();
+    final gq = await db.query("groups");
+    List groupQuery =
+        gq.map((row) => row.map((key, value) => MapEntry(key, value))).toList();
+    final gmq = await db.query("groupMessages");
+    List groupMessagesQuery = gmq
+        .map((row) => row.map((key, value) => MapEntry(key, value)))
+        .toList();
+    final gmrq = await db.query("groupReactions");
+    List groupMessagesReactionsQuery = gmrq
+        .map((row) => row.map((key, value) => MapEntry(key, value)))
+        .toList();
+    final uq = await db.query("users");
+    List usersQuery =
+        uq.map((row) => row.map((key, value) => MapEntry(key, value))).toList();
     final conversations = conversationsQuery.map<Message>((e) {
       e["reactions"] = conversationReactionsQuery
           .where((r) => r["message"] == e["id"])
           .map((r) {
         r["ids"] = jsonDecode(r["ids"] as String);
         return r;
-      });
+      }).toList();
+      e["from"] = e["from_id"];
+      e["to"] = e["to_id"];
       return Message.fromJson(e);
     }).toList();
     final groups = groupQuery.map<Group>((e) {
@@ -124,7 +181,8 @@ class DouchatDBSQLite {
             .map((gmr) {
           gmr["ids"] = jsonDecode(gmr["ids"] as String);
           return gmr;
-        });
+        }).toList();
+        gm["from"] = gm["from_id"];
         return gm;
       });
       return Group.fromJson(e);
@@ -149,26 +207,24 @@ class DouchatDBSQLite {
       CREATE TABLE conversations (
         id TEXT PRIMARY KEY,
         content TEXT NOT NULL,
-        from TEXT NOT NULL,
-        to TEXT NOT NULL,
+        from_id TEXT NOT NULL,
+        to_id TEXT NOT NULL,
         timestamp TEXT NOT NULL,
         type TEXT NOT NULL,
         read TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        deleted TEXT NOT NULL
+        updated_at TEXT NOT NULL
         )
       """);
     await db.execute("""
       CREATE TABLE groupMessages (
         id TEXT PRIMARY KEY,
         content TEXT NOT NULL,
-        group TEXT NOT NULL,
-        from TEXT NOT NULL,
+        group_id TEXT NOT NULL,
+        from_id TEXT NOT NULL,
         type TEXT NOT NULL,
         timestamp TEXT NOT NULL,
         readBy TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        deleted TEXT NOT NULL
+        updated_at TEXT NOT NULL
       )
       """);
     await db.execute("""
@@ -185,7 +241,7 @@ class DouchatDBSQLite {
         id TEXT PRIMARY KEY,
         users TEXT NOT NULL,
         name TEXT NOT NULL,
-        photo_url TEXT,
+        photo_url TEXT
       )
       """);
     await db.execute("""
@@ -193,12 +249,12 @@ class DouchatDBSQLite {
         id TEXT PRIMARY KEY,
         username TEXT NOT NULL,
         photo_url TEXT,
-        online TEXT NOT NULL,
+        online TEXT NOT NULL
       )
       """);
   }
 
-  _initDb() async {
+  initDb() async {
     var databasesPath = await getDatabasesPath();
     String path = databasesPath + "/douchat.db";
     db = await openDatabase(path, version: 1, onCreate: _createTables);
