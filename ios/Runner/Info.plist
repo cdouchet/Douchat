@@ -3,9 +3,11 @@
 <plist version="1.0">
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
-		<true/>
+		<true />
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>FirebaseAppDelegateProxyEnabled</key>
+		<false />
 		<key>CFBundleDisplayName</key>
 		<string>Douchat3</string>
 		<key>CFBundleExecutable</key>
@@ -25,7 +27,7 @@
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>
-		<true/>
+		<true />
 		<key>NSCameraUsageDescription</key>
 		<string>Needed to take pictures and upload them</string>
 		<key>NSMicrophoneUsageDescription</key>
@@ -35,7 +37,7 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Needed to upload pictures</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
-		<true/>
+		<true />
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>
@@ -64,8 +66,8 @@
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
-		<false/>
+		<false />
 		<key>UIStatusBarHidden</key>
-		<false/>
+		<false />
 	</dict>
 </plist>

@@ -7,8 +7,15 @@ import workmanager
 @objc class AppDelegate: FlutterAppDelegate {
   override func application(
     _ application: UIApplication,
+//    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+//      messaging.messaging().setAPNSToken(deviceToken, type: .unknown)
+      if #available(iOS 10.0, *) {
+           UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+          }
+
+       application.registerForRemoteNotifications()
     GeneratedPluginRegistrant.register(with: self)
     FlutterDownloaderPlugin.setPluginRegistrantCallback(registerPlugins)
     WorkmanagerPlugin.registerTask(withIdentifier: "socket-keep-alive")
