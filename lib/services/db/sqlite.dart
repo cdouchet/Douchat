@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:douchat3/models/conversations/message.dart';
+import 'package:douchat3/models/conversations/message_reaction.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,7 +14,21 @@ class DouchatDBSQLite {
     _initDb();
   }
 
-  void insertConversationReaction(Reaction) {}
+  void deleteConversationReaction(String messageId) {
+    db.delete("conversationReactions",
+        where: "message = ?", whereArgs: [messageId]);
+  }
+
+  void updateConversationReaction(MessageReaction reaction, String messageId) {
+    db.update("conversationReactions", reaction.toJson(),
+        where: "message = ?", whereArgs: [messageId]);
+  }
+
+  void insertConversationReaction(MessageReaction reaction, String messageId) {
+    Map<String, dynamic> toJson = reaction.toJson();
+    toJson["message"] = messageId;
+    db.insert("conversationReactions", toJson);
+  }
 
   void deleteConversationMessage(String id) {
     db.delete("conversations", where: "id = ?", whereArgs: [id]);
@@ -69,11 +84,9 @@ class DouchatDBSQLite {
   _createTables(Database db, int version) async {
     await db.execute("""
       CREATE TABLE conversationReactions (
-        id TEXT PRIMARY KEY,
-        message TEXT NOT NULL,
+        message TEXT PRIMARY KEY,
         emoji TEXT NOT NULL,
         ids TEXT NOT NULL,
-        updated_at TEXT NOT NULL
         )
       """);
     await db.execute("""
