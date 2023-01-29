@@ -1,3 +1,4 @@
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
 
@@ -31,7 +32,12 @@ class ConversationProvider extends ChangeNotifier {
                 _conversations.firstWhere((conv) => conv.user.id == message.to))
         .messages
         .insert(0, message);
+    db.insertConversationMessage(message);
     notifyListeners();
+  }
+
+  bool doConversationMessageExists(String id) {
+    return _conversations.any((c) => c.messages.any((m) => m.id == id));
   }
 
   void updateListConversationMessage(List<Message> msgs) {
@@ -50,6 +56,7 @@ class ConversationProvider extends ChangeNotifier {
             _conversations[i].messages.replaceRange(j, j + 1, [msgs[k]]);
             msgsStr.removeAt(k);
             msgs.removeAt(k);
+            db.updateConversationMessage(msgs[k]);
             if (msgsStr.isEmpty) {
               didBreak = true;
               break;
@@ -67,6 +74,7 @@ class ConversationProvider extends ChangeNotifier {
       for (int j = 0; j < _conversations[i].messages.length; j++) {
         if (_conversations[i].messages[j].id == msg.id) {
           _conversations[i].messages.replaceRange(j, j + 1, [msg]);
+          db.updateConversationMessage(msg);
           didBreak = true;
           break;
         }
@@ -87,6 +95,7 @@ class ConversationProvider extends ChangeNotifier {
               .elementAt(_conversations.indexOf(c))
               .messages
               .removeWhere((e) => e.id == id);
+          db.deleteConversationMessage(id);
           didBreak = true;
           break;
         }
@@ -129,9 +138,9 @@ class ConversationProvider extends ChangeNotifier {
       {required bool notify}) {
     final msgs = _conversations.firstWhere((c) => c.user.id == userId).messages;
     for (int i = 0; i < messagesToUpdate.length; i++) {
-      msgs
-          .firstWhere((m) => m.id == messagesToUpdate[i])
-          .updateMessageState(true);
+      final toUpdate = msgs.firstWhere((m) => m.id == messagesToUpdate[i]);
+      toUpdate.updateMessageState(true);
+      db.updateConversationMessage(toUpdate);
     }
     if (notify) {
       notifyListeners();
@@ -144,11 +153,11 @@ class ConversationProvider extends ChangeNotifier {
     for (Conversation c in _conversations) {
       for (Message m in c.messages) {
         if (m.id == id) {
-          _conversations
+          final toUpdate = _conversations
               .elementAt(_conversations.indexOf(c))
               .messages
-              .firstWhere((e) => e.id == id)
-              .addReaction(user: userId, emoji: emoji);
+              .firstWhere((e) => e.id == id);
+          toUpdate.addReaction(user: userId, emoji: emoji);
           didBreak = true;
           break;
         }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/composition_root.dart';
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/conversation.dart';
 import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/friend_request.dart';
@@ -30,11 +31,41 @@ class LoginGetters {
       final dynamic decodedResponse = jsonDecode(log.body);
       clientProvider.setAccessToken(decodedResponse['payload']['access_token']);
       final clientId = decodedResponse['payload']['client']['id'];
+      final dbData = await db.retrieveMessagesAndGroups();
+      final List<Group> groups = dbData.item2;
+      final List<Message> dbMessages = dbData.item1;
+      final List<User> dbUsers = dbData.item3;
+            final groupsAndConversations =
+          await Api.getGroupsAndConversationMessages();
+      final decodedGroupsAndConversations =
+          jsonDecode(groupsAndConversations.body);
+      final grps = decodedGroupsAndConversations["groups"];
+      final List<Group> parsedApiGroups = (grps as List).map((g) => Group.fromJson(g)).toList();
+      final convs = decodedGroupsAndConversations["convs"];
+      final List<Message> parsedApiConversations = (convs as List).map((c) => Message.fromJson(c)).toList();
       final apiUsers = await Api.getUsers(clientId: clientId);
       final List<User> users =
           (jsonDecode(apiUsers.body)['payload']['users'] as List)
               .map((e) => User.fromJson(e))
-              .toList();
+              .toList();// final mes = await Api.getConversationMessages(clientId: clientId);
+      // final messages = (jsonDecode(mes.body)['payload']['messages'] as List)
+      //     .map((e) => Message.fromJson(e))
+      //     .toList();
+      dbMessages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+      List<Conversation> conversations = users
+          .map((u) => Conversation(
+              messages: dbMessages
+                  .where((m) =>
+                      (m.from == u.id && m.to == clientId) ||
+                      (m.from == clientId && m.to == u.id))
+                  .toList(),
+              user: u))
+          .toList();
+      // final client = decodedResponse['payload']['client'];
+      // final grps = await Api.getGroups(clientId: clientId);
+      // final List<Group> groups =
+      //     (grps as List).map((g) => Group.fromJson(g)).toList();
+      
       users.removeWhere((u) => u.id == clientId);
       List<DouchatNotificationIcon> icons = [];
       for (int i = 0; i < users.length; i++) {
@@ -56,30 +87,7 @@ class LoginGetters {
                   as List)
               .map((e) => FriendRequest.fromJson(e))
               .toList();
-      final groupsAndConversations =
-          await Api.getGroupsAndConversationMessages();
-      final decodedGroupsAndConversations =
-          jsonDecode(groupsAndConversations.body);
-      final grps = decodedGroupsAndConversations["groups"];
-      final convs = decodedGroupsAndConversations["convs"];
-      // final mes = await Api.getConversationMessages(clientId: clientId);
-      // final messages = (jsonDecode(mes.body)['payload']['messages'] as List)
-      //     .map((e) => Message.fromJson(e))
-      //     .toList();
-      convs.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
-      List<Conversation> conversations = users
-          .map((u) => Conversation(
-              messages: convs
-                  .where((m) =>
-                      (m.from == u.id && m.to == clientId) ||
-                      (m.from == clientId && m.to == u.id))
-                  .toList(),
-              user: u))
-          .toList();
-      // final client = decodedResponse['payload']['client'];
-      // final grps = await Api.getGroups(clientId: clientId);
-      final List<Group> groups =
-          (grps as List).map((g) => Group.fromJson(g)).toList();
+
       List<DouchatNotificationIcon> groupIcons = [];
       for (int i = 0; i < groups.length; i++) {
         Uint8List? bytes;
@@ -110,10 +118,12 @@ class LoginGetters {
       Navigator.pushReplacementNamed(context, home, arguments: {
         'client': User.fromJson(decodedResponse['payload']['client']),
         'users': users,
-        'messages': convs,
+        'messages': dbMessages,
         'conversations': conversations,
         'groups': groups,
-        'friendRequests': friendRequests
+        'friendRequests': friendRequests,
+        'newGroups': parsedApiGroups,
+        'newConversations': parsedApiConversations,
       });
       return true;
     } else {

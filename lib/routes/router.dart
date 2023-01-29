@@ -30,11 +30,15 @@ Route<dynamic> controller(RouteSettings settings) {
     case home:
       return MaterialPageRoute(
           builder: (_) => CompositionRoot.composeHome(
-              client: args['client'],
-              users: args['users'],
-              messages: args['messages'],
-              conversations: args['conversations'],
-              groups: args['groups'], friendRequests: args['friendRequests']));
+                client: args['client'],
+                users: args['users'],
+                messages: args['messages'],
+                conversations: args['conversations'],
+                groups: args['groups'],
+                friendRequests: args['friendRequests'],
+                newConversations: args['newConversations'],
+                newGroups: args['newGroups'],
+              ));
     case settingsStr:
       return MaterialPageRoute(
           builder: (_) => Settings(userService: args['userService']));
@@ -60,9 +64,12 @@ Route<dynamic> controller(RouteSettings settings) {
     case infos:
       return MaterialPageRoute(builder: (_) => About());
     case friendRequests:
-      return MaterialPageRoute(builder: (_) => CompositionRoot.composeFriendRequestView());
+      return MaterialPageRoute(
+          builder: (_) => CompositionRoot.composeFriendRequestView());
     case groupThread:
-      return MaterialPageRoute(builder: (_) => CompositionRoot.composeGroupMessageThread(id: args['id']));
+      return MaterialPageRoute(
+          builder: (_) =>
+              CompositionRoot.composeGroupMessageThread(id: args['id']));
     default:
       return MaterialPageRoute(builder: (_) => CompositionRoot.composeLogin());
   }

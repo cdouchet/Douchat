@@ -1,3 +1,4 @@
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/conversations/message_reaction.dart';
 import 'package:intl/intl.dart';
 
@@ -56,9 +57,13 @@ class Message {
   void updateTypeState(String t) => type = t;
   void addReaction({required String user, required String emoji}) {
     if (reactions.any((e) => e.emoji == emoji)) {
-      reactions.firstWhere((e) => e.emoji == emoji).ids.add(user);
+      final toUpdate = reactions.firstWhere((e) => e.emoji == emoji);
+      toUpdate.ids.add(user);
+      db.updateConversationReaction(toUpdate.ids, id);
     } else {
-      reactions.add(MessageReaction(emoji: emoji, ids: [user]));
+      final newReaction = MessageReaction(emoji: emoji, ids: [user]);
+      db.insertConversationReaction(newReaction, id);
+      reactions.add(newReaction);
     }
   }
 
@@ -67,7 +72,10 @@ class Message {
       final reaction = reactions.firstWhere((e) => e.emoji == emoji);
       reaction.ids.remove(user);
       if (reaction.ids.isEmpty) {
+        db.deleteConversationReaction(id, emoji);
         reactions.remove(reaction);
+      } else {
+        db.updateGroupReaction(reaction.ids, id);
       }
     } else {
       throw Exception("Tried to remove a non existing reaction");

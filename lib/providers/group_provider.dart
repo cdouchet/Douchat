@@ -1,3 +1,4 @@
+import 'package:douchat3/main.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/groups/group_message.dart';
 import 'package:douchat3/models/user.dart';
@@ -15,17 +16,24 @@ class GroupProvider extends ChangeNotifier {
 
   void addGroup(Group g) {
     _groups.add(g);
+    db.insertGroup(g);
     notifyListeners();
   }
 
   void removeGroup(String id) {
     _groups.removeWhere((g) => g.id == id);
+    db.deleteGroup(id);
     notifyListeners();
   }
 
   void addGroupMessage(GroupMessage gm) {
     _groups.firstWhere((g) => g.id == gm.group).messages.insert(0, gm);
+    db.insertGroupMessage(gm);
     notifyListeners();
+  }
+
+  bool doGroupMessageExists(String id) {
+    return _groups.any((g) => g.messages.any((m) => m.id == id));
   }
 
   void updateListGroupMessage(List<GroupMessage> msgs) {
@@ -44,6 +52,7 @@ class GroupProvider extends ChangeNotifier {
             _groups[i].messages.replaceRange(j, j + 1, [msgs[k]]);
             msgsStr.removeAt(k);
             msgs.removeAt(k);
+            db.updateGroupMessage(msgs[k]);
             if (msgsStr.isEmpty) {
               didBreak = true;
               break;
@@ -61,6 +70,7 @@ class GroupProvider extends ChangeNotifier {
     grp.updatePhotoUrl(g.photoUrl);
     grp.updateAdmin(g.admin);
     grp.updateUsers(g.users);
+    db.updateGroup(g);
     notifyListeners();
   }
 
@@ -70,6 +80,7 @@ class GroupProvider extends ChangeNotifier {
       for (int j = 0; j < _groups[i].messages.length; j++) {
         if (_groups[i].messages[j].id == msg.id) {
           _groups[i].messages.replaceRange(j, j + 1, [msg]);
+          db.updateGroupMessage(msg);
           didBreak = true;
           break;
         }
@@ -90,6 +101,7 @@ class GroupProvider extends ChangeNotifier {
               .elementAt(_groups.indexOf(g))
               .messages
               .removeWhere((e) => e.id == id);
+          db.deleteGroupMessage(id);
           didBreak = true;
           break;
         }
@@ -108,9 +120,9 @@ class GroupProvider extends ChangeNotifier {
       required bool notify}) {
     final msgs = _groups.firstWhere((g) => g.id == groupId).messages;
     for (int i = 0; i < messagesToUpdate.length; i++) {
-      msgs
-          .firstWhere((m) => m.id == messagesToUpdate[i])
-          .updateMessageReadState(readBy);
+      final toUpdate = msgs.firstWhere((m) => m.id == messagesToUpdate[i]);
+      toUpdate.updateMessageReadState(readBy);
+      db.updateGroupMessage(toUpdate);
     }
     if (notify) {
       notifyListeners();
@@ -147,26 +159,31 @@ class GroupProvider extends ChangeNotifier {
 
   void updateGroupName({required String name, required String id}) {
     _getGroup(id).updateName(name);
+    db.updateGroup(_getGroup(id));
     notifyListeners();
   }
 
   void updateGroupPhoto({required String url, required String id}) {
     _getGroup(id).updatePhotoUrl(url);
+    db.updateGroup(_getGroup(id));
     notifyListeners();
   }
 
   void updateGroupAdmin({required String admin, required String id}) {
     _getGroup(id).updateAdmin(admin);
+    db.updateGroup(_getGroup(id));
     notifyListeners();
   }
 
   void removeUser({required String userId, required String id}) {
     _getGroup(id).removeUser(userId);
+    db.updateGroup(_getGroup(id));
     notifyListeners();
   }
 
   void addUser({required User user, required String id}) {
     _getGroup(id).addUser(user);
+    db.updateGroup(_getGroup(id));
     notifyListeners();
   }
 
@@ -176,11 +193,12 @@ class GroupProvider extends ChangeNotifier {
     for (Group g in _groups) {
       for (GroupMessage m in g.messages) {
         if (m.id == id) {
-          _groups
+          final toUpdate = _groups
               .elementAt(_groups.indexOf(g))
               .messages
-              .firstWhere((e) => e.id == id)
-              .addReaction(user: userId, emoji: emoji);
+              .firstWhere((e) => e.id == id);
+          // db actions are inside the below function
+          toUpdate.addReaction(user: userId, emoji: emoji);
           didBreak = true;
           break;
         }
@@ -202,6 +220,7 @@ class GroupProvider extends ChangeNotifier {
               .elementAt(_groups.indexOf(g))
               .messages
               .firstWhere((e) => e.id == id)
+              // db actions are inside the below function
               .removeReaction(user: userId, emoji: emoji);
           didBreak = true;
           break;

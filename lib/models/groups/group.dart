@@ -35,7 +35,7 @@ class Group implements ConversationOrGroup {
         id: json['id'],
         users: us,
         messages: ms,
-        photoUrl: json['photoUrl'],
+        photoUrl: json['photoUrl'] ?? json["photo_url"],
         name: json['name'],
         admin: json['admin']);
   }

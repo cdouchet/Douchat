@@ -13,6 +13,7 @@ import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
 import 'package:douchat3/providers/conversation_provider.dart';
 import 'package:douchat3/providers/group_provider.dart';
+import 'package:douchat3/providers/user_provider.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
@@ -35,17 +36,22 @@ class Utils {
         .toList();
   }
 
-  static Future<void> manageNewMessages(
-      BuildContext context, List<Message> messages, List<Group> groups) async {
+  static Future<void> manageNewMessages(BuildContext context,
+      List<Message> messages, List<Group> groups) async {
     final convProvider =
         Provider.of<ConversationProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     messages.forEach((message) {
       if (message.deleted) {
         convProvider.removeConversationMessage(message.id);
         return;
       }
-      convProvider.updateConversationMessage(message);
+      if (convProvider.doConversationMessageExists(message.id)) {
+        convProvider.updateConversationMessage(message);
+        return;
+      }
+      convProvider.addConversationMessage(message);
     });
     groups.forEach((group) {
       groupProvider.updateGroup(group);
@@ -54,9 +60,20 @@ class Utils {
           groupProvider.removeGroupMessage(msg.id);
           return;
         }
-        groupProvider.updateGroupMessage(msg);
+        if (groupProvider.doGroupMessageExists(msg.id)) {
+          groupProvider.updateGroupMessage(msg);
+          return;
+        }
+        groupProvider.addGroupMessage(msg);
       });
     });
+    // users.forEach((user) {
+    //   if (userProvider.doUserAlreadyExists(user.id)) {
+    //     userProvider.updateUser(user);
+    //     return;
+    //   }
+    //   userProvider.addUser(user);
+    // });
   }
 
   static Future<dynamic> showMediaPickFile(BuildContext context) async {

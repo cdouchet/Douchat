@@ -164,19 +164,30 @@ class CompositionRoot {
       //             .body)['payload']['messages'] as List)
       //     .map((e) => Message.fromJson(e))
       //     .toList();
+      final dbData = await db.retrieveMessagesAndGroups();
+      final List<Group> grousp = dbData.item2;
+      final List<Message> dbMessages = dbData.item1;
+      final List<User> dbUsers = dbData.item3;
       final groupsAndMessages = await Api.getGroupsAndConversationMessages();
       final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
       final grps = decodedGroupsAndMessages["groups"];
-      final convs = (decodedGroupsAndMessages["conversations"] as List)
-          .map((e) => Message.fromJson(e))
-          .toList();
+      final List<Group> parsedApiGroups =
+          (grps as List).map((g) => Group.fromJson(g)).toList();
+      final convs = decodedGroupsAndMessages["convs"];
+      final List<Message> parsedApiConversations =
+          (convs as List).map((c) => Message.fromJson(c)).toList();
+      dbMessages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+
+      // final convs = (decodedGroupsAndMessages["conversations"] as List)
+      //     .map((e) => Message.fromJson(e))
+      //     .toList();
 
       convs.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
       print('after settings users');
 
       List<Conversation> conversations = users
           .map((u) => Conversation(
-              messages: convs
+              messages: dbMessages
                   .where((m) =>
                       (m.from == u.id && m.to == user.id) ||
                       (m.from == user.id && m.to == u.id))
@@ -184,8 +195,7 @@ class CompositionRoot {
               user: u))
           .toList();
       // final grps = jsonDecode((await Api.getGroups(clientId: user.id)).body);
-      final List<Group> groups =
-          (grps as List).map((g) => Group.fromJson(g)).toList();
+      final List<Group> groups = (grps).map((g) => Group.fromJson(g)).toList();
       groups.forEach((g) {
         Utils.logger.i('GROUP PHOTO URL : ${g.photoUrl}');
       });
@@ -238,10 +248,12 @@ class CompositionRoot {
         return composeHome(
             client: user,
             users: users,
-            messages: convs,
+            messages: dbMessages,
             conversations: conversations,
             groups: groups,
-            friendRequests: friendRequests);
+            friendRequests: friendRequests,
+            newConversations: parsedApiConversations,
+            newGroups: parsedApiGroups);
       } else {
         return composeLogin();
       }
@@ -255,22 +267,28 @@ class CompositionRoot {
     return const Login();
   }
 
-  static Widget composeHome(
-      {required User client,
-      required List<User> users,
-      required List<Message> messages,
-      required List<Conversation> conversations,
-      required List<Group> groups,
-      required List<FriendRequest> friendRequests}) {
+  static Widget composeHome({
+    required User client,
+    required List<User> users,
+    required List<Message> messages,
+    required List<Conversation> conversations,
+    required List<Group> groups,
+    required List<FriendRequest> friendRequests,
+    required List<Group> newGroups,
+    required List<Message> newConversations,
+  }) {
     return Home(
-        messageService: listenerService,
-        userService: userService,
-        client: client,
-        messages: messages,
-        users: users,
-        conversations: conversations,
-        groups: groups,
-        friendRequests: friendRequests);
+      messageService: listenerService,
+      userService: userService,
+      client: client,
+      messages: messages,
+      users: users,
+      conversations: conversations,
+      groups: groups,
+      friendRequests: friendRequests,
+      newGroups: newGroups,
+      newConversations: newConversations,
+    );
   }
 
   static Widget composeRegister() {

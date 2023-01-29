@@ -45,6 +45,8 @@ class Home extends StatefulWidget {
   final List<Conversation> conversations;
   final List<Group> groups;
   final List<FriendRequest> friendRequests;
+  final List<Group> newGroups;
+  final List<Message> newConversations;
 
   String get routeName => 'home';
 
@@ -57,7 +59,9 @@ class Home extends StatefulWidget {
       required this.messages,
       required this.conversations,
       required this.groups,
-      required this.friendRequests})
+      required this.friendRequests,
+      required this.newGroups,
+      required this.newConversations,})
       : super(key: key);
 
   @override
@@ -355,6 +359,8 @@ class _HomeState extends State<Home>
             groups: widget.groups,
             friendRequests: widget.friendRequests)
         .then((_) {
+      Utils.manageNewMessages(
+          context, widget.newConversations, widget.newGroups);
       widget.messageService.startReceivingEvents(globalKey.currentContext!);
       print('after setting listeners');
     });
