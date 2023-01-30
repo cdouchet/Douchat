@@ -7,7 +7,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>FirebaseAppDelegateProxyEnabled</key>
-		<false />
+		<string>NO</string>
 		<key>CFBundleDisplayName</key>
 		<string>Douchat3</string>
 		<key>CFBundleExecutable</key>
@@ -36,6 +36,8 @@
 		<string>Needed to download images and videos</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Needed to upload pictures</string>
+		<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+		<string>YES</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true />
 		<key>UIBackgroundModes</key>

@@ -171,6 +171,7 @@ class _LoginState extends State<Login> {
                           left: 16, right: 16, bottom: 16),
                       child: ElevatedButton(
                           onPressed: () async {
+                            FocusScope.of(context).unfocus();
                             final error = _checkInputs();
                             if (error.isNotEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(

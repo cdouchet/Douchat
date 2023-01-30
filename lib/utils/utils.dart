@@ -213,6 +213,14 @@ class Utils {
                       child: ListTile(
                           leading: Icon(Icons.emoji_emotions),
                           title: Text("Réaction"))),
+                  if (douchatDebugMode)
+                    GestureDetector(
+                        onTap: () {
+                          Utils.logger.i(message.toJson());
+                        },
+                        child: ListTile(
+                            leading: Icon(Icons.info, color: Colors.white),
+                            title: Text("Print message in console"))),
                   if (message.type == "text")
                     GestureDetector(
                         onTap: () {

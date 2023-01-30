@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/models/user.dart';
 import 'package:douchat3/providers/client_provider.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart';
@@ -36,14 +37,17 @@ class UserService {
     });
   }
 
-  
-
   void changePhotoUrl(
       {required BuildContext context, required String photoUrl}) {
-    socket.emit(
-        'change-photoUrl', {'id': _getClientId(context), 'photoUrl': photoUrl});
-    Provider.of<ClientProvider>(context, listen: false)
-        .changePhotoUrl(photoUrl);
+    try {
+      Utils.logger.i("Sending socket change photo with photourl ${photoUrl}");
+      socket.emit('change-photoUrl',
+          {'id': _getClientId(context), 'photoUrl': photoUrl});
+      Provider.of<ClientProvider>(context, listen: false)
+          .changePhotoUrl(photoUrl);
+    } catch (e, s) {
+      Utils.logger.i("Could not set photourl socket", e, s);
+    }
   }
 
   _getClientId(BuildContext context) =>

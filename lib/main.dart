@@ -33,6 +33,7 @@ final GlobalKey<ScaffoldState> globalKey = GlobalKey();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 final notificationsPlugin = FlutterLocalNotificationsPlugin();
 final db = DouchatDBSQLite();
+final douchatDebugMode = true;
 
 final initializationSettings = InitializationSettings(
     android: AndroidInitializationSettings('@mipmap/launcher_icon'),

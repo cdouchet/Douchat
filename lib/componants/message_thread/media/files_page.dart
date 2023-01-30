@@ -469,19 +469,37 @@ class _FilesPageState extends State<FilesPage>
         final List<AssetPathEntity> paths =
             await PhotoManager.getAssetPathList();
         for (int i = 0; i < paths.length; i++) {
-          paths[i]
-              .getAssetListRange(start: 0, end: 80)
-              .asStream()
-              .listen((event) {
-            event.forEach((e) async {
-              File? f = await e.file;
+          for (AssetPathEntity path in paths) {
+            for (AssetEntity event
+                in await path.getAssetListRange(start: 0, end: 80)) {
+              File? f = await event.file;
               if (f != null) {
                 files.add(f.path);
+                yield files;
               }
-            });
-          });
-          yield files;
+            }
+            // paths[i]
+            //     .getAssetListRange(start: 0, end: 80)
+            //     .asStream()
+            //     .listen((event) {
+            //   event.forEach((e) async {
+            //     File? f = await e.file;
+            //     Utils.logger.i("New file : ${f}");
+            //     if (f != null) {
+            //       files.add(f.path);
+            //     }
+            //   });
+            // });
+          }
         }
+        // LocalImageProvider imageProvider = LocalImageProvider();
+        // bool hasPermission = await imageProvider.initialize();
+        // if (hasPermission) {
+        //   final images = await imageProvider.findLatest(50);
+        //   if (images.isNotEmpty) {
+        //     images.first;
+        //   }
+        // }
       } catch (e, s) {
         Utils.logger.i('Error while processing ios medias', e, s);
       }
@@ -491,9 +509,7 @@ class _FilesPageState extends State<FilesPage>
   Future<List<File>?> _pickImages() async {
     final picker = ImagePicker();
     final files = await picker.pickMultiImage(imageQuality: 50);
-    if (files != null) {
-      return files.map((f) => File(f.path)).toList();
-    }
+    return files.map((f) => File(f.path)).toList();
     return null;
   }
 

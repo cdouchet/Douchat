@@ -84,6 +84,7 @@ dependencies:
   flutter_exit_app: ^1.1.2
   sqflite: ^2.2.4+1
   tuple: ^2.0.1
+  local_image_provider:
   
 dev_dependencies:
   flutter_test:

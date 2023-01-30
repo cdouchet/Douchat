@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:douchat3/api/api.dart';
-import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/message_thread/receiver_message.dart';
 import 'package:douchat3/componants/message_thread/sender_message.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
@@ -122,7 +121,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
       },
       child: Scaffold(
           resizeToAvoidBottomInset: true,
-          drawer: DouchatDrawer(userService: widget.userService),
+          drawerEnableOpenDragGesture: false,
           appBar: AppBar(
             titleSpacing: 0,
             automaticallyImplyLeading: false,

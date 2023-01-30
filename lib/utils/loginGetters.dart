@@ -35,19 +35,21 @@ class LoginGetters {
       final List<Group> groups = dbData.item2;
       final List<Message> dbMessages = dbData.item1;
       final List<User> dbUsers = dbData.item3;
-            final groupsAndConversations =
+      final groupsAndConversations =
           await Api.getGroupsAndConversationMessages();
       final decodedGroupsAndConversations =
           jsonDecode(groupsAndConversations.body);
       final grps = decodedGroupsAndConversations["groups"];
-      final List<Group> parsedApiGroups = (grps as List).map((g) => Group.fromJson(g)).toList();
-      final convs = decodedGroupsAndConversations["convs"];
-      final List<Message> parsedApiConversations = (convs as List).map((c) => Message.fromJson(c)).toList();
+      final List<Group> parsedApiGroups =
+          (grps as List).map((g) => Group.fromJson(g)).toList();
+      final convs = decodedGroupsAndConversations["conversations"];
+      final List<Message> parsedApiConversations =
+          (convs as List).map((c) => Message.fromJson(c)).toList();
       final apiUsers = await Api.getUsers(clientId: clientId);
-      final List<User> users =
-          (jsonDecode(apiUsers.body)['payload']['users'] as List)
-              .map((e) => User.fromJson(e))
-              .toList();// final mes = await Api.getConversationMessages(clientId: clientId);
+      final List<User> users = (jsonDecode(apiUsers.body)['payload']['users']
+              as List)
+          .map((e) => User.fromJson(e))
+          .toList(); // final mes = await Api.getConversationMessages(clientId: clientId);
       // final messages = (jsonDecode(mes.body)['payload']['messages'] as List)
       //     .map((e) => Message.fromJson(e))
       //     .toList();
@@ -65,7 +67,7 @@ class LoginGetters {
       // final grps = await Api.getGroups(clientId: clientId);
       // final List<Group> groups =
       //     (grps as List).map((g) => Group.fromJson(g)).toList();
-      
+
       users.removeWhere((u) => u.id == clientId);
       List<DouchatNotificationIcon> icons = [];
       for (int i = 0; i < users.length; i++) {

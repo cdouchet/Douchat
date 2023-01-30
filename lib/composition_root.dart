@@ -21,6 +21,7 @@ import 'package:douchat3/views/login.dart';
 import 'package:douchat3/views/password_reset/reset_password_confirmation.dart';
 import 'package:douchat3/views/private_message_thread.dart';
 import 'package:douchat3/views/register.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -129,6 +130,10 @@ class CompositionRoot {
       if (!connected) {
         return composeLogin();
       }
+      final firebaseToken = await FirebaseMessaging.instance.getToken();
+      if (firebaseToken != null) {
+        Api.updateFirebaseToken(firebaseToken);
+      }
       final User user = User.fromJson(isConnected['client']);
       final apiFriendRequests = await Api.getFriendRequests(clientId: user.id);
       final List<FriendRequest> friendRequests =
@@ -143,6 +148,9 @@ class CompositionRoot {
                   ['users'] as List)
               .map((e) => User.fromJson(e))
               .toList();
+      users.forEach((u) {
+        Utils.logger.i(u.photoUrl);
+      });
       List<DouchatNotificationIcon> icons = [];
       for (int i = 0; i < users.length; i++) {
         Uint8List? bytes;

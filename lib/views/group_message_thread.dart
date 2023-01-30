@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/group_thread/group_receiver_message.dart';
 import 'package:douchat3/componants/group_thread/group_sender_message.dart';
-import 'package:douchat3/componants/home/douchat_drawer.dart';
 import 'package:douchat3/componants/shared/header_status.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/models/groups/group.dart';
@@ -138,7 +137,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
         },
         child: Scaffold(
             resizeToAvoidBottomInset: true,
-            drawer: DouchatDrawer(userService: widget.userService),
+            drawerEnableOpenDragGesture: false,
             appBar: AppBar(
                 titleSpacing: 0,
                 automaticallyImplyLeading: false,

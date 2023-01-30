@@ -102,7 +102,7 @@ class Api {
         'POST', Uri.parse("$baseUrl/uploadFile/profilePicture"));
     request.files.add(await MultipartFile.fromPath('picture', file.path));
     final result = await request.send();
-    print((await Response.fromStream(result)).body);
+    // print((await Response.fromStream(result)).body);
     if (result.statusCode != 200) return null;
     final response = await Response.fromStream(result);
     return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}/${response.body}';

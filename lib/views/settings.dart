@@ -152,12 +152,15 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
           Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile;
       if (Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile !=
           null) {
-        Api.uploadProfilePicture(photoFile).then((url) {
-          widget.userService.changePhotoUrl(context: context, photoUrl: url!);
-        }).catchError((obj) {
+        try {
+          Api.uploadProfilePicture(photoFile).then((url) {
+            widget.userService.changePhotoUrl(context: context, photoUrl: url!);
+          });
+        } catch (e, s) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Erreur durant le téléchargement de l\'image')));
-        });
+          Utils.logger.i("Could not update photo url through api", e, s);
+        }
       }
     });
   }
