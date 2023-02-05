@@ -39,8 +39,6 @@ class CompositionRoot {
 
   static Future<void> configure(String id,
       {required bool freshRegister}) async {
-    Utils.logger.d('Configuring Douchat...');
-    Utils.logger.d('Configuring Firebase...');
     await configureFirebase();
     socket = IO.io(
         'https://douchat.doggo-saloon.net',
@@ -52,26 +50,11 @@ class CompositionRoot {
           'token': await const FlutterSecureStorage().read(key: 'access_token'),
           'freshRegister': freshRegister ? 'true' : 'false'
         }).build());
-    Utils.logger.d('Socket io object : ' + socket.toString());
     socket.onDisconnect((data) => print("DISCONNECTED SOCKET"));
     socket.onError((_) {
       print("Socket error");
     });
-
-    socket.onConnectTimeout((data) {
-      Utils.logger.i("Socket timed out");
-    });
-    socket.onAny((event, data) {
-      print('$event : $data');
-    });
-
     socket.connect();
-
-    socket.on('event', (data) => print(data));
-
-    socket.on('fromServer', (_) => print(_));
-
-    print('instantiating ListenerService');
     listenerService = ListenerService(
         socket: socket, notificationsPlugin: notificationsPlugin);
     userService = UserService(socket);
@@ -116,17 +99,12 @@ class CompositionRoot {
       // await FlutterSecureStorage().delete(key: 'access_token');
       final token =
           await const FlutterSecureStorage().read(key: 'access_token');
-      print('after read token');
       if (token == null) {
         return composeLogin();
       }
-      print('token is not null');
       final isConnected =
           jsonDecode((await Api.isConnected(token)).body)['payload'];
-      print(isConnected);
-      print('after api call');
       final bool connected = isConnected['connected'];
-      print('after is connected');
       if (!connected) {
         return composeLogin();
       }
@@ -141,16 +119,12 @@ class CompositionRoot {
                   as List)
               .map((e) => FriendRequest.fromJson(e))
               .toList();
-      print('after client setup');
-      Utils.logger.d((await Api.getUsers(clientId: user.id)).body);
       final List<User> users =
           (jsonDecode((await Api.getUsers(clientId: user.id)).body)['payload']
                   ['users'] as List)
               .map((e) => User.fromJson(e))
               .toList();
-      users.forEach((u) {
-        Utils.logger.i(u.photoUrl);
-      });
+
       List<DouchatNotificationIcon> icons = [];
       for (int i = 0; i < users.length; i++) {
         Uint8List? bytes;
@@ -163,7 +137,6 @@ class CompositionRoot {
         }
         icons.add(DouchatNotificationIcon(id: users[i].id, bytes: bytes));
       }
-      Utils.logger.i('Composition Root icons : $icons');
       NotificationPhotoRegistar.populate(icons);
       await NotificationPhotoRegistar.setup();
       // Utils.logger
@@ -174,10 +147,9 @@ class CompositionRoot {
       //     .map((e) => Message.fromJson(e))
       //     .toList();
       final dbData = await db.retrieveMessagesAndGroups();
-      final List<Group> grousp = dbData.item2;
+      final List<Group> dbGroups = dbData.item2;
       final List<Message> dbMessages = dbData.item1;
       final List<User> dbUsers = dbData.item3;
-      Utils.logger.i("DB MESSAGES : ${dbMessages}");
       final groupsAndMessages = await Api.getGroupsAndConversationMessages();
       final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
       final grps = decodedGroupsAndMessages["groups"];
@@ -191,10 +163,10 @@ class CompositionRoot {
       // final convs = (decodedGroupsAndMessages["conversations"] as List)
       //     .map((e) => Message.fromJson(e))
       //     .toList();
-
+      dbGroups.forEach((g) {
+        Utils.logger.i("GROUP : ${g.toJson()}");
+      });
       dbMessages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
-      print('after settings users');
-
       List<Conversation> conversations = users
           .map((u) => Conversation(
               messages: dbMessages
@@ -205,29 +177,27 @@ class CompositionRoot {
               user: u))
           .toList();
       // final grps = jsonDecode((await Api.getGroups(clientId: user.id)).body);
-      final List<Group> groups = (grps).map((g) => Group.fromJson(g)).toList();
-      groups.forEach((g) {
-        Utils.logger.i('GROUP PHOTO URL : ${g.photoUrl}');
-      });
+      // final List<Group> groups = (grps).map((g) => Group.fromJson(g)).toList();
+
       List<DouchatNotificationIcon> groupIcons = [];
-      for (int i = 0; i < groups.length; i++) {
+      for (int i = 0; i < dbGroups.length; i++) {
         Uint8List? bytes;
         Uint8List? compressedBytes;
         try {
-          if (groups[i].photoUrl != null) {
-            bytes =
-                (await Api.getContactPhoto(url: groups[i].photoUrl!)).bodyBytes;
+          if (dbGroups[i].photoUrl != null) {
+            bytes = (await Api.getContactPhoto(url: dbGroups[i].photoUrl!))
+                .bodyBytes;
           }
           if (bytes != null) {
             compressedBytes =
                 await FlutterImageCompress.compressWithList(bytes, quality: 20);
           }
         } catch (e, s) {
-          Utils.logger
-              .i("Could not compress this image (${groups[i].photoUrl})", e, s);
+          Utils.logger.i(
+              "Could not compress this image (${dbGroups[i].photoUrl})", e, s);
         }
-        groupIcons.add(
-            DouchatNotificationIcon(id: groups[i].id, bytes: compressedBytes));
+        groupIcons.add(DouchatNotificationIcon(
+            id: dbGroups[i].id, bytes: compressedBytes));
       }
       NotificationPhotoRegistar.populateGroup(groupIcons);
       // final gmes =
@@ -244,9 +214,7 @@ class CompositionRoot {
       //   group.populate(gm);
       // }
       try {
-        print('before remove user id');
         users.removeWhere((element) => element.id == user.id);
-        print('after remove user id');
       } catch (e) {
         print(e);
         print(users);
@@ -254,13 +222,12 @@ class CompositionRoot {
       }
       if (connected) {
         await configure(user.id, freshRegister: false);
-        print('connected');
         return composeHome(
             client: user,
             users: users,
             messages: dbMessages,
             conversations: conversations,
-            groups: groups,
+            groups: dbGroups,
             friendRequests: friendRequests,
             newConversations: parsedApiConversations,
             newGroups: parsedApiGroups);

@@ -29,6 +29,7 @@ class ConversationProvider extends ChangeNotifier {
     _conversations.forEach((c) {
       c.messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     });
+    notifyListeners();
   }
 
   void addConversationMessage(Message message) {

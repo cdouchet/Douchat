@@ -163,6 +163,8 @@ class LoginGetters {
       List<Conversation> conversations = [];
       List<Group> groups = [];
       List<FriendRequest> friendRequests = [];
+      List<Message> newConversations = [];
+      List<Group> newGroups = [];
       NotificationPhotoRegistar.setup();
       Navigator.pushReplacementNamed(context, home, arguments: {
         'client': User.fromJson(decoded['new_user']),
@@ -170,7 +172,9 @@ class LoginGetters {
         'messages': messages,
         'conversations': conversations,
         'groups': groups,
-        'friendRequests': friendRequests
+        'friendRequests': friendRequests,
+        'newConversations': newConversations,
+        'newGroups': newGroups
       });
       return true;
     } else {

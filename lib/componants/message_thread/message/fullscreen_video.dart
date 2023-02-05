@@ -33,7 +33,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
     try {
       controller = VideoPlayerController.network(widget.url,
           httpHeaders: {'cookie': widget.cookie});
-      controller.initialize();
+      // controller.initialize();
       chewieController = ChewieController(
           videoPlayerController: controller,
           autoPlay: true,

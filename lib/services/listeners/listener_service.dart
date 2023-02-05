@@ -84,7 +84,9 @@ class ListenerService {
   _messageRefresher(BuildContext context) {
     socket.onConnect((_) async {
       final groupsAndMessages = await Api.getGroupsAndConversationMessages();
-      print(groupsAndMessages.body);
+      final decoded = jsonDecode(groupsAndMessages.body);
+      print(decoded["groups"]);
+      print(decoded["conversations"]);
       final decodedGroupsAndMessages = jsonDecode(groupsAndMessages.body);
       final grps = decodedGroupsAndMessages["groups"];
       final List<Group> parsedApiGroups =

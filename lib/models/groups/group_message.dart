@@ -28,6 +28,7 @@ class GroupMessage {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'group': group,
         'content': content,
         'from': from,
         'type': type,

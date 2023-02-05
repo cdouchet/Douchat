@@ -125,7 +125,7 @@ class Api {
       if (response.statusCode == 200) {
         Utils.logger.i(
             'success! Url : ${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}');
-        return '${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}';
+        return 'https://${dotenv.env["DOUCHAT_URI"]}${response.body}';
       }
       return null;
     } catch (e, s) {

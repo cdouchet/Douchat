@@ -50,19 +50,19 @@ class Home extends StatefulWidget {
 
   String get routeName => 'home';
 
-  const Home(
-      {Key? key,
-      required this.messageService,
-      required this.userService,
-      required this.client,
-      required this.users,
-      required this.messages,
-      required this.conversations,
-      required this.groups,
-      required this.friendRequests,
-      required this.newGroups,
-      required this.newConversations,})
-      : super(key: key);
+  const Home({
+    Key? key,
+    required this.messageService,
+    required this.userService,
+    required this.client,
+    required this.users,
+    required this.messages,
+    required this.conversations,
+    required this.groups,
+    required this.friendRequests,
+    required this.newGroups,
+    required this.newConversations,
+  }) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -127,9 +127,6 @@ class _HomeState extends State<Home>
 
   @override
   Widget build(BuildContext context) {
-    Utils.logger.i('material localization : ' +
-        MaterialLocalizations.of(context).toString());
-
     final clientProvider = Provider.of<ClientProvider>(context, listen: true);
     return DefaultTabController(
       length: 2,

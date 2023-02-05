@@ -36,6 +36,7 @@ class GroupProvider extends ChangeNotifier {
     _groups.forEach((g) {
       g.messages.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     });
+    notifyListeners();
   }
 
   bool doGroupMessageExists(String id) {
@@ -68,6 +69,10 @@ class GroupProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  bool doGroupExists(String id) {
+    return _groups.any((g) => g.id == id);
   }
 
   void updateGroup(Group g) {

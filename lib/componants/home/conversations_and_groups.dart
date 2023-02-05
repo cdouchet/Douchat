@@ -53,7 +53,6 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
         Provider.of<GroupProvider>(context).groups.isNotEmpty ||
             Provider.of<ConversationProvider>(context).conversations.isNotEmpty;
 
-    Utils.logger.i('Before build');
     List<Conversation> convs =
         Provider.of<ConversationProvider>(context, listen: true)
             .conversations
@@ -86,7 +85,6 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
             .contains(s);
       }
     }).toList();
-    Utils.logger.i('After build');
     return Container(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
@@ -199,7 +197,6 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
             s);
       }
     }
-    Utils.logger.i('Group photoUrl : ${group.photoUrl}');
     final String clientId =
         Provider.of<ClientProvider>(context, listen: true).client.id;
     final hasUnread =

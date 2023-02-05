@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:douchat3/api/api.dart';
+import 'package:douchat3/models/conversations/message.dart';
 
 class User {
   final String id;
@@ -21,7 +22,9 @@ class User {
       id: json['id'],
       username: json['username'],
       photoUrl: json['photoUrl'] ?? json["photo_url"],
-      online: json['online']);
+      online: json['online'] is bool
+          ? json["online"]
+          : (json["online"] as String).parseBool());
 
   static Future<User> fromNetwork(String id) async {
     final dynamic res = jsonDecode((await Api.getUserFromId(id: id)).body);

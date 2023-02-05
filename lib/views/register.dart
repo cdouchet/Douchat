@@ -59,117 +59,124 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-      ),
-      resizeToAvoidBottomInset: true,
-      body: Center(
-        child: SingleChildScrollView(
-          child: SafeArea(
-            child: SizedBox(
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _logo(context),
-                    Text('Nouveau compte',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline5!
-                            .copyWith(color: Colors.white)),
-                    const Spacer(),
-                    const ProfileUpload(),
-                    const Spacer(flex: 1),
-                    Padding(
-                        padding: const EdgeInsets.only(left: 20.0, right: 20),
-                        child: CustomTextField(
-                          hint: 'Quel est ton nom ?',
-                          height: 45,
-                          onChanged: (val) {
-                            _username = val;
-                          },
-                          inputAction: TextInputAction.next,
-                          textCapitalization: TextCapitalization.words,
-
-                        )),
-                        Padding(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+        ),
+        resizeToAvoidBottomInset: true,
+        body: Center(
+          child: SingleChildScrollView(
+            child: SafeArea(
+              child: SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _logo(context),
+                      Text('Nouveau compte',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5!
+                              .copyWith(color: Colors.white)),
+                      const Spacer(),
+                      const ProfileUpload(),
+                      const Spacer(flex: 1),
+                      Padding(
+                          padding: const EdgeInsets.only(left: 20.0, right: 20),
+                          child: CustomTextField(
+                            hint: 'Quel est ton nom ?',
+                            height: 45,
+                            onChanged: (val) {
+                              _username = val;
+                            },
+                            inputAction: TextInputAction.next,
+                            textCapitalization: TextCapitalization.words,
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20.0, right: 20, top: 20),
+                          child: CustomTextField(
+                            hint: 'Quel est ton email ?',
+                            height: 45,
+                            onChanged: (val) {
+                              _email = val;
+                            },
+                            inputAction: TextInputAction.next,
+                            hideCharacters: false,
+                            inputType: TextInputType.emailAddress,
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20.0, right: 20, top: 20),
+                          child: CustomTextField(
+                            hint: 'Entrer un mot de passe',
+                            height: 45,
+                            onChanged: (val) {
+                              _password = val;
+                            },
+                            inputAction: TextInputAction.done,
+                            hideCharacters: true,
+                          )),
+                      const SizedBox(height: 30),
+                      Padding(
                         padding: const EdgeInsets.only(
-                            left: 20.0, right: 20, top: 20),
-                        child: CustomTextField(
-                          hint: 'Quel est ton email ?',
-                          height: 45,
-                          onChanged: (val) {
-                            _email = val;
-                          },
-                          inputAction: TextInputAction.next,
-                          hideCharacters: false,
-                        )),
-                    Padding(
-                        padding: const EdgeInsets.only(
-                            left: 20.0, right: 20, top: 20),
-                        child: CustomTextField(
-                          hint: 'Entrer un mot de passe',
-                          height: 45,
-                          onChanged: (val) {
-                            _password = val;
-                          },
-                          inputAction: TextInputAction.done,
-                          hideCharacters: true,
-                        )),
-                        
-                    const SizedBox(height: 30),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 16),
-                      child: ElevatedButton(
-                          onPressed: () async {
-                            final error = _checkInputs();
-                            if (error.isNotEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(error,
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold))));
-                            } else {
-                              print(
-                                  "PHOTO FILE + ${Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile}");
-                              setState(() => loading = true);
-                              if (!(await LoginGetters.getEverythingAndRegister(
-                                  context: context,
-                                  e: _email,
-                                  u: _username,
-                                  p: _password))) {
-                                setState(() => loading = false);
+                            left: 16, right: 16, bottom: 16),
+                        child: ElevatedButton(
+                            onPressed: () async {
+                              FocusScope.of(context).unfocus();
+                              final error = _checkInputs();
+                              if (error.isNotEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            error,
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold))));
+                              } else {
+                                print(
+                                    "PHOTO FILE + ${Provider.of<ProfilePhotoProvider>(context, listen: false).photoFile}");
+                                setState(() => loading = true);
+                                if (!(await LoginGetters
+                                    .getEverythingAndRegister(
+                                        context: context,
+                                        e: _email,
+                                        u: _username,
+                                        p: _password))) {
+                                  setState(() => loading = false);
+                                }
                               }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: primary,
-                              elevation: 5.0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(45))),
-                          child: Container(
-                              alignment: Alignment.center,
-                              height: 45,
-                              child: Text('Passer à la douche',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .button!
-                                      .copyWith(
-                                          fontSize: 18.0,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold)))),
-                    ),
-                    const Spacer(),
-                    loading
-                        ? LoadingAnimationWidget.threeArchedCircle(
-                            color: Colors.white, size: 30)
-                        : Container(),
-                    const Spacer(flex: 1)
-                  ],
-                )),
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: primary,
+                                elevation: 5.0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(45))),
+                            child: Container(
+                                alignment: Alignment.center,
+                                height: 45,
+                                child: Text('Passer à la douche',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button!
+                                        .copyWith(
+                                            fontSize: 18.0,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)))),
+                      ),
+                      const Spacer(),
+                      loading
+                          ? LoadingAnimationWidget.threeArchedCircle(
+                              color: Colors.white, size: 30)
+                          : Container(),
+                      const Spacer(flex: 1)
+                    ],
+                  )),
+            ),
           ),
         ),
       ),

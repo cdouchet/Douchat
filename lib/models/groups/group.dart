@@ -18,6 +18,7 @@ class Group implements ConversationOrGroup {
       required this.admin});
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'users': users.map((u) => u.toJson()).toList(),
         'messages': messages.map((m) => m.toJson()).toList(),
         'photo_url': photoUrl,

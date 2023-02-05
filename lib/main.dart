@@ -122,17 +122,13 @@ class Douchat extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-    Utils.logger.i('AFTER SETTINGS ORIENTATION');
-    Utils.logger.i('BEFORE COMPOSITION START');
     return FutureBuilder<Widget>(
         future: CompositionRoot.start(context),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            print("snap has data");
             Utils.logger.i('COMPOSITION ROOT DONE');
             return snapshot.data!;
           } else {
-            print("snap has no data");
             return Scaffold(
                 body: SafeArea(
                     child: Center(

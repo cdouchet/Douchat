@@ -54,7 +54,11 @@ class Utils {
     });
     convProvider.sortMessages();
     groups.forEach((group) {
-      groupProvider.updateGroup(group);
+      if (groupProvider.doGroupExists(group.id)) {
+        groupProvider.updateGroup(group);
+      } else {
+        groupProvider.addGroup(group);
+      }
       group.messages.forEach((msg) {
         if (msg.deleted) {
           groupProvider.removeGroupMessage(msg.id);

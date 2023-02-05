@@ -90,157 +90,163 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-      ),
-      resizeToAvoidBottomInset: true,
-      body: Center(
-        child: SingleChildScrollView(
-          child: SafeArea(
-            child: SizedBox(
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _logo(context),
-                    Text('Connexion',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline5!
-                            .copyWith(color: Colors.white)),
-                    const Spacer(flex: 1),
-                    if (kIsWeb) ...[
-                      ElevatedButton(
-                          onPressed: () async {
-                            if (Platform.isAndroid || Platform.isIOS) {
-                              // TODO: Find ios app id + check if app is installed
-                              final appId = Platform.isAndroid
-                                  ? "com.example.douchat3"
-                                  : "IOSAPPID";
-                              final url = Uri.parse(Platform.isAndroid
-                                  ? "market://details?id=$appId"
-                                  : "https://apps.apple.com/app/id$appId");
-                              launchUrl(url,
-                                  mode: LaunchMode.externalApplication);
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: primary,
-                              elevation: 5.0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(45))),
-                          child: Container(
-                              alignment: Alignment.center,
-                              height: 45,
-                              child: Text('Télécharger l\'application',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .button!
-                                      .copyWith(
-                                          fontSize: 18.0,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold)))),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+        ),
+        resizeToAvoidBottomInset: true,
+        body: Center(
+          child: SingleChildScrollView(
+            child: SafeArea(
+              child: SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _logo(context),
+                      Text('Connexion',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5!
+                              .copyWith(color: Colors.white)),
                       const Spacer(flex: 1),
-                    ],
-                    Padding(
-                        padding: const EdgeInsets.only(left: 20.0, right: 20),
-                        child: CustomTextField(
-                          hint: 'Nom',
-                          height: 45,
-                          onChanged: (val) {
-                            _username = val;
-                          },
-                          inputAction: TextInputAction.next,
-                        )),
-                    Padding(
-                        padding: const EdgeInsets.only(
-                            left: 20.0, right: 20, top: 20),
-                        child: CustomTextField(
-                          hint: 'Mot de passe',
-                          height: 45,
-                          onChanged: (val) {
-                            _password = val;
-                          },
-                          inputAction: TextInputAction.done,
-                          hideCharacters: true,
-                        )),
-                    const SizedBox(height: 30),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 16),
-                      child: ElevatedButton(
-                          onPressed: () async {
-                            FocusScope.of(context).unfocus();
-                            final error = _checkInputs();
-                            if (error.isNotEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(error,
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold))));
-                            } else {
-                              setState(() => loading = true);
-                              final success =
-                                  await LoginGetters.getEverythingAndLogin(
-                                      context: context,
-                                      u: _username,
-                                      p: _password);
-                              if (!success) {
-                                setState(() => loading = false);
+                      if (kIsWeb) ...[
+                        ElevatedButton(
+                            onPressed: () async {
+                              if (Platform.isAndroid || Platform.isIOS) {
+                                // TODO: Find ios app id + check if app is installed
+                                final appId = Platform.isAndroid
+                                    ? "com.example.douchat3"
+                                    : "IOSAPPID";
+                                final url = Uri.parse(Platform.isAndroid
+                                    ? "market://details?id=$appId"
+                                    : "https://apps.apple.com/app/id$appId");
+                                launchUrl(url,
+                                    mode: LaunchMode.externalApplication);
                               }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: primary,
-                              elevation: 5.0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(45))),
-                          child: Container(
-                              alignment: Alignment.center,
-                              height: 45,
-                              child: Text('Passer à la douche',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .button!
-                                      .copyWith(
-                                          fontSize: 18.0,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold)))),
-                    ),
-                    InkWell(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const Register())),
-                        child: Text('S\'inscrire',
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption!
-                                .copyWith(
-                                    fontSize: 18,
-                                    decoration: TextDecoration.underline))),
-                    const Spacer(),
-                    InkWell(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ResetPassword())),
-                        child: Text("Mot de passe oublié ?",
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption!
-                                .copyWith(
-                                    fontSize: 18,
-                                    decoration: TextDecoration.underline))),
-                    loading
-                        ? LoadingAnimationWidget.threeArchedCircle(
-                            color: Colors.white, size: 30)
-                        : Container(),
-                    const Spacer(flex: 1)
-                  ],
-                )),
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: primary,
+                                elevation: 5.0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(45))),
+                            child: Container(
+                                alignment: Alignment.center,
+                                height: 45,
+                                child: Text('Télécharger l\'application',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button!
+                                        .copyWith(
+                                            fontSize: 18.0,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)))),
+                        const Spacer(flex: 1),
+                      ],
+                      Padding(
+                          padding: const EdgeInsets.only(left: 20.0, right: 20),
+                          child: CustomTextField(
+                            hint: 'Nom',
+                            height: 45,
+                            onChanged: (val) {
+                              _username = val;
+                            },
+                            inputAction: TextInputAction.next,
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20.0, right: 20, top: 20),
+                          child: CustomTextField(
+                            hint: 'Mot de passe',
+                            height: 45,
+                            onChanged: (val) {
+                              _password = val;
+                            },
+                            inputAction: TextInputAction.done,
+                            hideCharacters: true,
+                          )),
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16, right: 16, bottom: 16),
+                        child: ElevatedButton(
+                            onPressed: () async {
+                              FocusScope.of(context).unfocus();
+                              final error = _checkInputs();
+                              if (error.isNotEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            error,
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold))));
+                              } else {
+                                setState(() => loading = true);
+                                final success =
+                                    await LoginGetters.getEverythingAndLogin(
+                                        context: context,
+                                        u: _username,
+                                        p: _password);
+                                if (!success) {
+                                  setState(() => loading = false);
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: primary,
+                                elevation: 5.0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(45))),
+                            child: Container(
+                                alignment: Alignment.center,
+                                height: 45,
+                                child: Text('Passer à la douche',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button!
+                                        .copyWith(
+                                            fontSize: 18.0,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)))),
+                      ),
+                      InkWell(
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const Register())),
+                          child: Text('S\'inscrire',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .caption!
+                                  .copyWith(
+                                      fontSize: 18,
+                                      decoration: TextDecoration.underline))),
+                      const Spacer(),
+                      InkWell(
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ResetPassword())),
+                          child: Text("Mot de passe oublié ?",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .caption!
+                                  .copyWith(
+                                      fontSize: 18,
+                                      decoration: TextDecoration.underline))),
+                      loading
+                          ? LoadingAnimationWidget.threeArchedCircle(
+                              color: Colors.white, size: 30)
+                          : Container(),
+                      const Spacer(flex: 1)
+                    ],
+                  )),
+            ),
           ),
         ),
       ),

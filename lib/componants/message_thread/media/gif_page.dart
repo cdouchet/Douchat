@@ -86,6 +86,8 @@ class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
                           padding: const EdgeInsets.only(
                               right: 16, left: 16, top: 16),
                           child: GridView.builder(
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
                               itemCount: res['results'].length,
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(

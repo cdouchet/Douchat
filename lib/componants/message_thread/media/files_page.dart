@@ -473,11 +473,12 @@ class _FilesPageState extends State<FilesPage>
             for (AssetEntity event
                 in await path.getAssetListRange(start: 0, end: 80)) {
               File? f = await event.file;
-              if (f != null) {
+              if (f != null && !files.contains(f.path)) {
                 files.add(f.path);
                 yield files;
               }
             }
+
             // paths[i]
             //     .getAssetListRange(start: 0, end: 80)
             //     .asStream()

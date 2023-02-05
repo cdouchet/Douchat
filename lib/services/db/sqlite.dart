@@ -4,6 +4,7 @@ import 'package:douchat3/models/conversations/message.dart';
 import 'package:douchat3/models/conversations/message_reaction.dart';
 import 'package:douchat3/models/groups/group.dart';
 import 'package:douchat3/models/user.dart';
+import 'package:douchat3/utils/utils.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:tuple/tuple.dart';
 
@@ -37,9 +38,10 @@ class DouchatDBSQLite {
 
   void updateGroupMessage(GroupMessage message) {
     Map<String, dynamic> toJson = message.toJson();
-    toJson["from_id"] = toJson["id"];
+    toJson["from_id"] = toJson["from"];
     toJson.remove("from");
     toJson["group_id"] = toJson["group"];
+    toJson.remove("group");
     toJson["readBy"] = jsonEncode(toJson["readBy"]);
     toJson.remove("reactions");
     toJson.remove("deleted");
@@ -49,9 +51,10 @@ class DouchatDBSQLite {
 
   void insertGroupMessage(GroupMessage message) {
     Map<String, dynamic> toJson = message.toJson();
-    toJson["from_id"] = toJson["id"];
+    toJson["from_id"] = toJson["from"];
     toJson.remove("from");
     toJson["group_id"] = toJson["group"];
+    toJson.remove("group");
     toJson["readBy"] = jsonEncode(toJson["readBy"]);
     toJson.remove("reactions");
     toJson.remove("deleted");
@@ -110,12 +113,26 @@ class DouchatDBSQLite {
 
   void updateGroup(Group group) {
     Map<String, dynamic> toJson = group.toJson();
+    // for (int i = 0; i < (toJson["users"] as List).length; i++) {
+    //   final u = toJson["users"][i];
+    //   u["photo_url"] = u["photoUrl"];
+    //   u["online"] = u["online"].toString();
+    //   u.remove("photoUrl");
+    // }
+    toJson.remove("messages");
     toJson["users"] = jsonEncode(toJson["users"]);
-    db.update("groups", group.toJson(), where: "id = ?", whereArgs: [group.id]);
+    db.update("groups", toJson, where: "id = ?", whereArgs: [group.id]);
   }
 
   void insertGroup(Group group) {
     Map<String, dynamic> toJson = group.toJson();
+    // for (int i = 0; i < (toJson["users"] as List).length; i++) {
+    //   final u = toJson["users"][i];
+    //   u["photo_url"] = u["photoUrl"];
+    //   u["online"] = u["online"].toString();
+    //   u.remove("photoUrl");
+    // }
+    toJson.remove("messages");
     toJson["users"] = jsonEncode(toJson["users"]);
     db.insert("groups", toJson);
   }
@@ -127,6 +144,7 @@ class DouchatDBSQLite {
   void updateUser(User user) {
     final toJson = user.toJson();
     toJson["photo_url"] = toJson["photoUrl"];
+    toJson["online"] = toJson["online"].toString();
     toJson.remove("photoUrl");
     db.update("users", toJson, where: "id = ?", whereArgs: [user.id]);
   }
@@ -134,6 +152,7 @@ class DouchatDBSQLite {
   void insertUser(User user) {
     final toJson = user.toJson();
     toJson["photo_url"] = toJson["photoUrl"];
+    toJson["online"] = toJson["online"].toString();
     toJson.remove("photoUrl");
     db.insert("users", toJson);
   }
@@ -172,10 +191,15 @@ class DouchatDBSQLite {
       e["to"] = e["to_id"];
       return Message.fromJson(e);
     }).toList();
+    Utils.logger.i("ALL GROUP MESSAGES : ${groupMessagesQuery}");
     final groups = groupQuery.map<Group>((e) {
+      print(e);
       e["users"] = jsonDecode(e["users"] as String);
-      e["messages"] =
-          groupMessagesQuery.where((gm) => gm["group"] == e["id"]).map((gm) {
+      Utils.logger.i(
+          "Messages for group Test : ${groupMessagesQuery.where((gm) => gm["group_id"] == e["id"])}");
+      e["messages"] = groupMessagesQuery
+          .where((gm) => gm["group_id"] == e["id"])
+          .map<Map<String, dynamic>>((gm) {
         gm["reactions"] = groupMessagesReactionsQuery
             .where((gmr) => gmr["message"] == gm["id"])
             .map((gmr) {
@@ -183,12 +207,13 @@ class DouchatDBSQLite {
           return gmr;
         }).toList();
         gm["from"] = gm["from_id"];
+        gm["group"] = gm["group_id"];
+        gm["readBy"] = jsonDecode(gm["readBy"]);
         return gm;
-      });
+      }).toList();
       return Group.fromJson(e);
     }).toList();
     final users = usersQuery.map<User>((u) {
-      u["contacts"] = jsonDecode(u["contacts"] as String);
       return User.fromJson(u);
     }).toList();
     return Tuple3(conversations, groups, users);
@@ -232,14 +257,14 @@ class DouchatDBSQLite {
         id TEXT PRIMARY KEY,
         message TEXT NOT NULL,
         emoji TEXT NOT NULL,
-        ids TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        ids TEXT NOT NULL
       )
       """);
     await db.execute("""
       CREATE TABLE groups (
         id TEXT PRIMARY KEY,
         users TEXT NOT NULL,
+        admin TEXT NOT NULL,
         name TEXT NOT NULL,
         photo_url TEXT
       )
