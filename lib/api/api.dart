@@ -105,7 +105,8 @@ class Api {
     // print((await Response.fromStream(result)).body);
     if (result.statusCode != 200) return null;
     final response = await Response.fromStream(result);
-    return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}/${response.body}';
+
+    return '${Uri.parse("$baseUrl/uploadFile/profilePicture").origin}${response.body}';
   }
 
   static Future<String?> uploadFile(
@@ -124,7 +125,7 @@ class Api {
       final response = await Response.fromStream(result);
       if (response.statusCode == 200) {
         Utils.logger.i(
-            'success! Url : ${Uri.parse("$baseUrl/uploadFile/media").origin}/${response.body}');
+            'success! Url : ${Uri.parse("$baseUrl/uploadFile/media").origin}${response.body}');
         return 'https://${dotenv.env["DOUCHAT_URI"]}${response.body}';
       }
       return null;
@@ -149,8 +150,8 @@ class Api {
       final response = await Response.fromStream(result);
       if (response.statusCode == 200) {
         Utils.logger.i(
-            'success! Url : ${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}');
-        return '${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/${response.body}';
+            'success! Url : ${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/api/${response.body}');
+        return '${Uri.parse("$baseUrl/uploadGroupPhoto/media").origin}/api/${response.body}';
       }
       return null;
     } catch (e, s) {

@@ -31,6 +31,7 @@ class LoginGetters {
       final dynamic decodedResponse = jsonDecode(log.body);
       clientProvider.setAccessToken(decodedResponse['payload']['access_token']);
       final clientId = decodedResponse['payload']['client']['id'];
+      await db.initDb(clientId);
       final dbData = await db.retrieveMessagesAndGroups();
       final List<Group> groups = dbData.item2;
       final List<Message> dbMessages = dbData.item1;
@@ -155,6 +156,7 @@ class LoginGetters {
       clientProvider.setAccessToken(decoded['token']);
       clientProvider.getAccessToken().then((value) => print(value));
       final String clientId = decoded['new_user']['id'];
+      await db.initDb(clientId);
       await CompositionRoot.configure(clientId, freshRegister: true);
       CompositionRoot.userService
           .sendCreatedUser(User.fromJson(decoded['new_user']));

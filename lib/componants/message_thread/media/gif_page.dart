@@ -16,7 +16,7 @@ class GifPage extends StatefulWidget {
   State<GifPage> createState() => _GifPageState();
 }
 
-class _GifPageState extends State<GifPage> with AutomaticKeepAliveClientMixin {
+class _GifPageState extends State<GifPage> {
   final TenorApi tenorApi = TenorApi();
   Timer timer = Timer(Duration(seconds: 1), () {});
   late Future<Response> tenorCall = tenorApi.getFeatured(limit: '30');

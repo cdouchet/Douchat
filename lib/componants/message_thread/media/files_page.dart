@@ -24,8 +24,7 @@ class FilesPage extends StatefulWidget {
   State<FilesPage> createState() => _FilesPageState();
 }
 
-class _FilesPageState extends State<FilesPage>
-    with AutomaticKeepAliveClientMixin {
+class _FilesPageState extends State<FilesPage> {
   late Stream<List<String>> internalFiles;
   @override
   void initState() {
@@ -48,7 +47,6 @@ class _FilesPageState extends State<FilesPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return FutureBuilder<bool>(
         future: _checkMediaPermission(),
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/firebase/configure_firebase.dart';
 import 'package:douchat3/main.dart';
@@ -28,6 +29,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:sqflite/sqflite.dart';
 import 'package:uni_links/uni_links.dart';
 
 class CompositionRoot {
@@ -66,7 +68,13 @@ class CompositionRoot {
   static void disposeServices() {}
 
   static Future<Widget> start(BuildContext context) async {
-    await db.initDb();
+    await databaseFactory
+        .deleteDatabase("${await getDatabasesPath()}/douchat.db");
+    final trackingStatus =
+        await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (trackingStatus == TrackingStatus.notDetermined) {
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
     try {
       final List<Permission> perms = [
         Permission.notification,
@@ -113,6 +121,7 @@ class CompositionRoot {
         Api.updateFirebaseToken(firebaseToken);
       }
       final User user = User.fromJson(isConnected['client']);
+      await db.initDb(user.id);
       final apiFriendRequests = await Api.getFriendRequests(clientId: user.id);
       final List<FriendRequest> friendRequests =
           (jsonDecode(apiFriendRequests.body)['payload']['friend_requests']

@@ -237,6 +237,7 @@ class _GroupMessageThreadState extends State<GroupMessageThread>
       required List<User> users,
       required User client}) {
     return ListView.builder(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         reverse: true,
         padding: const EdgeInsets.only(top: 16, left: 20, bottom: 20),
         itemCount: messageList.length,

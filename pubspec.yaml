@@ -85,6 +85,7 @@ dependencies:
   sqflite: ^2.2.4+1
   tuple: ^2.0.1
   local_image_provider:
+  app_tracking_transparency: ^2.0.3
   
 dev_dependencies:
   flutter_test:

@@ -203,6 +203,13 @@ class ListenerService {
         }
       } else {
         Vibration.hasVibrator().then((value) {
+          if (data["from"] ==
+                  Provider.of<ClientProvider>(context, listen: false)
+                      .client
+                      .id &&
+              Platform.isIOS) {
+            return;
+          }
           if (value ?? false) {
             if (Provider.of<RouteProvider>(context, listen: false)
                 .isOnPrivateThread) {
@@ -238,6 +245,7 @@ class ListenerService {
 
   _startReceivingConversationReactionAddition(BuildContext context) {
     socket.on("add-conversation-reaction", (data) {
+      print("new reaction event");
       Provider.of<ConversationProvider>(context, listen: false).addReaction(
           id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
     });
@@ -245,6 +253,7 @@ class ListenerService {
 
   _startReceivingConversationReactionRemoval(BuildContext context) {
     socket.on("remove-conversation-reaction", (data) {
+      print("remove reaction event");
       Provider.of<ConversationProvider>(context, listen: false).removeReaction(
           id: data["id"], userId: data["clientId"], emoji: data["emoji"]);
     });
@@ -342,6 +351,13 @@ class ListenerService {
         }
       } else {
         Vibration.hasVibrator().then((value) {
+          if (data["from"] ==
+                  Provider.of<ClientProvider>(context, listen: false)
+                      .client
+                      .id &&
+              Platform.isIOS) {
+            return;
+          }
           if (value ?? false) {
             if (Provider.of<RouteProvider>(context, listen: false)
                 .isOnGroupThread) {

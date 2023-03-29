@@ -209,6 +209,7 @@ class _PrivateMessageThreadState extends State<PrivateMessageThread>
           required User user,
           required User client}) =>
       ListView.builder(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         reverse: true,
         padding: const EdgeInsets.only(top: 16, left: 20, bottom: 20),
         itemBuilder: (__, index) {

@@ -39,7 +39,9 @@ class ReceiverMessage extends StatelessWidget {
                     children: [
                       DecoratedBox(
                           decoration: BoxDecoration(
-                              color: message.type == "text" ? bubbleDark : Colors.transparent,
+                              color: message.type == "text"
+                                  ? bubbleDark
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(30)),
                           position: DecorationPosition.background,
                           child: Padding(
@@ -51,7 +53,7 @@ class ReceiverMessage extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: SizedBox(
-                            height: 23,
+                            height: 30,
                             child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 physics: const BouncingScrollPhysics(),
@@ -81,7 +83,7 @@ class ReceiverMessage extends StatelessWidget {
                                                 "emoji": message
                                                     .reactions[index].emoji,
                                                 "id": message.id,
-                                                "to": message.to
+                                                "to": message.from
                                               });
                                               Provider.of<ConversationProvider>(
                                                       context,
@@ -109,7 +111,7 @@ class ReceiverMessage extends StatelessWidget {
                                                 "emoji": message
                                                     .reactions[index].emoji,
                                                 "id": message.id,
-                                                "to": message.to
+                                                "to": message.from
                                               });
                                               Provider.of<ConversationProvider>(
                                                       context,
@@ -237,13 +239,16 @@ class ReceiverMessage extends StatelessWidget {
       return FutureBuilder<String?>(
           future: const FlutterSecureStorage().read(key: 'access_token'),
           builder: (context, AsyncSnapshot<String?> snap) {
-        if (snap.hasData) {
-          return ClipRRect(borderRadius: BorderRadius.circular(12), child: VideoPreview(url: message.content, cookie: snap.data!));
-        } else {
-          return LoadingAnimationWidget.threeArchedCircle(
-              color: Colors.white, size: 30);
-        }
-      });
+            if (snap.hasData) {
+              return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      VideoPreview(url: message.content, cookie: snap.data!));
+            } else {
+              return LoadingAnimationWidget.threeArchedCircle(
+                  color: Colors.white, size: 30);
+            }
+          });
     }
   }
 }

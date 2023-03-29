@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.10"
+  app_tracking_transparency:
+    dependency: "direct main"
+    description:
+      name: app_tracking_transparency
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.3"
   archive:
     dependency: transitive
     description:

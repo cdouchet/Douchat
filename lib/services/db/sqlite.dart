@@ -17,12 +17,13 @@ class DouchatDBSQLite {
 
   void deleteGroupReaction(String messageId, String emoji) {
     db.rawDelete(
-        "DELETE FROM conversationReactions WHERE message = $messageId AND emoji = $emoji");
+        "DELETE FROM conversationReactions WHERE message = ? AND emoji = ?",
+        [messageId, emoji]);
   }
 
   void updateGroupReaction(List<String> ids, String messageId) {
-    db.rawUpdate(
-        "UPDATE groupReactions SET ids = ${jsonEncode(ids)} WHERE message = $messageId");
+    db.rawUpdate("UPDATE groupReactions SET ids = ? WHERE message = ?",
+        [jsonEncode(ids), messageId]);
   }
 
   void insertGroupReaction(MessageReaction reaction, String messageId) {
@@ -63,12 +64,13 @@ class DouchatDBSQLite {
 
   void deleteConversationReaction(String messageId, String emoji) {
     db.rawDelete(
-        "DELETE FROM conversationReactions WHERE message = $messageId AND emoji = $emoji");
+        "DELETE FROM conversationReactions WHERE message = ? AND emoji = ?",
+        [messageId, emoji]);
   }
 
   void updateConversationReaction(List<String> ids, String messageId) {
-    db.rawUpdate(
-        "UPDATE conversationReactions SET ids = ${jsonEncode(ids)} WHERE message = $messageId");
+    db.rawUpdate("UPDATE conversationReactions SET ids = ? WHERE message = ?",
+        [jsonEncode(ids), messageId]);
   }
 
   void insertConversationReaction(MessageReaction reaction, String messageId) {
@@ -279,9 +281,9 @@ class DouchatDBSQLite {
       """);
   }
 
-  initDb() async {
+  initDb(String id) async {
     var databasesPath = await getDatabasesPath();
-    String path = databasesPath + "/douchat.db";
+    String path = databasesPath + "/$id.db";
     db = await openDatabase(path, version: 1, onCreate: _createTables);
   }
 }

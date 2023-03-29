@@ -153,7 +153,7 @@ class _ConversationsAndGroupsState extends State<ConversationsAndGroups> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Aucune conversation. Taper l'icône en bas à gauche pour commencer",
+                            "Aucune conversation. Taper l'icône en bas à droite pour commencer",
                             textAlign: TextAlign.center,
                           )
                         ]),

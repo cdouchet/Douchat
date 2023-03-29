@@ -1,4 +1,6 @@
 PODS:
+  - app_tracking_transparency (0.0.1):
+    - Flutter
   - better_player (0.0.1):
     - Cache (~> 6.0.0)
     - Flutter
@@ -169,6 +171,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
   - better_player (from `.symlinks/plugins/better_player/ios`)
   - export_video_frame (from `.symlinks/plugins/export_video_frame/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -227,6 +230,8 @@ SPEC REPOS:
     - Toast
 
 EXTERNAL SOURCES:
+  app_tracking_transparency:
+    :path: ".symlinks/plugins/app_tracking_transparency/ios"
   better_player:
     :path: ".symlinks/plugins/better_player/ios"
   export_video_frame:
@@ -293,6 +298,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/workmanager/ios"
 
 SPEC CHECKSUMS:
+  app_tracking_transparency: 5b1745ef9ade815f7455cb6a0848349589afb7c5
   better_player: 2406bfe8175203c7a46fa15f9d778d73b12e1646
   Cache: 4ca7e00363fca5455f26534e5607634c820ffc2d
   export_video_frame: dbafa7c2b73a12ab277685634a3c90601abaed85
@@ -347,6 +353,6 @@ SPEC CHECKSUMS:
   wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f
   workmanager: 0afdcf5628bbde6924c21af7836fed07b42e30e6
 
-PODFILE CHECKSUM: 4e8f8b2be68aeea4c0d5beb6ff1e79fface1d048
+PODFILE CHECKSUM: aa7478eb1b7e889af4b325531b624821999b822d
 
 COCOAPODS: 1.11.3

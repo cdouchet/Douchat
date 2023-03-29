@@ -60,7 +60,7 @@ class GroupSenderMessage extends StatelessWidget {
                                 Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: SizedBox(
-                            height: 23,
+                            height: 30,
                             child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 reverse: true,
