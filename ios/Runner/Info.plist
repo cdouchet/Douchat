@@ -37,7 +37,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Nécessaire pour que Douchat télécharge des images et des vidéos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Nécessaire afin que vous puissiez télécharger vos images et vidéos vers Douchat</string>
+	<string>Autorisez Douchat à accéder à vos photos afin que vous puissiez les partager avec vos contacts ou changer votre photo de profil</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Douchat utilise votre identifiant de téléphone afin d'autoriser les notifications</string>
 	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>

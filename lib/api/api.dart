@@ -211,4 +211,14 @@ class Api {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({'email': email}));
   }
+
+  static Future<Response> deleteAccount(String password) async {
+    return await client.post(
+      Uri.parse("$baseUrl/deleteAccount"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(
+        {"password": password},
+      ),
+    );
+  }
 }

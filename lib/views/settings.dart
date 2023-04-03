@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:douchat3/api/api.dart';
 import 'package:douchat3/componants/shared/cached_image_with_cookie.dart';
+import 'package:douchat3/componants/shared/custom_text_field.dart';
 import 'package:douchat3/main.dart';
 import 'package:douchat3/providers/app_life_cycle_provider.dart';
 import 'package:douchat3/providers/client_provider.dart';
@@ -9,6 +10,8 @@ import 'package:douchat3/services/users/user_service.dart';
 import 'package:douchat3/themes/colors.dart';
 import 'package:douchat3/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_exit_app/flutter_exit_app.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +29,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool typing = false;
   final TextEditingController textEditingController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -90,7 +94,8 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     child: Container(
                         margin: const EdgeInsets.all(20),
                         child: Text(clientProvider.client.username,
-                            style: Theme.of(context).textTheme.headline4)))),
+                            style:
+                                Theme.of(context).textTheme.headlineMedium)))),
           ],
         ),
         Padding(
@@ -139,9 +144,98 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   padding: const EdgeInsets.only(right: 12),
                   child: Icon(Icons.email, color: Colors.white)),
               Text("Changer d'email")
-            ]))
+            ])),
+        Spacer(),
+        Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: ElevatedButton(
+              onPressed: () => _deleteAccount(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Icon(Icons.delete, color: Colors.white)),
+                  Text("Supprimer le compte")
+                ],
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: primary,
+                  elevation: 5.0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(45))),
+            ))
       ]),
     )));
+  }
+
+  _deleteAccount() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(30),
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Entrez votre mot de passe pour continuer"),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  CustomTextField(
+                    controller: passwordController,
+                    hint: "Password",
+                    onChanged: (_) {},
+                    inputAction: TextInputAction.done,
+                    hideCharacters: true,
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  ElevatedButton(
+                      child: Text('Supprimer'),
+                      onPressed: () {
+                        Api.deleteAccount(passwordController.text).then((res) {
+                          if (res.statusCode != 200) {
+                            Fluttertoast.showToast(
+                                msg: "Mauvais mot de passe",
+                                gravity: ToastGravity.BOTTOM);
+                            return;
+                          }
+                          Fluttertoast.showToast(
+                              msg: "Votre compte a bien été supprimé",
+                              gravity: ToastGravity.BOTTOM);
+                          Future.delayed(Duration(seconds: 3), () {
+                            FlutterExitApp.exitApp(iosForceExit: true);
+                          });
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          // elevation: 5.0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(45))))
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25),
+        ),
+      ),
+    ).then((value) {
+      passwordController.clear();
+    });
   }
 
   _changePhoto() {
@@ -210,7 +304,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                   hintText: 'Entrer une nouvelle email',
                                   hintStyle: Theme.of(context)
                                       .textTheme
-                                      .caption!
+                                      .bodySmall!
                                       .copyWith(
                                           color: Colors.white.withOpacity(0.1),
                                           fontSize: 24)),
@@ -222,7 +316,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               textAlignVertical: TextAlignVertical.center,
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white)),
@@ -271,7 +365,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                     hintText: 'Entrer un nouveau nom',
                                     hintStyle: Theme.of(context)
                                         .textTheme
-                                        .caption!
+                                        .bodySmall!
                                         .copyWith(
                                             color:
                                                 Colors.white.withOpacity(0.1),
@@ -284,7 +378,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                 textAlignVertical: TextAlignVertical.center,
                                 style: Theme.of(context)
                                     .textTheme
-                                    .bodyText1!
+                                    .bodyLarge!
                                     .copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white))
